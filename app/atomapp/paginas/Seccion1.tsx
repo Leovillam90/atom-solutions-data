@@ -4,14 +4,24 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 
 interface Seccion1Props {
-  variante?: string;
+  variante?: 'gridCyber' | 'spotlightCyan' | 'hexGrid' | 'default';
 }
 
-export default function Seccion1({}: Seccion1Props) {
+export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
   const [cargando, setCargando] = useState<boolean>(true);
 
+  // Mapeo de fondos estandarizados
+  const fondos: Record<string, string> = {
+    gridCyber: 'bg-[#070B14]',
+    spotlightCyan: 'bg-[#091A23]',
+    hexGrid: 'bg-[#070B14]',
+    default: 'bg-[#091A23]',
+  };
+
+  const bgClase = fondos[variante] || fondos.default;
+
   return (
-    <section className="relative z-10 w-full h-screen h-[100dvh] bg-[#070B14] flex flex-col overflow-hidden">
+    <section className={`relative z-10 w-full h-screen h-[100dvh] ${bgClase} flex flex-col overflow-hidden font-sans antialiased`}>
       
       {/* KEYFRAMES PARA EL NEÓN DEL ICONO Y EL BARRIDO DE LUZ DE LA LÍNEA */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -71,11 +81,11 @@ export default function Seccion1({}: Seccion1Props) {
       </header>
 
       {/* CONTENEDOR DEL IFRAME */}
-      <div className="relative z-10 flex-1 w-full h-full bg-[#070B14] overflow-hidden">
+      <div className={`relative z-10 flex-1 w-full h-full ${bgClase} overflow-hidden`}>
         
         {/* SPINNER DE CARGA */}
         {cargando && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#070B14] p-4 gap-4">
+          <div className={`absolute inset-0 z-20 flex flex-col items-center justify-center ${bgClase} p-4 gap-4`}>
             <div className="w-10 h-10 border-4 border-[#0DEDC0] border-t-transparent rounded-full animate-spin" />
             <p className="text-xs font-mono text-[#0DEDC0] tracking-widest uppercase text-center">
               Estableciendo enlace seguro con atomapp.com.co...

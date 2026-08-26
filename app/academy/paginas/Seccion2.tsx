@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Kicker, H2, Subtitulo, Highlight, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
+import { Kicker, H2, Subtitulo, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 
 interface Material {
@@ -123,67 +123,74 @@ export default function Seccion2({ variante = 'cyanSolidDots' }: Seccion2Props) 
   return (
     <section className="relative z-10 py-16 lg:py-24 px-6 overflow-hidden w-full border-t border-[#091A23]/20">
       
-      {/* CAPA DE FONDO VERDE CIAN CON PUNTOS (cyanSolidDots) */}
+      {/* CAPA DE FONDO VERDE CIAN CON PUNTOS */}
       <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center">
         
-        {/* CABECERA (Ajustada para máxima legibilidad en fondo claro) */}
+        {/* CABECERA (Textos en #091A23 sobre fondo brillante) */}
         <div className="text-center mb-12">
-          <Kicker className="!text-[#0F172A] !bg-transparent !border-transparent !p-0 text-xs font-semibold tracking-widest uppercase mb-3">
+          {/* ETIQUETA SUPERIOR */}
+          <Kicker className="!text-[#091A23] !bg-transparent !border-transparent !p-0 text-xs font-semibold tracking-widest uppercase mb-3">
             BIBLIOTECA & RECURSOS TÁCTICOS
           </Kicker>
 
-          <H2 className="text-balance mb-4 max-w-4xl mx-auto !text-[#020617] text-3xl sm:text-4xl lg:text-5xl font-bold">
-            Material de <Highlight className="!text-white !bg-[#090D16] px-3 py-1 rounded-lg shadow-sm">apoyo táctico.</Highlight>
+          {/* TÍTULO PRINCIPAL: Verde Oscuro ATOM (#091A23) */}
+          <H2 className="text-balance mb-4 max-w-4xl mx-auto !text-[#091A23] text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+            Material de apoyo táctico.
           </H2>
 
-          <Subtitulo className="max-w-3xl mx-auto !text-[#1D2935] text-base sm:text-lg font-medium">
+          {/* SUBTÍTULO */}
+          <Subtitulo className="max-w-3xl mx-auto !text-[#091A23] text-base sm:text-lg font-medium">
             Accede a la documentación técnica, guías de operación en PDF, simuladores web y tutoriales tácticos para tu bodega.
           </Subtitulo>
         </div>
 
-        {/* GRILLA DE RECURSOS (Tarjetas Oscuras de Alto Contraste sobre Fondo Claro) */}
+        {/* GRILLA DE RECURSOS (Cards oscuras con base verde ATOM #091A23) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
           {MATERIALES.map((doc) => (
             <div 
               key={doc.id}
-              className="group relative flex flex-col justify-between p-6 rounded-2xl bg-[#090D16] border border-slate-800 shadow-[0_15px_35px_rgba(9,13,22,0.4)] hover:border-[#0DEDC0] hover:shadow-[0_20px_40px_rgba(9,13,22,0.6)] hover:-translate-y-1 transition-all duration-300"
+              /* FONDO BASE DE TARJETA: #091A23 */
+              className="group relative flex flex-col justify-between p-6 rounded-2xl bg-[#091A23] border border-[#0DEDC0]/20 shadow-[0_15px_35px_rgba(9,26,35,0.4)] hover:border-[#0DEDC0] hover:shadow-[0_20px_40px_rgba(13,237,192,0.2)] hover:-translate-y-1 transition-all duration-300"
             >
               <div>
                 {/* ENCABEZADO TARJETA */}
                 <div className="flex items-center justify-between mb-4 gap-2">
                   <div className="flex items-center gap-2.5">
+                    {/* ICONO CON VERDE NEÓN ATOM (#0DEDC0) */}
                     <div className="w-9 h-9 rounded-lg bg-[#0DEDC0]/10 border border-[#0DEDC0]/30 flex items-center justify-center text-[#0DEDC0] group-hover:scale-105 group-hover:bg-[#0DEDC0] group-hover:text-[#091A23] transition-all duration-300 shrink-0">
                       {renderIconoTipo(doc.tipo)}
                     </div>
-                    <span className="text-slate-300 text-[11px] font-mono font-bold uppercase tracking-wider">
+                    <span className="text-[#94A3B8] text-[11px] font-mono font-bold uppercase tracking-wider">
                       {doc.categoria}
                     </span>
                   </div>
 
-                  <span className="text-[10px] font-mono font-bold text-[#0DEDC0] bg-[#0DEDC0]/10 px-2.5 py-1 rounded border border-[#0DEDC0]/20 shrink-0">
+                  {/* BADGE SUPERIOR EN VERDE NEÓN ATOM (#0DEDC0) */}
+                  <span className="text-[10px] font-mono font-bold text-[#0DEDC0] bg-[#0DEDC0]/10 px-2.5 py-1 rounded border border-[#0DEDC0]/30 shrink-0">
                     {doc.metaInfo}
                   </span>
                 </div>
 
-                {/* TÍTULO Y DESCRIPCIÓN */}
-                <h3 className="text-white font-bold text-base mb-2 group-hover:text-[#0DEDC0] transition-colors leading-snug">
+                {/* TÍTULO DENTRO DE TARJETA: Blanco Puro (#FFFFFF) */}
+                <h3 className="text-[#FFFFFF] font-bold text-base mb-2 group-hover:text-[#0DEDC0] transition-colors leading-snug">
                   {doc.titulo}
                 </h3>
 
-                <p className="text-slate-400 text-xs leading-relaxed mb-6 font-medium">
+                {/* DESCRIPCIÓN: Gris Claro Neutro (#94A3B8) */}
+                <p className="text-[#94A3B8] text-xs leading-relaxed mb-6 font-medium">
                   {doc.descripcion}
                 </p>
               </div>
 
-              {/* BOTÓN CIAN BRILLANTE */}
+              {/* BOTÓN CTA: Fondo Verde Neón ATOM (#0DEDC0), Texto Oscuro (#091A23) en Negrilla */}
               <a 
                 href={doc.urlDestino}
                 download={doc.esDescargaDirecta ? true : undefined}
                 target={doc.esDescargaDirecta ? '_self' : '_blank'}
                 rel="noopener noreferrer"
-                className={`w-full py-3.5 rounded-xl bg-[#0DEDC0] text-[#090D16] font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#25ffd3] hover:shadow-[0_0_20px_rgba(13,237,192,0.5)] transition-all duration-300 cursor-pointer ${ESTILOS_TEXTO.boton}`}
+                className={`w-full py-3.5 rounded-xl bg-[#0DEDC0] text-[#091A23] font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#25ffd3] hover:shadow-[0_0_20px_rgba(13,237,192,0.5)] transition-all duration-300 cursor-pointer ${ESTILOS_TEXTO.boton}`}
               >
                 {doc.textoBoton}
               </a>

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Fondos, { TipoFondo } from '../../complementos/Fondos';
-import { ESTILOS_TEXTO, Kicker } from '../../complementos/Tipografia';
+import { ESTILOS_TEXTO } from '../../complementos/Tipografia';
 
 interface MenuProps {
   variante?: TipoFondo;
@@ -15,9 +15,9 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
   const [herramientasMobileOpen, setHerramientasMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-[1000] border-b border-[#0DEDC0]/30 overflow-visible relative bg-[#091A23]">
+    <header className="sticky top-0 z-[1000] overflow-visible relative bg-[#091A23]">
       
-      {/* Animación Keyframes para el resplandor dinámico del botón */}
+      {/* KEYFRAMES PARA BOTÓN Y BARRIDO DE LUZ EN LA LÍNEA DIVISORIA */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes pulseActivar {
           0%, 100% {
@@ -29,8 +29,15 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
             transform: translateY(-2px);
           }
         }
+        @keyframes borderLightSweep {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
         .btn-activar-anim {
           animation: pulseActivar 2.5s infinite ease-in-out;
+        }
+        .animate-border-sweep {
+          animation: borderLightSweep 4s linear infinite;
         }
       ` }} />
 
@@ -39,12 +46,12 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
         <Fondos variante={variante} modo="absolute" />
       </div>
 
-      {/* BARRA DE NAVEGACIÓN PRINCIPAL (z-10) */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-2">
-        <div className="flex items-center justify-between lg:grid lg:grid-cols-12 lg:gap-4">
+      {/* BARRA DE NAVEGACIÓN PRINCIPAL (z-30 PARA QUEDAR POR ENCIMA DE LA LÍNEA) */}
+      <div className="relative z-30 max-w-7xl mx-auto px-4 sm:px-6 py-2">
+        <div className="flex items-center justify-between lg:flex lg:items-center lg:justify-between gap-4">
           
-          {/* LOGO */}
-          <div className="lg:col-span-3 flex items-center justify-start">
+          {/* LOGO (EXTREMO IZQUIERDO) */}
+          <div className="flex items-center justify-start shrink-0">
             <Link href="/" className="flex items-center gap-3.5 no-underline group">
               <img 
                 src="/logo-color.png" 
@@ -69,23 +76,25 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
             </Link>
           </div>
 
-          {/* NAVEGACIÓN DESKTOP: Inicio - Herramientas - Calculadora - ATOM Academy - Noticias - Soporte & FAQ */}
-          <nav className="hidden lg:flex lg:col-span-7 items-center justify-center gap-6 text-sm font-medium text-slate-200">
+          {/* NAVEGACIÓN DESKTOP */}
+          <nav className="hidden lg:flex flex-1 items-center justify-evenly max-w-4xl px-4 text-xs xl:text-sm font-medium text-slate-200">
             
             {/* 1. INICIO */}
-            <Link href="/" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap">
-              Inicio
-            </Link>
+            <div className="h-10 flex items-center justify-center">
+              <Link href="/" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap">
+                Inicio
+              </Link>
+            </div>
 
-            {/* 2. HERRAMIENTAS (PROVEEDORES / DROPSHIPPERS) */}
+            {/* 2. HERRAMIENTAS */}
             <div
-              className="relative"
+              className="relative h-10 flex items-center justify-center"
               onMouseEnter={() => setHerramientasOpen(true)}
               onMouseLeave={() => setHerramientasOpen(false)}
             >
               <button
                 type="button"
-                className="flex items-center gap-1.5 py-2 hover:text-[#0DEDC0] transition-colors outline-none cursor-pointer bg-transparent border-none whitespace-nowrap text-sm font-medium text-slate-200"
+                className="flex items-center gap-1 hover:text-[#0DEDC0] transition-colors outline-none cursor-pointer bg-transparent border-none whitespace-nowrap text-xs xl:text-sm font-medium text-slate-200"
               >
                 Herramientas
                 <svg 
@@ -103,15 +112,15 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
                 </svg>
               </button>
 
+              {/* CUADRO DESPLEGABLE (z-[9999] SOBRE LA NAVEGACIÓN) */}
               {herramientasOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 w-64 bg-[#091A23] border border-[#0DEDC0]/40 rounded-xl py-2 shadow-[0_15px_35px_rgba(0,0,0,0.8)] z-[9999]">
-                  
-                  {/* PROVEEDORES CON MENSAJE PRÓXIMAMENTE */}
-                  <div className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:bg-[#0DEDC0]/10 transition-all">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-64 bg-[#091A23] border border-[#0DEDC0]/40 rounded-xl py-2 shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-[9999]">
+                  {/* PROVEEDORES */}
+                  <div className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:bg-[#0DEDC0]/10 transition-all cursor-not-allowed">
                     <span>Proveedores</span>
-                    <Kicker className="!text-[9px] !mb-0 !text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-2 py-0.5 rounded-full">
+                    <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
                       Próximamente
-                    </Kicker>
+                    </span>
                   </div>
 
                   <div className="border-t border-slate-800 my-1"></div>
@@ -122,43 +131,52 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
                     className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:text-[#0DEDC0] hover:bg-[#0DEDC0]/10 transition-all"
                   >
                     <span>Dropshippers</span>
-                    <Kicker className="!text-[9px] !mb-0 !text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-2 py-0.5 rounded-full">
+                    <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
                       Próximamente
-                    </Kicker>
+                    </span>
                   </Link>
                 </div>
               )}
             </div>
 
-            {/* 3. CALCULADORA CON ETIQUETA NUEVO */}
-            <Link href="/calculadora" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap flex items-center gap-1.5 group">
-              <span>Calculadora</span>
-              <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse group-hover:scale-105 transition-transform">
-                NUEVO
-              </span>
-            </Link>
+            {/* 3. CALCULADORA */}
+            <div className="h-10 flex items-center justify-center">
+              <Link href="/calculadora" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap flex items-center gap-1.5 group">
+                <span>Calculadora</span>
+                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse group-hover:scale-105 transition-transform leading-none">
+                  NUEVO
+                </span>
+              </Link>
+            </div>
 
             {/* 4. ATOM ACADEMY */}
-            <Link href="/academy" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap">
-              ATOM Academy
-            </Link>
+            <div className="h-10 flex items-center justify-center">
+              <Link href="/academy" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap">
+                ATOM Academy
+              </Link>
+            </div>
 
             {/* 5. NOTICIAS */}
-            <Link href="/noticias" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap flex items-center gap-1.5 group">
-              <span>Noticias</span>
-              <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse group-hover:scale-105 transition-transform">
-                NUEVO
-              </span>
-            </Link>
+            <div className="h-10 flex items-center justify-center">
+              <Link href="/noticias" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap flex items-center gap-1.5 group">
+                <span>Noticias</span>
+                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse group-hover:scale-105 transition-transform leading-none">
+                  NUEVO
+                </span>
+              </Link>
+            </div>
 
             {/* 6. SOPORTE & FAQ */}
-            <Link href="/soporte" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap">
-              Soporte & FAQ
-            </Link>
+            <div className="h-10 flex items-center justify-center">
+              <Link href="/soporte" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap">
+                Soporte & FAQ
+              </Link>
+            </div>
+
           </nav>
 
-          {/* BOTÓN DE ACCIÓN DESKTOP -> APUNTA A /atomapp */}
-          <div className="hidden lg:flex lg:col-span-2 items-center justify-end">
+          {/* BOTÓN DE ACCIÓN DESKTOP */}
+          <div className="hidden lg:flex items-center justify-end shrink-0">
             <Link 
               href="/atomapp" 
               className={`btn-activar-anim flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-extrabold text-[#0DEDC0] bg-[#0DEDC0]/10 border border-[#0DEDC0]/40 hover:bg-[#0DEDC0]/20 hover:border-[#0DEDC0] transition-all duration-300 ${ESTILOS_TEXTO.boton}`}
@@ -191,11 +209,14 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
         </div>
       </div>
 
-      {/* MENÚ DESPLEGABLE MÓVIL ORDENADO */}
+      {/* LÍNEA DIVISORIA INFERIOR ANIMADA (z-10 PARA QUEDAR POR DEBAJO DEL DESPLEGABLE) */}
+      <div 
+        className="absolute bottom-0 inset-x-0 h-[2px] z-10 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep"
+      />
+
+      {/* MENÚ DESPLEGABLE MÓVIL */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#091A23] border-t border-[#0DEDC0]/20 px-6 py-5 flex flex-col gap-4 relative z-[9999]">
-          
-          {/* 1. INICIO MÓVIL */}
           <Link
             href="/"
             onClick={() => setMobileMenuOpen(false)}
@@ -204,7 +225,6 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
             Inicio
           </Link>
 
-          {/* 2. HERRAMIENTAS MÓVIL */}
           <div>
             <button
               type="button"
@@ -229,9 +249,9 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
               <div className="flex flex-col gap-3 pl-3 pt-3">
                 <div className="flex items-center justify-between text-slate-300 font-medium text-xs py-1">
                   <span>• Proveedores</span>
-                  <Kicker className="!text-[9px] !mb-0 !text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-2 py-0.5 rounded-full">
+                  <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
                     Próximamente
-                  </Kicker>
+                  </span>
                 </div>
 
                 <Link
@@ -240,27 +260,25 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
                   className="text-slate-300 font-medium text-xs flex items-center justify-between pt-1"
                 >
                   <span>• Dropshippers</span>
-                  <Kicker className="!text-[9px] !mb-0 !text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-2 py-0.5 rounded-full">
+                  <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
                     Próximamente
-                  </Kicker>
+                  </span>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* 3. CALCULADORA MÓVIL CON ETIQUETA NUEVO */}
           <Link
             href="/calculadora"
             onClick={() => setMobileMenuOpen(false)}
             className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between"
           >
             <span>Calculadora</span>
-            <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse">
+            <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse">
               NUEVO
             </span>
           </Link>
 
-          {/* 4. ATOM ACADEMY MÓVIL */}
           <Link
             href="/academy"
             onClick={() => setMobileMenuOpen(false)}
@@ -269,19 +287,17 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
             ATOM Academy
           </Link>
 
-          {/* 5. NOTICIAS MÓVIL */}
           <Link
             href="/noticias"
             onClick={() => setMobileMenuOpen(false)}
             className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between"
           >
             <span>Noticias</span>
-            <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse">
+            <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse">
               NUEVO
             </span>
           </Link>
 
-          {/* 6. SOPORTE & FAQ MÓVIL */}
           <Link
             href="/soporte"
             onClick={() => setMobileMenuOpen(false)}
@@ -290,7 +306,6 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
             Soporte & FAQ
           </Link>
 
-          {/* BOTÓN MÓVIL -> APUNTA A /atomapp */}
           <div className="flex flex-col gap-3 mt-2">
             <Link
               href="/atomapp"

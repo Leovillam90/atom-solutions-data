@@ -18,7 +18,6 @@ interface VideoLesson {
   badgeColor: string;
 }
 
-// ID de video temporal para todos las lecciones mientras subes los demás a YouTube
 const ID_VIDEO_TEMPORAL = 'feDbKxnh50k';
 
 const LESSONS: VideoLesson[] = [
@@ -40,7 +39,7 @@ const LESSONS: VideoLesson[] = [
     badge: 'Táctica Rápida',
     badgeColor: 'rgba(13, 237, 192, 0.12)',
     descripcion: 'Sincroniza tu cuenta en simples pasos y descubre exactamente dónde está la plata atrapada en tus guías.',
-    youtubeId: ID_VIDEO_TEMPORAL,
+    youtubeId: '2Wz4_tpgF6M',
   },
   {
     id: '2',
@@ -257,102 +256,126 @@ export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
           {videosFiltrados.map((lesson) => {
             const badgeStyle = getBadgeStyle(lesson.badge);
             const isCompleted = completedLessons.includes(lesson.id);
+            // CONDICIONAL DE ACTIVACIÓN: Solo las lecciones 0 y 1 están disponibles
+            const isAvailable = lesson.id === '0' || lesson.id === '1';
 
             return (
               <div 
                 key={lesson.id} 
                 className={`group relative flex flex-col justify-between rounded-2xl border backdrop-blur-md transition-all duration-300 overflow-hidden ${
                   isCompleted
-                    ? 'bg-[#0A202A]/70 border-[#0DEDC0]/60 shadow-[0_10px_25px_rgba(13,237,192,0.08)] hover:border-[#0DEDC0] hover:shadow-[0_20px_40px_rgba(13,237,192,0.22)]'
-                    : 'bg-[#102935]/60 border-[#6884C5]/20 hover:border-[#0DEDC0]/40 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(13,237,192,0.08)]'
-                } hover:-translate-y-1.5`}
+                    ? 'bg-[#0A202A]/70 border-[#0DEDC0]/60 shadow-[0_10px_25px_rgba(13,237,192,0.08)]'
+                    : 'bg-[#102935]/60 border-[#6884C5]/20'
+                } ${isAvailable ? 'hover:border-[#0DEDC0]/40 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(13,237,192,0.08)] hover:-translate-y-1.5' : ''}`}
               >
-                <div>
-                  {/* THUMBNAIL CONTAINER */}
-                  <div 
-                    className="relative aspect-video bg-[#091A23] flex items-center justify-center cursor-pointer overflow-hidden"
-                    onClick={() => setSelectedVideo(lesson)}
-                  >
-                    <img 
-                      src={`https://img.youtube.com/vi/${lesson.youtubeId}/hqdefault.jpg`} 
-                      alt={lesson.titulo}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-
-                    <div className="absolute inset-0 bg-[#091A23]/40 group-hover:bg-[#091A23]/20 transition-colors duration-300 z-10" />
-
-                    {isCompleted && (
-                      <span className="absolute top-3 right-3 bg-[#0DEDC0] text-[#0B171C] text-[10px] font-black font-mono uppercase tracking-wider px-2.5 py-1 rounded-full shadow-[0_0_15px_rgba(13,237,192,0.6)] z-20">
-                        ✓ VISTO
-                      </span>
-                    )}
-
-                    <div className="absolute w-12 h-12 rounded-full bg-[#0DEDC0]/20 border border-[#0DEDC0] text-[#0DEDC0] flex items-center justify-center shadow-[0_0_20px_rgba(13,237,192,0.4)] group-hover:scale-110 group-hover:bg-[#0DEDC0] group-hover:text-[#091A23] group-hover:shadow-[0_0_30px_rgba(13,237,192,0.7)] transition-all duration-300 z-20">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </div>
-
-                    <span className="absolute bottom-3 right-3 bg-[#091A23]/90 border border-white/15 text-slate-300 text-[11px] font-bold font-mono px-2 py-0.5 rounded backdrop-blur-md z-20">
-                      {lesson.duracion}
-                    </span>
-                  </div>
-
-                  {/* CONTENIDO DE LA TARJETA */}
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-extrabold text-[#6884C5] uppercase tracking-wider">
-                        {lesson.categoria}
-                      </span>
-                      
-                      <span 
-                        className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border flex items-center gap-1.5"
-                        style={{
-                          borderColor: badgeStyle.border,
-                          backgroundColor: badgeStyle.bg,
-                          color: badgeStyle.color
-                        }}
-                      >
-                        {renderBadgeIcon(lesson.badge)}
-                        {lesson.badge}
+                
+                {/* 1. OVERLAY DE PRÓXIMAMENTE (PARA LECCIONES 2 EN ADELANTE) */}
+                {!isAvailable && (
+                  <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#070B14]/85 backdrop-blur-[3px] p-6 text-center select-none">
+                    <div className="flex items-center gap-2 bg-[#6884C5]/20 border border-[#6884C5]/50 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(104,132,197,0.3)]">
+                      <div className="w-2 h-2 rounded-full bg-[#6884C5] animate-pulse" />
+                      <span className="text-xs font-mono font-bold text-slate-200 uppercase tracking-widest">
+                        Próximamente
                       </span>
                     </div>
-
-                    <h3 className="text-lg font-black text-white mb-2 leading-snug tracking-tight group-hover:text-[#0DEDC0] transition-colors">
-                      {lesson.titulo}
-                    </h3>
-                    
-                    <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium">
-                      {lesson.descripcion}
+                    <p className="text-[11px] font-mono text-slate-400 mt-3 max-w-[200px]">
+                      Lección en producción para ATOM 2.0
                     </p>
                   </div>
-                </div>
+                )}
 
-                {/* ACCIÓN INFERIOR */}
-                <div className="p-6 pt-0">
-                  <button 
-                    onClick={() => setSelectedVideo(lesson)} 
-                    className={`w-full py-3 rounded-xl font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
-                      isCompleted
-                        ? 'bg-[#0DEDC0]/10 border border-[#0DEDC0]/50 text-white hover:bg-[#0DEDC0] hover:text-[#0B171C] hover:shadow-[0_0_20px_rgba(13,237,192,0.4)]'
-                        : 'bg-[#6884C5]/10 border border-[#6884C5]/30 text-white hover:bg-[#0DEDC0] hover:text-[#091A23] hover:border-[#0DEDC0] hover:shadow-[0_0_20px_rgba(13,237,192,0.3)]'
-                    }`}
-                  >
-                    {isCompleted ? (
-                      <>
-                        <span className="text-[#0DEDC0] font-black group-hover:text-[#0B171C]">✓ COMPLETADA</span>
-                        <span className="opacity-40">•</span>
-                        <span>VOLVER A VER</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                {/* 2. ESTRUCTURA DE CONTENIDO DE LA TARJETA */}
+                <div className={`flex flex-col flex-1 justify-between transition-all duration-300 ${!isAvailable ? 'blur-[4px] opacity-30 select-none pointer-events-none' : ''}`}>
+                  
+                  <div>
+                    {/* THUMBNAIL CONTAINER */}
+                    <div 
+                      className="relative aspect-video bg-[#091A23] flex items-center justify-center cursor-pointer overflow-hidden"
+                      onClick={() => isAvailable && setSelectedVideo(lesson)}
+                    >
+                      <img 
+                        src={`https://img.youtube.com/vi/${lesson.youtubeId}/hqdefault.jpg`} 
+                        alt={lesson.titulo}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+
+                      <div className="absolute inset-0 bg-[#091A23]/40 group-hover:bg-[#091A23]/20 transition-colors duration-300 z-10" />
+
+                      {isCompleted && (
+                        <span className="absolute top-3 right-3 bg-[#0DEDC0] text-[#0B171C] text-[10px] font-black font-mono uppercase tracking-wider px-2.5 py-1 rounded-full shadow-[0_0_15px_rgba(13,237,192,0.6)] z-20">
+                          ✓ VISTO
+                        </span>
+                      )}
+
+                      <div className="absolute w-12 h-12 rounded-full bg-[#0DEDC0]/20 border border-[#0DEDC0] text-[#0DEDC0] flex items-center justify-center shadow-[0_0_20px_rgba(13,237,192,0.4)] group-hover:scale-110 group-hover:bg-[#0DEDC0] group-hover:text-[#091A23] group-hover:shadow-[0_0_30px_rgba(13,237,192,0.7)] transition-all duration-300 z-20">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M8 5v14l11-7z" />
                         </svg>
-                        REPRODUCIR LECCIÓN
-                      </>
-                    )}
-                  </button>
+                      </div>
+
+                      <span className="absolute bottom-3 right-3 bg-[#091A23]/90 border border-white/15 text-slate-300 text-[11px] font-bold font-mono px-2 py-0.5 rounded backdrop-blur-md z-20">
+                        {lesson.duracion}
+                      </span>
+                    </div>
+
+                    {/* DETALLES DE LA TARJETA */}
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-extrabold text-[#6884C5] uppercase tracking-wider">
+                          {lesson.categoria}
+                        </span>
+                        
+                        <span 
+                          className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border flex items-center gap-1.5"
+                          style={{
+                            borderColor: badgeStyle.border,
+                            backgroundColor: badgeStyle.bg,
+                            color: badgeStyle.color
+                          }}
+                        >
+                          {renderBadgeIcon(lesson.badge)}
+                          {lesson.badge}
+                        </span>
+                      </div>
+
+                      <h3 className="text-lg font-black text-white mb-2 leading-snug tracking-tight group-hover:text-[#0DEDC0] transition-colors">
+                        {lesson.titulo}
+                      </h3>
+                      
+                      <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium">
+                        {lesson.descripcion}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* ACCIÓN INFERIOR */}
+                  <div className="p-6 pt-0">
+                    <button 
+                      onClick={() => isAvailable && setSelectedVideo(lesson)} 
+                      disabled={!isAvailable}
+                      className={`w-full py-3 rounded-xl font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
+                        isCompleted
+                          ? 'bg-[#0DEDC0]/10 border border-[#0DEDC0]/50 text-white hover:bg-[#0DEDC0] hover:text-[#0B171C] hover:shadow-[0_0_20px_rgba(13,237,192,0.4)]'
+                          : 'bg-[#6884C5]/10 border border-[#6884C5]/30 text-white hover:bg-[#0DEDC0] hover:text-[#091A23] hover:border-[#0DEDC0] hover:shadow-[0_0_20px_rgba(13,237,192,0.3)]'
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <>
+                          <span className="text-[#0DEDC0] font-black group-hover:text-[#0B171C]">✓ COMPLETADA</span>
+                          <span className="opacity-40">•</span>
+                          <span>VOLVER A VER</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                          REPRODUCIR LECCIÓN
+                        </>
+                      )}
+                    </button>
+                  </div>
+
                 </div>
 
               </div>
