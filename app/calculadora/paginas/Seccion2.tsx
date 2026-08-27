@@ -1,6 +1,5 @@
-'use client';
-
 import React from 'react';
+import Link from 'next/link';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H2, Subtitulo, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 
@@ -8,7 +7,6 @@ interface Seccion2Props {
   variante?: TipoFondo;
 }
 
-// ⚠️ Asegúrate de tener "export default" aquí
 export default function Seccion2({ variante = 'darkNoise' }: Seccion2Props) {
   return (
     <section className="relative z-10 py-12 px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10 text-white no-print">
@@ -26,12 +24,12 @@ export default function Seccion2({ variante = 'darkNoise' }: Seccion2Props) {
             Accede a nuestros reportes del ecosistema E-Commerce, tendencias de fletes y tasas de devolución actualizadas.
           </Subtitulo>
 
-          <a
+          <Link
             href="/noticias"
             className={`inline-flex items-center justify-center gap-2 bg-[#0DEDC0] hover:bg-white text-[#102935] font-black px-8 py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(13,237,192,0.2)] ${ESTILOS_TEXTO.boton}`}
           >
             Explorar Noticias & Reportes
-          </a>
+          </Link>
         </div>
       </div>
     </section>

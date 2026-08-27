@@ -27,22 +27,32 @@ interface Seccion1Props {
   variante?: TipoFondo;
 }
 
+// HELPER DE FORMATEO GLOBAL (EVITA CREAR INSTANCIAS DE INTL EN CADA RENDER)
+const formatearMoneda = (monto: number, locale: string, moneda: string, simbolo: string) => {
+  const num = Number(monto) || 0;
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: moneda,
+      minimumFractionDigits: ['CLP', 'COP'].includes(moneda) ? 0 : 2,
+      maximumFractionDigits: ['CLP', 'COP'].includes(moneda) ? 0 : 2,
+    }).format(num);
+  } catch {
+    return `${simbolo} ${num.toLocaleString()}`;
+  }
+};
+
 export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
-  // CONFIGURACIÓN GEOGRÁFICA Y MODO (PRIMERO PROVEEDOR POR DEFECTO)
   const [paisSeleccionado, setPaisSeleccionado] = useState<PaisConfig>(PAISES_ATOM[0]);
   const [modoSeleccionado, setModoSeleccionado] = useState<ModoCalculadora>('PROVEEDOR');
 
-  // ==========================================
-  // INPUTS MODO 1: PROVEEDOR (Venta a Dropshippers)
-  // ==========================================
+  // INPUTS MODO 1: PROVEEDOR
   const [provCostoFabricacion, setProvCostoFabricacion] = useState<number>(12000);
   const [provGastosOperativos, setProvGastosOperativos] = useState<number>(3000);
   const [provPorcentajeDevoluciones, setProvPorcentajeDevoluciones] = useState<number>(15);
   const [provMargenDeseado, setProvMargenDeseado] = useState<number>(30);
 
-  // ==========================================
-  // INPUTS MODO 2: DROPSHIPPER (Venta al cliente final)
-  // ==========================================
+  // INPUTS MODO 2: DROPSHIPPER
   const [dropUnidades, setDropUnidades] = useState<number>(1);
   const [dropCostoProducto, setDropCostoProducto] = useState<number>(25000);
   const [dropFletePromedio, setDropFletePromedio] = useState<number>(16000);
@@ -50,24 +60,9 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
   const [dropTasaDevolucion, setDropTasaDevolucion] = useState<number>(20);
   const [dropMargenDeseado, setDropMargenDeseado] = useState<number>(25);
 
-  // FORMATO DE MONEDA
-  const formatoMoneda = (monto: number) => {
-    const num = Number(monto) || 0;
-    try {
-      return new Intl.NumberFormat(paisSeleccionado.locale, {
-        style: 'currency',
-        currency: paisSeleccionado.moneda,
-        minimumFractionDigits: ['CLP', 'COP'].includes(paisSeleccionado.moneda) ? 0 : 2,
-        maximumFractionDigits: ['CLP', 'COP'].includes(paisSeleccionado.moneda) ? 0 : 2,
-      }).format(num);
-    } catch {
-      return `${paisSeleccionado.simbolo} ${num.toLocaleString()}`;
-    }
-  };
+  const formatoMoneda = (monto: number) => 
+    formatearMoneda(monto, paisSeleccionado.locale, paisSeleccionado.moneda, paisSeleccionado.simbolo);
 
-  // ==========================================
-  // MATEMÁTICA PROVEEDOR
-  // ==========================================
   const metricasProveedor = useMemo(() => {
     const cFabricacion = Math.max(0, Number(provCostoFabricacion) || 0);
     const gOperativos = Math.max(0, Number(provGastosOperativos) || 0);
@@ -91,9 +86,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
     };
   }, [provCostoFabricacion, provGastosOperativos, provPorcentajeDevoluciones, provMargenDeseado]);
 
-  // ==========================================
-  // MATEMÁTICA DROPSHIPPER
-  // ==========================================
   const metricasDropshipper = useMemo(() => {
     const qty = Math.max(1, Number(dropUnidades) || 1);
     const cProducto = Math.max(0, Number(dropCostoProducto) || 0);
@@ -137,20 +129,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
   return (
     <section className="relative z-10 py-12 px-4 sm:px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10 text-white">
-      
-      {/* OCULTAR FLECHAS DE TODOS LOS CAMPOS NUMÉRICOS (SPINNERS) */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-          -webkit-appearance: none !important; 
-          margin: 0 !important; 
-        }
-        input[type=number] { 
-          -moz-appearance: textfield !important; 
-        }
-      ` }} />
-
-      {/* CAPA DE FONDO DINÁMICO */}
       <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-6xl mx-auto space-y-10">
@@ -167,7 +145,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
             </Subtitulo>
           </div>
 
-          {/* PAÍS / MONEDA */}
           <div className="bg-[#090D16] p-3.5 rounded-2xl border border-slate-800 shrink-0 w-full md:w-auto">
             <label className="block text-[10px] font-mono font-bold text-[#0DEDC0] uppercase mb-1">
               Moneda de Cálculo
@@ -189,7 +166,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
           </div>
         </div>
 
-        {/* TABS DE SELECCIÓN DE MODO: PRIMERO PROVEEDOR, LUEGO DROPSHIPPER */}
+        {/* SELECCIÓN DE MODO */}
         <div className="flex bg-[#090D16] p-1.5 rounded-2xl border border-slate-800 w-full max-w-md mx-auto relative z-20">
           <button
             type="button"
@@ -222,13 +199,10 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
           </button>
         </div>
 
-        {/* ========================================================================= */}
-        {/* VISTA 1: PROVEEDOR                                                        */}
-        {/* ========================================================================= */}
+        {/* VISTA 1: PROVEEDOR */}
         {modoSeleccionado === 'PROVEEDOR' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in-up">
             
-            {/* INPUTS PROVEEDOR */}
             <div className="lg:col-span-5 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
               <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-3">
                 1. Costos de Fabricación y Riesgo
@@ -291,7 +265,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               </div>
             </div>
 
-            {/* DIAGNÓSTICO FINANCIERO PROVEEDOR */}
             <div className="lg:col-span-7 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl">
               <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-3">
                 2. Fijación de Precio al Dropshipper
@@ -311,7 +284,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 </div>
               </div>
 
-              {/* PRECIO SUGERIDO PLATAFORMA */}
               <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-5 rounded-xl border-2 border-[#0DEDC0]/40 text-center space-y-1 shadow-[0_10px_30px_rgba(13,237,192,0.15)]">
                 <span className="text-xs font-mono text-slate-400 uppercase font-bold block">
                   Precio de Venta Sugerido en Plataforma
@@ -326,7 +298,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 </div>
               </div>
 
-              {/* ALERTA FINANCIERA CON ICONO 2D */}
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -342,19 +313,15 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* VISTA 2: DROPSHIPPER                                                      */}
-        {/* ========================================================================= */}
+        {/* VISTA 2: DROPSHIPPER */}
         {modoSeleccionado === 'DROPSHIPPER' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in-up">
             
-            {/* INPUTS DROPSHIPPER */}
             <div className="lg:col-span-5 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
               <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-3">
                 1. Costos Directos y Volumen
               </span>
 
-              {/* UNIDADES A VENDER */}
               <div className="bg-[#102935]/80 border border-[#0DEDC0]/40 p-3.5 rounded-xl">
                 <label className="block text-xs font-mono font-bold text-[#0DEDC0] uppercase mb-1 flex items-center">
                   <svg className="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -414,7 +381,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 />
               </div>
 
-              {/* TASA DE DEVOLUCIÓN ESTIMADA */}
               <div className="bg-red-900/20 border border-red-900/40 p-3.5 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-slate-300 mb-2">
                   <span className="text-red-400">% Devolución Estimada (Contra Entrega)</span>
@@ -430,7 +396,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 />
               </div>
 
-              {/* MARGEN DESEADO */}
               <div className="bg-[#102935]/60 border border-[#0DEDC0]/30 p-3.5 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-[#0DEDC0] mb-2">
                   <span>% Ganancia Neta Libre Deseada</span>
@@ -447,7 +412,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               </div>
             </div>
 
-            {/* DIAGNÓSTICO FINANCIERO DROPSHIPPER */}
             <div className="lg:col-span-7 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl">
               <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-3">
                 2. Resultado Recomendado ({metricasDropshipper.qty} {metricasDropshipper.qty === 1 ? 'Unidad' : 'Unidades'})
@@ -479,7 +443,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 </div>
               </div>
 
-              {/* PRECIO SUGERIDO AL CLIENTE FINAL */}
               <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-6 rounded-xl border-2 border-[#0DEDC0]/50 text-center space-y-2 shadow-[0_10px_30px_rgba(13,237,192,0.15)]">
                 <span className="text-xs font-mono text-slate-300 uppercase font-bold tracking-wider block">
                   VALOR SUGERIDO DE VENTA AL CLIENTE FINAL (POR UNIDAD)
@@ -495,7 +458,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 </div>
               </div>
 
-              {/* RESUMEN DE PROYECCIÓN EN VOLUMEN (SI QTY > 1) */}
               {metricasDropshipper.qty > 1 && (
                 <div className="bg-[#0DEDC0]/10 border border-[#0DEDC0]/30 p-4 rounded-xl space-y-2 font-mono">
                   <div className="flex justify-between items-center text-xs">
@@ -509,7 +471,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 </div>
               )}
 
-              {/* DESGLOSE MATEMÁTICO */}
               <div className="bg-[#102935]/40 p-4 rounded-xl border border-slate-800 space-y-2 text-xs font-mono">
                 <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
                   Desglose por unidad vendida ({formatoMoneda(metricasDropshipper.precioVentaSugeridoFinal)}):
@@ -536,7 +497,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 </div>
               </div>
 
-              {/* ALERTA FINANCIERA CON ICONO 2D */}
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">

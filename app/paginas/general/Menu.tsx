@@ -19,30 +19,6 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
   return (
     <header className="sticky top-0 z-[1000] overflow-visible relative bg-[#091A23]">
       
-      {/* KEYFRAMES PARA BOTÓN Y BARRIDO DE LUZ EN LA LÍNEA DIVISORIA */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes pulseActivar {
-          0%, 100% {
-            box-shadow: 0 0 12px rgba(13, 237, 192, 0.4);
-            transform: translateY(0);
-          }
-          50% {
-            box-shadow: 0 0 25px rgba(13, 237, 192, 0.85);
-            transform: translateY(-2px);
-          }
-        }
-        @keyframes borderLightSweep {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        .btn-activar-anim {
-          animation: pulseActivar 2.5s infinite ease-in-out;
-        }
-        .animate-border-sweep {
-          animation: borderLightSweep 4s linear infinite;
-        }
-      ` }} />
-
       {/* CAPA DE FONDO DINÁMICO */}
       <div className="absolute inset-0 z-0 pointer-events-none w-full h-full opacity-60 overflow-hidden">
         <Fondos variante={variante} modo="absolute" />
@@ -81,21 +57,19 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
           {/* NAVEGACIÓN DESKTOP */}
           <nav className="hidden lg:flex flex-1 items-center justify-evenly max-w-4xl px-4 text-xs xl:text-sm font-medium text-slate-200">
             
-            {/* 1. INICIO */}
             <div className="h-10 flex items-center justify-center">
               <Link href="/" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap">
                 Inicio
               </Link>
             </div>
 
-            {/* 2. SIMULADOR $ */}
             <div className="h-10 flex items-center justify-center">
               <Link href="/calculadora/basica" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap flex items-center gap-1.5 group">
-                <span>Simulador $</span>
+                <span>Calculadora</span>
               </Link>
             </div>
 
-            {/* 3. HERRAMIENTAS (MENÚ EN CASCADA / FLYOUT) */}
+            {/* HERRAMIENTAS */}
             <div
               className="relative h-10 flex items-center justify-center"
               onMouseEnter={() => setHerramientasOpen(true)}
@@ -121,22 +95,17 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
                 </svg>
               </button>
 
-              {/* NIVEL 1 CASCADA: MENÚ PRINCIPAL DE CATEGORÍAS */}
               {herramientasOpen && (
                 <div className="absolute top-full left-0 w-56 bg-[#091A23] border border-[#0DEDC0]/40 rounded-xl py-2 shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-[9999]">
                   
-                  {/* CATEGORÍA 1: PROVEEDORES (CASCADA NIVEL 2) */}
                   <div className="relative group/sub1">
                     <div className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:text-[#0DEDC0] hover:bg-[#0DEDC0]/10 transition-all cursor-pointer font-semibold">
-                      <span className="flex items-center gap-2">
-                        <span> </span> Proveedores
-                      </span>
+                      <span className="flex items-center gap-2">Proveedores</span>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <polyline points="9 18 15 12 9 6"></polyline>
                       </svg>
                     </div>
 
-                    {/* SUBMENÚ VOLANTE (FLYOUT DERECHA) */}
                     <div className="absolute left-full top-0 ml-1 w-64 bg-[#091A23] border border-[#0DEDC0]/40 rounded-xl py-2 shadow-[0_15px_35px_rgba(0,0,0,0.95)] hidden group-hover/sub1:block z-[10000]">
                       <div className="px-3 py-1.5 border-b border-slate-800 text-[10px] font-mono text-[#0DEDC0] font-bold uppercase tracking-wider">
                         Soluciones para Proveedores
@@ -168,18 +137,14 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
 
                   <div className="border-t border-slate-800 my-1"></div>
 
-                  {/* CATEGORÍA 2: DROPSHIPPERS (CASCADA NIVEL 2) */}
                   <div className="relative group/sub2">
                     <div className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:text-[#0DEDC0] hover:bg-[#0DEDC0]/10 transition-all cursor-pointer font-semibold">
-                      <span className="flex items-center gap-2">
-                        <span> </span> Dropshippers
-                      </span>
+                      <span className="flex items-center gap-2">Dropshippers</span>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <polyline points="9 18 15 12 9 6"></polyline>
                       </svg>
                     </div>
 
-                    {/* SUBMENÚ VOLANTE (FLYOUT DERECHA) */}
                     <div className="absolute left-full top-0 ml-1 w-60 bg-[#091A23] border border-[#0DEDC0]/40 rounded-xl py-2 shadow-[0_15px_35px_rgba(0,0,0,0.95)] hidden group-hover/sub2:block z-[10000]">
                       <div className="px-3 py-1.5 border-b border-slate-800 text-[10px] font-mono text-[#6884C5] font-bold uppercase tracking-wider">
                         Soluciones para Dropshippers
@@ -205,14 +170,12 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
               )}
             </div>
 
-            {/* 4. ATOM ACADEMY */}
             <div className="h-10 flex items-center justify-center">
               <Link href="/academy" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap">
                 ATOM Academy
               </Link>
             </div>
 
-            {/* 5. NOTICIAS */}
             <div className="h-10 flex items-center justify-center">
               <Link href="/noticias" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap flex items-center gap-1.5 group">
                 <span>Noticias</span>
@@ -222,7 +185,6 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
               </Link>
             </div>
 
-            {/* 6. SOPORTE & FAQ */}
             <div className="h-10 flex items-center justify-center">
               <Link href="/soporte" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap">
                 Soporte & FAQ
@@ -266,31 +228,16 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
       </div>
 
       {/* LÍNEA DIVISORIA INFERIOR ANIMADA */}
-      <div 
-        className="absolute bottom-0 inset-x-0 h-[2px] z-10 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep"
-      />
+      <div className="absolute bottom-0 inset-x-0 h-[2px] z-10 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep" />
 
-      {/* MENÚ DESPLEGABLE MÓVIL EN ACORDEÓN CASCADA */}
+      {/* MENÚ DESPLEGABLE MÓVIL */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#091A23] border-t border-[#0DEDC0]/20 px-6 py-5 flex flex-col gap-4 relative z-[9999]">
-          
-          <Link
-            href="/"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0]"
-          >
-            Inicio
-          </Link>
-
-          <Link
-            href="/calculadora/basica"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between"
-          >
+          <Link href="/" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0]">Inicio</Link>
+          <Link href="/calculadora/basica" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between">
             <span>Simulador $</span>
           </Link>
 
-          {/* HERRAMIENTAS ACORDEÓN MÓVIL */}
           <div>
             <button
               type="button"
@@ -313,8 +260,6 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
 
             {herramientasMobileOpen && (
               <div className="flex flex-col pl-3 pt-3 gap-3 pb-2 border-b border-white/5">
-                
-                {/* SUB-ACORDEÓN: PROVEEDORES */}
                 <div className="bg-[#102935]/50 p-3 rounded-xl border border-slate-800 space-y-2">
                   <button
                     type="button"
@@ -327,34 +272,18 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
 
                   {proveedoresMobileOpen && (
                     <div className="flex flex-col gap-2.5 pt-2 pl-2 border-t border-slate-800">
-                      <Link
-                        href="/calculadora"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="text-slate-200 font-medium text-xs flex items-center justify-between"
-                      >
+                      <Link href="/calculadora" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-medium text-xs flex items-center justify-between">
                         <span>Calculadora Avanzada</span>
-                        <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23]">
-                          NUEVO
-                        </span>
+                        <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23]">NUEVO</span>
                       </Link>
-
-                      <a
-                        href="https://lobostock.vercel.app/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="text-slate-200 font-medium text-xs flex items-center justify-between"
-                      >
+                      <a href="https://lobostock.vercel.app/" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-medium text-xs flex items-center justify-between">
                         <span>LoboStock</span>
-                        <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23]">
-                          NUEVO
-                        </span>
+                        <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23]">NUEVO</span>
                       </a>
                     </div>
                   )}
                 </div>
 
-                {/* SUB-ACORDEÓN: DROPSHIPPERS */}
                 <div className="bg-[#102935]/50 p-3 rounded-xl border border-slate-800 space-y-2">
                   <button
                     type="button"
@@ -369,44 +298,21 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
                     <div className="flex flex-col gap-2 pt-2 pl-2 border-t border-slate-800">
                       <div className="text-slate-400 font-medium text-xs flex items-center justify-between">
                         <span>Auditoría de Envíos</span>
-                        <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
-                          Próximamente
-                        </span>
+                        <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">Próximamente</span>
                       </div>
                     </div>
                   )}
                 </div>
-
               </div>
             )}
           </div>
 
-          <Link
-            href="/academy"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0]"
-          >
-            ATOM Academy
-          </Link>
-
-          <Link
-            href="/noticias"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between"
-          >
+          <Link href="/academy" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0]">ATOM Academy</Link>
+          <Link href="/noticias" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between">
             <span>Noticias</span>
-            <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse">
-              NUEVO
-            </span>
+            <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse">NUEVO</span>
           </Link>
-
-          <Link
-            href="/soporte"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0]"
-          >
-            Soporte & FAQ
-          </Link>
+          <Link href="/soporte" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0]">Soporte & FAQ</Link>
 
           <div className="flex flex-col gap-3 mt-2">
             <Link

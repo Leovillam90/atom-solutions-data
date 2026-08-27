@@ -1,8 +1,5 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
-// Importaciones globales con alias @/
 import { Kicker, H2, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 
@@ -10,20 +7,18 @@ interface Seccion1SoporteProps {
   variante?: TipoFondo;
 }
 
-export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProps) {
-  const calendarUrl = 'https://calendar.google.com/calendar/appointments/schedules/AcZssZ1NLADoKo98JZGZMrlOPGvfIDoFwBklUgysMkLBhFl4YFhxruab4t-0ijwVyiPkHTt3CBUDtiFo?gv=true';
-  const waNumeroOperativo = '573122521130';
-  const msgOperativo = encodeURIComponent('Hola, necesito soporte operativo para mi bodega');
+// CONSTANTES ESTÁTICAS FUERA DEL RENDER
+const CALENDAR_URL = 'https://calendar.google.com/calendar/appointments/schedules/AcZssZ1NLADoKo98JZGZMrlOPGvfIDoFwBklUgysMkLBhFl4YFhxruab4t-0ijwVyiPkHTt3CBUDtiFo?gv=true';
+const WA_NUMERO_OPERATIVO = '573122521130';
+const MSG_OPERATIVO = encodeURIComponent('Hola, necesito soporte operativo para mi bodega');
+const WA_URL_OPERATIVO = `https://wa.me/${WA_NUMERO_OPERATIVO}?text=${MSG_OPERATIVO}`;
 
+export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProps) {
   return (
     <section className="relative z-10 py-16 lg:py-20 px-6 overflow-hidden border-b border-[#0DEDC0]/10">
-      
-      {/* CAPA DE FONDO DINÁMICO */}
       <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center text-center">
-        
-        {/* ENCABEZADO */}
         <Kicker>SOPORTE & ESTRATEGIA</Kicker>
 
         <H2 className="text-balance mb-4 max-w-4xl">
@@ -34,12 +29,11 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProp
           Conecta directamente con nuestro Equipo ATOM para blindar tu operación, o accede a nuestra base táctica para destrabar cualquier fricción logística en segundos.
         </Subtitulo>
 
-        {/* GRID DE TARJETAS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl text-left">
           
-          {/* TARJETA 1: ÉLITE */}
+          {/* TARJETA 1 */}
           <a
-            href={calendarUrl}
+            href={CALENDAR_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="group relative flex flex-col justify-between p-6 rounded-2xl bg-gradient-to-b from-[#102935]/80 to-[#0B171C]/95 border border-[#0DEDC0]/50 backdrop-blur-xl shadow-[0_10px_30px_rgba(13,237,192,0.15)] hover:-translate-y-1.5 hover:border-[#0DEDC0] hover:shadow-[0_20px_40px_rgba(0,0,0,0.6),0_0_40px_rgba(13,237,192,0.3)] transition-all duration-300 overflow-hidden"
@@ -79,9 +73,9 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProp
             </div>
           </a>
 
-          {/* TARJETA 2: WHATSAPP */}
+          {/* TARJETA 2 */}
           <a
-            href={`https://wa.me/${waNumeroOperativo}?text=${msgOperativo}`}
+            href={WA_URL_OPERATIVO}
             target="_blank"
             rel="noopener noreferrer"
             className="group flex flex-col justify-between p-6 rounded-2xl bg-[#102935]/45 border border-[#6884C5]/25 backdrop-blur-xl hover:-translate-y-1.5 hover:border-[#0DEDC0]/50 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(13,237,192,0.12)] transition-all duration-300"
@@ -113,7 +107,7 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProp
             </div>
           </a>
 
-          {/* TARJETA 3: ACADEMIA */}
+          {/* TARJETA 3 */}
           <Link
             href="/academy"
             className="group flex flex-col justify-between p-6 rounded-2xl bg-[#102935]/45 border border-[#6884C5]/25 backdrop-blur-xl hover:-translate-y-1.5 hover:border-[#0DEDC0]/50 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(13,237,192,0.12)] transition-all duration-300"
@@ -147,7 +141,6 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProp
           </Link>
 
         </div>
-
       </div>
     </section>
   );

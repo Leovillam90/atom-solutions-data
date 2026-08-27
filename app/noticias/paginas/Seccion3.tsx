@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H2, Subtitulo, Highlight, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
@@ -15,42 +13,17 @@ export default function Seccion3({
 }: Seccion3Props) {
   return (
     <section className="relative z-10 py-16 lg:py-24 px-6 overflow-hidden w-full border-t border-[#0DEDC0]/10">
-      {/* CAPA DE FONDO DINÁMICO */}
       <Fondos variante={variante} modo="absolute" />
-
-      {/* ESTILOS Y ANIMACIONES CSS PARA EL BORDE MULTICOLOR ROTATIVO */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes borderRotate {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        .animated-border-gradient {
-          position: absolute;
-          inset: -250%;
-          background: conic-gradient(
-            from 0deg,
-            #0DEDC0,
-            #1877F2,
-            #8B5CF6,
-            #CB1FDA,
-            #0DEDC0
-          );
-          animation: borderRotate 6s linear infinite;
-        }
-      ` }} />
 
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center">
         
-        {/* ENVOLTURA DEL MARCO ANIMADO */}
         <div className="w-full relative rounded-3xl p-[2px] overflow-hidden shadow-[0_0_50px_rgba(13,237,192,0.25)] group hover:shadow-[0_0_80px_rgba(13,237,192,0.45)] transition-shadow duration-500">
           
-          {/* FONDO ROTATIVO QUE FORMA EL BORDE DELGADO ANIMADO */}
+          {/* MARCO ROTATIVO USANDO CLASE GLOBAL GPU */}
           <div className="animated-border-gradient opacity-80 group-hover:opacity-100 transition-opacity" />
 
-          {/* BANNER INTERNO DE LA COMUNIDAD (TAPA EL INTERIOR DEL MARCO) */}
           <div className="w-full relative bg-[#0B151E]/90 backdrop-blur-xl rounded-[22px] p-8 sm:p-14 text-center overflow-hidden z-10">
             
-            {/* LUZ DE RESPLANDOR AMBIENTAL SUPERIOR */}
             <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[350px] h-[150px] bg-gradient-to-r from-[#0DEDC0]/20 via-[#8B5CF6]/20 to-[#CB1FDA]/20 rounded-full blur-3xl pointer-events-none" />
 
             <Kicker>COMUNIDAD EXCLUSIVA</Kicker>

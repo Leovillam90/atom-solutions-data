@@ -1,11 +1,18 @@
 import React from 'react';
+import type { Metadata, Viewport } from 'next';
 import Menu from './paginas/general/Menu';
 import Contacto from './paginas/general/Contacto';
 import './globals.css';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'ATOM Solutions Data - Centro de Mando Operativo',
   description: 'Sistema de auditoría y control financiero para proveedores.',
+};
+
+export const viewport: Viewport = {
+  themeColor: '#091A23',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -14,16 +21,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
+    <html lang="es" className="scroll-smooth">
       <body className="bg-[#091A23] text-white antialiased m-0 p-0">
         
-        {/* 1. Menú con su propio fondo independiente */}
+        {/* 1. Menú principal */}
         <Menu variante="spotlightCyan" />
 
-        {/* 2. El contenido central de las páginas */}
+        {/* 2. Contenedor semántico principal único */}
         <main>{children}</main>
         
-        {/* 3. Footer de Contacto con su propio fondo independiente */}
+        {/* 3. Pie de página de Contacto */}
         <Contacto variante="spotlightCyan" />
 
       </body>

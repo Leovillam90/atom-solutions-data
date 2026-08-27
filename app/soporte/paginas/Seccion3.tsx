@@ -8,41 +8,26 @@ interface Seccion3Props {
   variante?: TipoFondo;
 }
 
+// VALORES ESTÁTICOS FUERA DEL COMPONENTE
+const WA_RETENCION = '573138712634';
+const MSG_RETENCION = encodeURIComponent('Hola, quiero evaluar mi plan y recibir una asesoría antes de desconectar mi cuenta.');
+const WA_RETENCION_URL = `https://wa.me/${WA_RETENCION}?text=${MSG_RETENCION}`;
+
+const MAIL_SUBJECT = encodeURIComponent('Cancelación de mi cuenta ATOM');
+const MAIL_BODY = encodeURIComponent(
+  `Correo de la cuenta ATOM:\nNombre del titular de la proveeduría:\nPlan actual:\nMotivo de la cancelación:`
+);
+const MAILTO_URL = `mailto:info@atomsolutionsdata.com?subject=${MAIL_SUBJECT}&body=${MAIL_BODY}`;
+
 export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
-  // ESTADO PARA MANEJAR EL DESPLEGABLE
   const [isDesplegado, setIsDesplegado] = useState(false);
-
-  // CONTACTO PARA RETENCIÓN (WhatsApp)
-  const waRetencion = '573138712634';
-  const msgRetencion = encodeURIComponent('Hola, quiero evaluar mi plan y recibir una asesoría antes de desconectar mi cuenta.');
-
-  // PLANTILLA MAILTO CANCELACIÓN
-  const mailSubject = encodeURIComponent('Cancelación de mi cuenta ATOM');
-  const mailBody = encodeURIComponent(
-    `Correo de la cuenta ATOM:\nNombre del titular de la proveeduría:\nPlan actual:\nMotivo de la cancelación:`
-  );
-  const mailToUrl = `mailto:info@atomsolutionsdata.com?subject=${mailSubject}&body=${mailBody}`;
 
   return (
     <section className="relative z-10 py-12 px-6 overflow-hidden w-full">
-      {/* CAPA DE FONDO DINÁMICO */}
       <Fondos variante={variante} modo="absolute" />
-
-      {/* ESTILOS Y ANIMACIONES */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes pulseRescue {
-          0% { box-shadow: 0 0 0 0 rgba(13, 237, 192, 0.4); }
-          70% { box-shadow: 0 0 0 10px rgba(13, 237, 192, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(13, 237, 192, 0); }
-        }
-        .btn-rescue-solid {
-          animation: pulseRescue 2.5s infinite;
-        }
-      ` }} />
 
       <div className="relative z-10 max-w-5xl mx-auto flex flex-col items-center">
         
-        {/* BOTÓN DESPLEGABLE PRINCIPAL */}
         <button
           type="button"
           onClick={() => setIsDesplegado(!isDesplegado)}
@@ -76,15 +61,12 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
           </svg>
         </button>
 
-        {/* CONTENIDO DESPLEGABLE */}
         {isDesplegado && (
           <div className="w-full mt-6 transition-all duration-500 animate-fadeIn">
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#14181C]/90 to-[#0B0F14]/95 p-6 sm:p-10 lg:p-12 border border-red-500/30 shadow-[0_30px_60px_rgba(0,0,0,0.6),inset_0_0_60px_rgba(239,68,68,0.04)] backdrop-blur-xl">
               
-              {/* TEXTURA TÁCTICA ROJA */}
               <div className="absolute inset-0 opacity-5 bg-[linear-gradient(#EF4444_1px,transparent_1px),linear-gradient(90deg,#EF4444_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0" />
 
-              {/* ENCABEZADO DE ZONA CRÍTICA */}
               <div className="relative z-10 flex items-center gap-4 mb-7">
                 <div className="w-12 h-12 bg-red-500/10 border border-red-500/50 rounded-2xl flex items-center justify-center text-red-500 shrink-0 shadow-[inset_0_0_15px_rgba(239,68,68,0.2)]">
                   <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -104,7 +86,6 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
                 </div>
               </div>
 
-              {/* ALERTA ROJA (Bloque Crítico) */}
               <div className="relative z-10 bg-red-950/20 border-l-4 border-red-500 border-r border-t border-b border-red-500/20 rounded-r-2xl rounded-l-md p-5 mb-7 flex gap-4 items-start">
                 <div className="w-7 h-7 rounded-lg bg-red-500/15 flex items-center justify-center text-red-500 shrink-0 mt-0.5">
                   <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
@@ -125,7 +106,6 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
                 Para solicitar la desvinculación definitiva de tus bodegas y la purga de tus datos de la plataforma, debes enviar un comando vía correo electrónico con la siguiente estructura:
               </p>
 
-              {/* PLANTILLA DE CORREO (Estilo Terminal) */}
               <div className="relative z-10 bg-[#050B0E] border border-[#0DEDC0]/20 rounded-xl p-5 mb-8 font-mono text-xs sm:text-sm shadow-[inset_0_4px_10px_rgba(0,0,0,0.5)]">
                 <div className="text-[#6884C5] font-semibold mb-1">
                   <span className="text-slate-600">&gt; Destinatario:</span> info@atomsolutionsdata.com
@@ -141,19 +121,15 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
                 </div>
               </div>
 
-              {/* BOTONES Y ACCIONES DE RETENCIÓN */}
               <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 border-t border-white/10 pt-7">
                 
                 <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-sm text-center lg:text-left">
                   El entorno operativo se apagará en un plazo de <strong className="text-slate-300">5 días hábiles</strong> tras la validación de seguridad.
                 </p>
 
-                {/* GRILLA DE ACCIONES SIMÉTRICAS */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full lg:w-auto min-w-[320px] sm:min-w-[440px]">
-                  
-                  {/* BOTÓN SALVAVIDAS (WhatsApp Estratega) */}
                   <a
-                    href={`https://wa.me/${waRetencion}?text=${msgRetencion}`}
+                    href={WA_RETENCION_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`btn-rescue-solid w-full py-3.5 px-5 bg-[#0DEDC0] hover:bg-white text-[#091A23] border border-[#0DEDC0] text-xs font-black rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_10px_25px_rgba(13,237,192,0.3)] hover:-translate-y-0.5 cursor-pointer uppercase tracking-wider text-center ${ESTILOS_TEXTO.boton}`}
@@ -164,15 +140,13 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
                     </svg>
                   </a>
 
-                  {/* BOTÓN CANCELACIÓN (Ghost Email) */}
                   <a
-                    href={mailToUrl}
+                    href={MAILTO_URL}
                     rel="noopener noreferrer"
                     className={`w-full py-3.5 px-5 bg-transparent hover:bg-red-500/15 text-red-400 hover:text-white border border-red-500/40 hover:border-red-500 text-xs font-black rounded-xl transition-all duration-300 flex items-center justify-center text-center hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] cursor-pointer uppercase tracking-wider ${ESTILOS_TEXTO.boton}`}
                   >
                     Iniciar Desconexión
                   </a>
-
                 </div>
               </div>
 

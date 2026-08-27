@@ -5,13 +5,6 @@
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -24,3 +17,97 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ========================================== */
+/* OPTIMIZACIONES DE RENDIMIENTO - SAGITARIO  */
+/* ========================================== */
+
+/* 1. Barrido de luz continuo sobre degradados cian */
+@keyframes borderLightSweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-border-sweep {
+  animation: borderLightSweep 4s linear infinite;
+}
+
+/* 2. Pulsación suave del botón principal sin colapsar capas */
+@keyframes pulseActivar {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(13, 237, 192, 0.4);
+    transform: translateY(0);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(13, 237, 192, 0.85);
+    transform: translateY(-2px);
+  }
+}
+
+.btn-activar-anim {
+  animation: pulseActivar 2.5s infinite ease-in-out;
+}
+
+/* 3. Marquee continuo de países en hardware GPU */
+@keyframes marqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  animation: marqueeScroll 30s linear infinite;
+  will-change: transform;
+}
+
+.marquee-container:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes pulseRescue {
+  0% { box-shadow: 0 0 0 0 rgba(13, 237, 192, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(13, 237, 192, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(13, 237, 192, 0); }
+}
+
+.btn-rescue-solid {
+  animation: pulseRescue 2.5s infinite;
+}
+
+/* Animación de borde multicolor rotativo para Seccion3 (Comunidad) */
+@keyframes borderRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animated-border-gradient {
+  position: absolute;
+  inset: -250%;
+  background: conic-gradient(
+    from 0deg,
+    #0DEDC0,
+    #1877F2,
+    #8B5CF6,
+    #CB1FDA,
+    #0DEDC0
+  );
+  animation: borderRotate 6s linear infinite;
+  will-change: transform;
+}
+
+/* Animación Neón Pulsante para el Icono del Portal ATOM */
+@keyframes neonGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px #0DEDC0) drop-shadow(0 0 12px rgba(13, 237, 192, 0.6));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px #0DEDC0) drop-shadow(0 0 24px rgba(13, 237, 192, 0.9));
+    transform: scale(1.08);
+  }
+}
+
+.animate-neon-pulse {
+  animation: neonGlow 2.5s infinite ease-in-out;
+  will-change: transform, filter;
+}
+
+

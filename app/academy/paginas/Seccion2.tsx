@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { Kicker, H2, Subtitulo, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
@@ -74,91 +72,82 @@ const MATERIALES: Material[] = [
   },
 ];
 
+const renderIconoTipo = (tipo: Material['tipo']) => {
+  switch (tipo) {
+    case 'WEB':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0DEDC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+      );
+    case 'VIDEO':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0DEDC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+      );
+    case 'EXCEL':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0DEDC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <path d="M8 13h8"></path>
+          <path d="M8 17h8"></path>
+          <path d="M10 9h4"></path>
+        </svg>
+      );
+    case 'PDF':
+    default:
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0DEDC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      );
+  }
+};
+
 interface Seccion2Props {
   variante?: TipoFondo;
 }
 
 export default function Seccion2({ variante = 'cyanSolidDots' }: Seccion2Props) {
-
-  const renderIconoTipo = (tipo: Material['tipo']) => {
-    switch (tipo) {
-      case 'WEB':
-        return (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0DEDC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
-        );
-      case 'VIDEO':
-        return (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0DEDC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-        );
-      case 'EXCEL':
-        return (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0DEDC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <path d="M8 13h8"></path>
-            <path d="M8 17h8"></path>
-            <path d="M10 9h4"></path>
-          </svg>
-        );
-      case 'PDF':
-      default:
-        return (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0DEDC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-          </svg>
-        );
-    }
-  };
-
   return (
     <section className="relative z-10 py-16 lg:py-24 px-6 overflow-hidden w-full border-t border-[#091A23]/20">
-      
-      {/* CAPA DE FONDO VERDE CIAN CON PUNTOS */}
       <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center">
         
-        {/* CABECERA (Textos en #091A23 sobre fondo brillante) */}
+        {/* CABECERA CON TIPOGRAFÍA ESTANDARIZADA */}
         <div className="text-center mb-12">
-          {/* ETIQUETA SUPERIOR */}
-          <Kicker className="!text-[#091A23] !bg-transparent !border-transparent !p-0 text-xs font-semibold tracking-widest uppercase mb-3">
+          <Kicker className="!text-[#091A23] mb-3">
             BIBLIOTECA & RECURSOS TÁCTICOS
           </Kicker>
 
-          {/* TÍTULO PRINCIPAL: Verde Oscuro ATOM (#091A23) */}
-          <H2 className="text-balance mb-4 max-w-4xl mx-auto !text-[#091A23] text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+          <H2 className="text-balance mb-4 max-w-4xl mx-auto !text-[#091A23]">
             Material de apoyo táctico.
           </H2>
 
-          {/* SUBTÍTULO */}
-          <Subtitulo className="max-w-3xl mx-auto !text-[#091A23] text-base sm:text-lg font-medium">
+          <Subtitulo className="max-w-3xl mx-auto !text-[#091A23]">
             Accede a la documentación técnica, guías de operación en PDF, simuladores web y tutoriales tácticos para tu bodega.
           </Subtitulo>
         </div>
 
-        {/* GRILLA DE RECURSOS (Cards oscuras con base verde ATOM #091A23) */}
+        {/* GRILLA DE RECURSOS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
           {MATERIALES.map((doc) => (
             <div 
               key={doc.id}
-              /* FONDO BASE DE TARJETA: #091A23 */
               className="group relative flex flex-col justify-between p-6 rounded-2xl bg-[#091A23] border border-[#0DEDC0]/20 shadow-[0_15px_35px_rgba(9,26,35,0.4)] hover:border-[#0DEDC0] hover:shadow-[0_20px_40px_rgba(13,237,192,0.2)] hover:-translate-y-1 transition-all duration-300"
             >
               <div>
-                {/* ENCABEZADO TARJETA */}
                 <div className="flex items-center justify-between mb-4 gap-2">
                   <div className="flex items-center gap-2.5">
-                    {/* ICONO CON VERDE NEÓN ATOM (#0DEDC0) */}
                     <div className="w-9 h-9 rounded-lg bg-[#0DEDC0]/10 border border-[#0DEDC0]/30 flex items-center justify-center text-[#0DEDC0] group-hover:scale-105 group-hover:bg-[#0DEDC0] group-hover:text-[#091A23] transition-all duration-300 shrink-0">
                       {renderIconoTipo(doc.tipo)}
                     </div>
@@ -167,24 +156,20 @@ export default function Seccion2({ variante = 'cyanSolidDots' }: Seccion2Props) 
                     </span>
                   </div>
 
-                  {/* BADGE SUPERIOR EN VERDE NEÓN ATOM (#0DEDC0) */}
                   <span className="text-[10px] font-mono font-bold text-[#0DEDC0] bg-[#0DEDC0]/10 px-2.5 py-1 rounded border border-[#0DEDC0]/30 shrink-0">
                     {doc.metaInfo}
                   </span>
                 </div>
 
-                {/* TÍTULO DENTRO DE TARJETA: Blanco Puro (#FFFFFF) */}
                 <h3 className="text-[#FFFFFF] font-bold text-base mb-2 group-hover:text-[#0DEDC0] transition-colors leading-snug">
                   {doc.titulo}
                 </h3>
 
-                {/* DESCRIPCIÓN: Gris Claro Neutro (#94A3B8) */}
                 <p className="text-[#94A3B8] text-xs leading-relaxed mb-6 font-medium">
                   {doc.descripcion}
                 </p>
               </div>
 
-              {/* BOTÓN CTA: Fondo Verde Neón ATOM (#0DEDC0), Texto Oscuro (#091A23) en Negrilla */}
               <a 
                 href={doc.urlDestino}
                 download={doc.esDescargaDirecta ? true : undefined}

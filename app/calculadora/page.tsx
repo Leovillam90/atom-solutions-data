@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/app/lib/firebase';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '@/app/lib/firebase';
 import Registro from '@/app/complementos/Registro';
 import Seccion1 from './paginas/Seccion1';
 import Seccion2 from './paginas/Seccion2';
@@ -12,34 +13,94 @@ export default function CalculadoraPage() {
   const [cargando, setCargando] = useState<boolean>(true);
 
   useEffect(() => {
-    // Escucha la sesión de Firebase y verifica el acceso en localStorage
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      const registroLocal = localStorage.getItem('atom_user_registered') === 'true';
+    // Función de consulta directa a Firestore
+    const verificarAccesoEnFirestore = async (uid?: string, identificador?: string) => {
+      try {
+        // 1. Intento por ID directo de documento en usuarios
+        if (uid) {
+          const userSnap = await getDoc(doc(db, 'usuarios', uid));
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            if (data.estadoCuenta === true || data.estadoCuenta === 'activo') {
+              return true;
+            }
+          }
+        }
 
-      if (user && registroLocal) {
+        // 2. Si no encuentra por ID, busca por correo electrónico registrado
+        if (identificador && identificador.includes('@')) {
+          const q = query(
+            collection(db, 'usuarios'), 
+            where('correo', '==', identificador.toLowerCase().trim())
+          );
+          const querySnap = await getDocs(q);
+          if (!querySnap.empty) {
+            const data = querySnap.docs[0].data();
+            if (data.estadoCuenta === true || data.estadoCuenta === 'activo') {
+              return true;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error al verificar cuenta en Firestore:', error);
+      }
+      return false;
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      let tieneAccesoValido = false;
+
+      // Leer sesión guardada en localStorage
+      const sessionData = localStorage.getItem('atom_session');
+      let sessionObj: { id?: string; identificador?: string; expiry?: string } | null = null;
+
+      if (sessionData) {
+        try {
+          sessionObj = JSON.parse(sessionData);
+          // Verificar expiración (5 días)
+          if (sessionObj?.expiry && new Date().getTime() > parseInt(sessionObj.expiry)) {
+            localStorage.removeItem('atom_session');
+            sessionObj = null;
+          }
+        } catch (e) {
+          localStorage.removeItem('atom_session');
+        }
+      }
+
+      const targetUid = user?.uid || sessionObj?.id;
+      const targetIdentificador = user?.email || sessionObj?.identificador;
+
+      if (targetUid || targetIdentificador) {
+        // Verificación asíncrona contra la base de datos de Firestore
+        tieneAccesoValido = await verificarAccesoEnFirestore(targetUid, targetIdentificador);
+      }
+
+      if (tieneAccesoValido) {
         setAutenticado(true);
       } else {
+        localStorage.removeItem('atom_session');
         setAutenticado(false);
       }
+
       setCargando(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  // Spinner mientras se verifica la sesión inicial
+  // Pantalla de carga mientras consulta Firestore
   if (cargando) {
     return (
       <div className="min-h-screen bg-[#070B14] flex flex-col items-center justify-center gap-3">
         <div className="w-10 h-10 border-4 border-[#0DEDC0] border-t-transparent rounded-full animate-spin" />
         <span className="text-xs font-mono text-[#0DEDC0] uppercase tracking-widest">
-          Verificando credenciales...
+          Validando registro en Firestore...
         </span>
       </div>
     );
   }
 
-  // Si NO está autenticado, muestra el formulario de Registro/SMS
+  // Si no está registrado en Firestore, muestra el formulario de Registro/Login
   if (!autenticado) {
     return (
       <Registro 
@@ -49,11 +110,11 @@ export default function CalculadoraPage() {
     );
   }
 
-  // Si YA está autenticado, muestra la calculadora completa
+  // Si la cuenta existe en Firestore, abre la Calculadora Avanzada
   return (
-    <main className="min-h-screen bg-[#0B171C] text-white relative">
+    <div className="min-h-screen bg-[#0B171C] text-white relative">
       <Seccion1 variante="hexGrid" />
       <Seccion2 variante="hexGrid" />
-    </main>
+    </div>
   );
 }

@@ -15,10 +15,18 @@ interface VideoLesson {
   descripcion: string;
   youtubeId: string;
   badge: BadgeTipo;
-  badgeColor: string;
 }
 
 const ID_VIDEO_TEMPORAL = 'feDbKxnh50k';
+
+// DATA ESTÁTICA EN MEMORIA GLOBAL
+const CATEGORIAS: string[] = ['Todas', 'Integraciones', 'Financieras', 'Operaciones', 'Estrategias'];
+
+const BADGE_STYLES: Record<BadgeTipo, { color: string; border: string; bg: string }> = {
+  'Táctica Rápida': { color: '#0DEDC0', border: 'rgba(13, 237, 192, 0.3)', bg: 'rgba(13, 237, 192, 0.08)' },
+  'Alta Rentabilidad': { color: '#CB1FDA', border: 'rgba(203, 31, 218, 0.3)', bg: 'rgba(203, 31, 218, 0.08)' },
+  'Nivel Experto': { color: '#6884C5', border: 'rgba(104, 132, 197, 0.3)', bg: 'rgba(104, 132, 197, 0.08)' },
+};
 
 const LESSONS: VideoLesson[] = [
   {
@@ -27,7 +35,6 @@ const LESSONS: VideoLesson[] = [
     duracion: '00:40',
     categoria: 'Integraciones',
     badge: 'Táctica Rápida',
-    badgeColor: 'rgba(13, 237, 192, 0.12)',
     descripcion: 'Descubre en 40 segundos cómo ATOM se conecta a tu cuenta de Dropi para auditar cada guía en tiempo real, frenar la fuga de fletes y convertir el caos operativo de tu bodega en rentabilidad pura.',
     youtubeId: ID_VIDEO_TEMPORAL,
   },
@@ -37,7 +44,6 @@ const LESSONS: VideoLesson[] = [
     duracion: '01:04',
     categoria: 'Integraciones',
     badge: 'Táctica Rápida',
-    badgeColor: 'rgba(13, 237, 192, 0.12)',
     descripcion: 'Sincroniza tu cuenta en simples pasos y descubre exactamente dónde está la plata atrapada en tus guías.',
     youtubeId: '2Wz4_tpgF6M',
   },
@@ -47,7 +53,6 @@ const LESSONS: VideoLesson[] = [
     duracion: '02:20',
     categoria: 'Financieras',
     badge: 'Alta Rentabilidad',
-    badgeColor: 'rgba(203, 31, 218, 0.12)',
     descripcion: 'Mide la efectividad exacta de tu operación. Identifica qué transportadoras te están cumpliendo y optimiza tu logística.',
     youtubeId: ID_VIDEO_TEMPORAL,
   },
@@ -57,7 +62,6 @@ const LESSONS: VideoLesson[] = [
     duracion: '02:10',
     categoria: 'Financieras',
     badge: 'Nivel Experto',
-    badgeColor: 'rgba(104, 132, 197, 0.15)',
     descripcion: 'Audita el rendimiento real de las transportadoras, detecta cuellos de botella al instante y frena las fugas de dinero.',
     youtubeId: ID_VIDEO_TEMPORAL,
   },
@@ -67,7 +71,6 @@ const LESSONS: VideoLesson[] = [
     duracion: '02:05',
     categoria: 'Operaciones',
     badge: 'Táctica Rápida',
-    badgeColor: 'rgba(13, 237, 192, 0.12)',
     descripcion: 'El historial exacto de tus despachos. Supervisa el estado real de cada envío sin depender de reportes manuales.',
     youtubeId: ID_VIDEO_TEMPORAL,
   },
@@ -77,7 +80,6 @@ const LESSONS: VideoLesson[] = [
     duracion: '02:30',
     categoria: 'Operaciones',
     badge: 'Alta Rentabilidad',
-    badgeColor: 'rgba(203, 31, 218, 0.12)',
     descripcion: 'Analiza el rendimiento exacto de tu inventario. Descubre qué productos te dejan utilidad real y cuáles generan pérdidas.',
     youtubeId: ID_VIDEO_TEMPORAL,
   },
@@ -87,7 +89,6 @@ const LESSONS: VideoLesson[] = [
     duracion: '02:00',
     categoria: 'Operaciones',
     badge: 'Nivel Experto',
-    badgeColor: 'rgba(104, 132, 197, 0.15)',
     descripcion: 'Mide el rendimiento real de tus aliados comerciales. Detecta quiénes impulsan tu facturación y quiénes te cuestan dinero.',
     youtubeId: ID_VIDEO_TEMPORAL,
   },
@@ -97,7 +98,6 @@ const LESSONS: VideoLesson[] = [
     duracion: '02:00',
     categoria: 'Operaciones',
     badge: 'Alta Rentabilidad',
-    badgeColor: 'rgba(203, 31, 218, 0.12)',
     descripcion: 'Compara tiempos y rendimiento de cada empresa de transporte para tomar decisiones basadas en datos reales.',
     youtubeId: ID_VIDEO_TEMPORAL,
   },
@@ -107,7 +107,6 @@ const LESSONS: VideoLesson[] = [
     duracion: '04:00',
     categoria: 'Estrategias',
     badge: 'Nivel Experto',
-    badgeColor: 'rgba(104, 132, 197, 0.15)',
     descripcion: 'Convierte tus datos en dinero. Ejecuta planes de acción precisos para reducir tu tasa de devoluciones y blindar tu margen.',
     youtubeId: ID_VIDEO_TEMPORAL,
   },
@@ -117,11 +116,32 @@ const LESSONS: VideoLesson[] = [
     duracion: '04:00',
     categoria: 'Estrategias',
     badge: 'Nivel Experto',
-    badgeColor: 'rgba(104, 132, 197, 0.15)',
     descripcion: 'Aplica tácticas avanzadas para rotar inventario a máxima velocidad y hacer que los mejores dropshippers vendan por ti.',
     youtubeId: ID_VIDEO_TEMPORAL,
   },
 ];
+
+const renderBadgeIcon = (badge: BadgeTipo) => {
+  if (badge === 'Táctica Rápida') {
+    return (
+      <svg width="12" height="12" fill="none" stroke="#0DEDC0" viewBox="0 0 24 24" strokeWidth="2.5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    );
+  }
+  if (badge === 'Alta Rentabilidad') {
+    return (
+      <svg width="12" height="12" fill="none" stroke="#CB1FDA" viewBox="0 0 24 24" strokeWidth="2.5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="12" height="12" fill="none" stroke="#6884C5" viewBox="0 0 24 24" strokeWidth="2.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  );
+};
 
 interface Seccion1Props {
   variante?: TipoFondo;
@@ -162,7 +182,7 @@ export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
           }
         }
       } catch (e) {
-        // Ignorar mensajes no compatibles
+        // Ignorar mensajes irrelevantes
       }
     };
 
@@ -170,55 +190,17 @@ export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
     return () => window.removeEventListener('message', handleMessage);
   }, [selectedVideo, completedLessons]);
 
-  const categorias: string[] = ['Todas', 'Integraciones', 'Financieras', 'Operaciones', 'Estrategias'];
-
   const videosFiltrados = categoriaActiva === 'Todas' 
     ? LESSONS 
     : LESSONS.filter(v => v.categoria === categoriaActiva);
 
-  const getBadgeStyle = (badge: BadgeTipo) => {
-    switch (badge) {
-      case 'Táctica Rápida':
-        return { color: '#0DEDC0', border: 'rgba(13, 237, 192, 0.3)', bg: 'rgba(13, 237, 192, 0.08)' };
-      case 'Alta Rentabilidad':
-        return { color: '#CB1FDA', border: 'rgba(203, 31, 218, 0.3)', bg: 'rgba(203, 31, 218, 0.08)' };
-      case 'Nivel Experto':
-      default:
-        return { color: '#6884C5', border: 'rgba(104, 132, 197, 0.3)', bg: 'rgba(104, 132, 197, 0.08)' };
-    }
-  };
-
-  const renderBadgeIcon = (badge: BadgeTipo) => {
-    if (badge === 'Táctica Rápida') {
-      return (
-        <svg width="12" height="12" fill="none" stroke="#0DEDC0" viewBox="0 0 24 24" strokeWidth="2.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-      );
-    }
-    if (badge === 'Alta Rentabilidad') {
-      return (
-        <svg width="12" height="12" fill="none" stroke="#CB1FDA" viewBox="0 0 24 24" strokeWidth="2.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      );
-    }
-    return (
-      <svg width="12" height="12" fill="none" stroke="#6884C5" viewBox="0 0 24 24" strokeWidth="2.5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
-    );
-  };
-
   return (
     <section className="relative z-10 py-16 lg:py-24 px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10">
-      {/* CAPA DE FONDO DINÁMICO */}
       <Fondos variante={variante} modo="absolute" />
 
-      {/* CONTENEDOR PRINCIPAL */}
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center">
         
-        {/* CABECERA DE LA SECCIÓN */}
+        {/* CABECERA */}
         <div className="text-center mb-12">
           <Kicker>CENTRO DE ENTRENAMIENTO TÁCTICO</Kicker>
 
@@ -233,7 +215,7 @@ export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
 
         {/* FILTROS DE CATEGORÍA */}
         <div className="flex flex-wrap justify-center gap-3 mb-12 w-full">
-          {categorias.map((cat) => {
+          {CATEGORIAS.map((cat) => {
             const isActive = categoriaActiva === cat;
             return (
               <button
@@ -251,12 +233,11 @@ export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
           })}
         </div>
 
-        {/* GRILLA DE LECCIONES EN PANTALLA */}
+        {/* GRILLA DE LECCIONES */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
           {videosFiltrados.map((lesson) => {
-            const badgeStyle = getBadgeStyle(lesson.badge);
+            const badgeStyle = BADGE_STYLES[lesson.badge];
             const isCompleted = completedLessons.includes(lesson.id);
-            // CONDICIONAL DE ACTIVACIÓN: Solo las lecciones 0 y 1 están disponibles
             const isAvailable = lesson.id === '0' || lesson.id === '1';
 
             return (
@@ -269,7 +250,6 @@ export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
                 } ${isAvailable ? 'hover:border-[#0DEDC0]/40 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(13,237,192,0.08)] hover:-translate-y-1.5' : ''}`}
               >
                 
-                {/* 1. OVERLAY DE PRÓXIMAMENTE (PARA LECCIONES 2 EN ADELANTE) */}
                 {!isAvailable && (
                   <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#070B14]/85 backdrop-blur-[3px] p-6 text-center select-none">
                     <div className="flex items-center gap-2 bg-[#6884C5]/20 border border-[#6884C5]/50 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(104,132,197,0.3)]">
@@ -284,11 +264,9 @@ export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
                   </div>
                 )}
 
-                {/* 2. ESTRUCTURA DE CONTENIDO DE LA TARJETA */}
                 <div className={`flex flex-col flex-1 justify-between transition-all duration-300 ${!isAvailable ? 'blur-[4px] opacity-30 select-none pointer-events-none' : ''}`}>
                   
                   <div>
-                    {/* THUMBNAIL CONTAINER */}
                     <div 
                       className="relative aspect-video bg-[#091A23] flex items-center justify-center cursor-pointer overflow-hidden"
                       onClick={() => isAvailable && setSelectedVideo(lesson)}
@@ -296,6 +274,8 @@ export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
                       <img 
                         src={`https://img.youtube.com/vi/${lesson.youtubeId}/hqdefault.jpg`} 
                         alt={lesson.titulo}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
 
@@ -318,7 +298,6 @@ export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
                       </span>
                     </div>
 
-                    {/* DETALLES DE LA TARJETA */}
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-extrabold text-[#6884C5] uppercase tracking-wider">
@@ -348,7 +327,6 @@ export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
                     </div>
                   </div>
 
-                  {/* ACCIÓN INFERIOR */}
                   <div className="p-6 pt-0">
                     <button 
                       onClick={() => isAvailable && setSelectedVideo(lesson)} 

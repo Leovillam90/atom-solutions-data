@@ -29,12 +29,25 @@ interface Seccion1Props {
   variante?: TipoFondo;
 }
 
+// HELPER DE FORMATEO GLOBAL DESACOPLADO DEL RENDER
+const formatearMoneda = (monto: number, locale: string, moneda: string, simbolo: string) => {
+  const num = Number(monto) || 0;
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: moneda,
+      minimumFractionDigits: ['CLP', 'COP'].includes(moneda) ? 0 : 2,
+      maximumFractionDigits: ['CLP', 'COP'].includes(moneda) ? 0 : 2,
+    }).format(num);
+  } catch {
+    return `${simbolo} ${num.toLocaleString()}`;
+  }
+};
+
 export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
   const [paisSeleccionado, setPaisSeleccionado] = useState<PaisConfig>(PAISES_ATOM[0]);
 
-  // ==========================================
   // INPUTS PASO 1: COSTOS BODEGA Y FRICCIÓN
-  // ==========================================
   const [costoFabricacion, setCostoFabricacion] = useState<number>(15000);
   const [costoEmpaque, setCostoEmpaque] = useState<number>(2000);
   const [costoLogisticaInversa, setCostoLogisticaInversa] = useState<number>(0); 
@@ -44,14 +57,10 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
   const [impactoFiscal, setImpactoFiscal] = useState<number>(PAISES_ATOM[0].impuestoDefault);
   const [margenDeseado, setMargenDeseado] = useState<number>(30);
 
-  // ==========================================
   // SELECCIÓN DE ESCENARIO PASO 2 -> PASO 3
-  // ==========================================
   const [escenarioSeleccionado, setEscenarioSeleccionado] = useState<EscenarioTipo>('OBJETIVO');
 
-  // ==========================================
   // INPUTS PASO 3: PROPUESTA COMERCIAL
-  // ==========================================
   const [nombreProveedor, setNombreProveedor] = useState<string>(''); 
   const [nombreProducto, setNombreProducto] = useState<string>('Producto Estrella');
   const [skuProducto, setSkuProducto] = useState<string>('SKU-1001');
@@ -59,24 +68,9 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
   const [comisionDropExtra, setComisionDropExtra] = useState<number>(5);
   const [opcionPropuestaSeleccionada, setOpcionPropuestaSeleccionada] = useState<OpcionPropuestaTipo>('OPCION2');
 
-  // FORMATO DE MONEDA
-  const formatoMoneda = (monto: number) => {
-    const num = Number(monto) || 0;
-    try {
-      return new Intl.NumberFormat(paisSeleccionado.locale, {
-        style: 'currency',
-        currency: paisSeleccionado.moneda,
-        minimumFractionDigits: ['CLP', 'COP'].includes(paisSeleccionado.moneda) ? 0 : 2,
-        maximumFractionDigits: ['CLP', 'COP'].includes(paisSeleccionado.moneda) ? 0 : 2,
-      }).format(num);
-    } catch {
-      return `${paisSeleccionado.simbolo} ${num.toLocaleString()}`;
-    }
-  };
+  const formatoMoneda = (monto: number) => 
+    formatearMoneda(monto, paisSeleccionado.locale, paisSeleccionado.moneda, paisSeleccionado.simbolo);
 
-  // ==========================================
-  // MATEMÁTICA FINANCIERA CORPORATIVA (PRICING)
-  // ==========================================
   const metricas = useMemo(() => {
     const cFab = Math.max(0, Number(costoFabricacion));
     const cEmp = Math.max(0, Number(costoEmpaque));
@@ -145,7 +139,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
     const comisionOp2 = precioNetoOp2 * pctComisionExtra;
     const gananciaNetaOp2 = precioNetoOp2 * margenActivo;
 
-    // --- TOTALES LOTE ---
     const totalVentasOp1 = activo.precioCatalogo * qty;
     const totalComisionOp1 = comisionOp1 * qty;
     const totalGananciaOp1 = gananciaNetaOp1 * qty;
@@ -171,9 +164,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
     porcentajeDevoluciones, porcentajeMermas, unidadesProyectadas, comisionDropExtra, escenarioSeleccionado
   ]);
 
-  // ==========================================
-  // ENVÍO WHATSAPP (ÚNICA OPCIÓN AHORA)
-  // ==========================================
   const enviarPorWhatsapp = () => {
     const esOp1 = opcionPropuestaSeleccionada === 'OPCION1';
     const precioElegido = esOp1 ? metricas.activo.precioCatalogo : metricas.precioCatalogoOp2;
@@ -202,12 +192,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
   return (
     <section className="relative z-10 py-12 px-4 sm:px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10 text-white">
-      <style dangerouslySetInnerHTML={{ __html: `
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none !important; margin: 0 !important; }
-        input[type=number] { -moz-appearance: textfield !important; }
-      ` }} />
-
       <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-7xl mx-auto space-y-12">
@@ -248,9 +232,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
           </div>
         </div>
 
-        {/* ========================================================= */}
-        {/* SECCIÓN 1: ESTRUCTURA FINANCIERA BASE                     */}
-        {/* ========================================================= */}
+        {/* SECCIÓN 1: ESTRUCTURA FINANCIERA BASE */}
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0DEDC0]/20 to-[#0DEDC0]/5 border border-[#0DEDC0]/40 text-[#0DEDC0] font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(13,237,192,0.2)] shrink-0">
@@ -263,7 +245,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            {/* COSTOS DIRECTOS */}
             <div className="bg-[#090D16] p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full transition-transform hover:-translate-y-1">
               <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-2">
                 Costos de Producción
@@ -284,7 +265,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               </div>
             </div>
 
-            {/* FRICCIÓN LOGÍSTICA PISOS REALES */}
             <div className="bg-[#090D16] p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full transition-transform hover:-translate-y-1">
               <span className="text-xs font-mono font-bold text-red-400 uppercase tracking-wider block border-b border-slate-800 pb-2">
                 Provisión Fricción Logística COD
@@ -318,7 +298,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               </div>
             </div>
 
-            {/* MARGEN Y FISCAL */}
             <div className="bg-[#090D16] p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full transition-transform hover:-translate-y-1">
               <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-2">
                 Objetivo de Rentabilidad & Fiscal
@@ -341,9 +320,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
           </div>
         </div>
 
-        {/* ========================================================= */}
-        {/* SECCIÓN 2: ANÁLISIS DE SENSIBILIDAD B2B (4 ESCENARIOS)   */}
-        {/* ========================================================= */}
+        {/* SECCIÓN 2: ANÁLISIS DE SENSIBILIDAD B2B */}
         <div className="space-y-6 pt-6 relative">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0DEDC0]/20 to-[#0DEDC0]/5 border border-[#0DEDC0]/40 text-[#0DEDC0] font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(13,237,192,0.2)] shrink-0">
@@ -362,7 +339,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
             
-            {/* ESCENARIO 1: PÉSIMO */}
             <div 
               onClick={() => setEscenarioSeleccionado('PESIMO')}
               className={`relative bg-[#1A0B12] rounded-2xl p-5 overflow-hidden shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
@@ -398,7 +374,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               </div>
             </div>
 
-            {/* ESCENARIO 2: FAVORABLE */}
             <div 
               onClick={() => setEscenarioSeleccionado('FAVORABLE')}
               className={`relative bg-[#0F2330] rounded-2xl p-5 overflow-hidden shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
@@ -434,7 +409,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               </div>
             </div>
 
-            {/* ESCENARIO 3: ÓPTIMO */}
             <div 
               onClick={() => setEscenarioSeleccionado('OPTIMO')}
               className={`relative bg-[#0B1A14] rounded-2xl p-5 overflow-hidden shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
@@ -470,7 +444,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               </div>
             </div>
 
-            {/* ESCENARIO 4: OBJETIVO (RECOMENDADO FINANCIERO) */}
             <div 
               onClick={() => setEscenarioSeleccionado('OBJETIVO')}
               className={`relative bg-gradient-to-b from-[#0F2633] to-[#0A1A24] rounded-2xl p-5 overflow-hidden shadow-[0_10px_40px_rgba(13,237,192,0.15)] flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
@@ -513,9 +486,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
           </div>
         </div>
 
-        {/* ========================================================= */}
-        {/* SECCIÓN 3: CREADOR DE PROPUESTA COMERCIAL B2B             */}
-        {/* ========================================================= */}
+        {/* SECCIÓN 3: CREADOR DE PROPUESTA COMERCIAL B2B */}
         <div className="space-y-8 pt-10 relative">
           
           <div className="flex items-center gap-4">
@@ -582,7 +553,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* OPCIÓN A */}
               <div 
                 onClick={() => setOpcionPropuestaSeleccionada('OPCION1')}
                 className={`p-5 rounded-2xl transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
@@ -611,7 +581,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 </div>
               </div>
 
-              {/* OPCIÓN B */}
               <div 
                 onClick={() => setOpcionPropuestaSeleccionada('OPCION2')}
                 className={`p-5 rounded-2xl transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
@@ -641,7 +610,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               </div>
             </div>
 
-            {/* PANEL DE LIQUIDACIÓN TOTAL DEL LOTE PROYECTADO */}
             <div className="bg-gradient-to-r from-[#0F2633] via-[#0A1A24] to-[#090D16] p-6 rounded-2xl border-2 border-[#0DEDC0]/40 shadow-2xl space-y-4 mt-6">
               <div className="flex justify-between items-center border-b border-[#0DEDC0]/20 pb-3 flex-wrap gap-2">
                 <span className="text-xs font-mono font-black uppercase text-[#0DEDC0] tracking-wider">

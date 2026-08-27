@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
-import { Kicker, H2, Subtitulo, Highlight, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
+import { H2, Subtitulo, Highlight, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 
 interface RegistroProps {
   onLoginSuccess: () => void;
@@ -22,37 +22,31 @@ interface RegistroProps {
 export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: RegistroProps) {
   const [modo, setModo] = useState<'registro' | 'login'>('login');
 
-  // CAMPOS DE REGISTRO
   const [nombreEmpresa, setNombreEmpresa] = useState('');
   const [correo, setCorreo] = useState('');
   const [indicativo, setIndicativo] = useState('+57');
   const [telefono, setTelefono] = useState('');
   const [rol, setRol] = useState<'proveedor' | 'emprendedor'>('proveedor');
-
-  // CAMPO DE LOGIN
   const [loginIdentificador, setLoginIdentificador] = useState('');
 
-  // ESTADOS UI
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
 
-  // ==========================================
-  // MANEJO DE SESIÓN Y RECUPERACIÓN DE DATOS
-  // ==========================================
   useEffect(() => {
-    const datoGuardado = localStorage.getItem('atom_user_identificador');
-    if (datoGuardado) {
-      setLoginIdentificador(datoGuardado);
-    }
+    const sessionData = localStorage.getItem('atom_session');
+    if (sessionData) {
+      try {
+        const { identificador, expiry } = JSON.parse(sessionData);
+        if (identificador) setLoginIdentificador(identificador);
 
-    const expiracion = localStorage.getItem('atom_session_expiry');
-    if (expiracion && new Date().getTime() > parseInt(expiracion)) {
-      localStorage.removeItem('atom_user_registered');
-      localStorage.removeItem('atom_user_id');
-      localStorage.removeItem('atom_session_expiry');
-      
-      setModo('login');
-      setError('Por tu seguridad, la sesión de 5 días ha caducado. Vuelve a ingresar.');
+        if (expiry && new Date().getTime() > parseInt(expiry)) {
+          localStorage.removeItem('atom_session');
+          setModo('login');
+          setError('Por tu seguridad, la sesión de 5 días ha caducado. Vuelve a ingresar.');
+        }
+      } catch (e) {
+        localStorage.removeItem('atom_session');
+      }
     }
   }, []);
 
@@ -64,15 +58,15 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
 
   const guardarSesionLocal = (uid: string, identificador: string) => {
     const tiempoExpiracion = new Date().getTime() + (5 * 24 * 60 * 60 * 1000); 
-    localStorage.setItem('atom_user_registered', 'true');
-    localStorage.setItem('atom_user_id', uid);
-    localStorage.setItem('atom_user_identificador', identificador);
-    localStorage.setItem('atom_session_expiry', tiempoExpiracion.toString());
+    const payload = {
+      registered: 'true',
+      id: uid,
+      identificador,
+      expiry: tiempoExpiracion.toString()
+    };
+    localStorage.setItem('atom_session', JSON.stringify(payload));
   };
 
-  // ==========================================
-  // REGISTRO DE NUEVA BODEGA
-  // ==========================================
   const manejarRegistro = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -89,16 +83,18 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
       const telefonoCompleto = `${indicativo}${telefono.trim()}`;
       const usuariosRef = collection(db, 'usuarios');
 
-      const qCorreo = query(usuariosRef, where('correo', '==', correoMinusculas));
-      const snapCorreo = await getDocs(qCorreo);
+      // Consultas de validación enviadas en paralelo
+      const [snapCorreo, snapTel] = await Promise.all([
+        getDocs(query(usuariosRef, where('correo', '==', correoMinusculas))),
+        getDocs(query(usuariosRef, where('telefono', '==', telefonoCompleto)))
+      ]);
+
       if (!snapCorreo.empty) {
         setError('Este correo ya está registrado. Inicia sesión directamente.');
         setCargando(false);
         return;
       }
 
-      const qTel = query(usuariosRef, where('telefono', '==', telefonoCompleto));
-      const snapTel = await getDocs(qTel);
       if (!snapTel.empty) {
         setError('Este teléfono celular ya está registrado en otra cuenta.');
         setCargando(false);
@@ -121,7 +117,6 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
       });
 
       guardarSesionLocal(nuevoUsuarioId, correoMinusculas);
-      
       setCargando(false);
       onLoginSuccess();
 
@@ -132,9 +127,6 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
     }
   };
 
-  // ==========================================
-  // LOGIN (BÚSQUEDA DIRECTA)
-  // ==========================================
   const manejarLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -149,20 +141,16 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
 
     try {
       const usuariosRef = collection(db, 'usuarios');
-      
-      let q = query(usuariosRef, where('correo', '==', entrada));
-      let querySnapshot = await getDocs(q);
+      const telConIndicativo = !entrada.startsWith('+') ? `${indicativo}${entrada.replace(/\D/g, '')}` : entrada;
 
-      if (querySnapshot.empty) {
-        q = query(usuariosRef, where('telefono', '==', entrada));
-        querySnapshot = await getDocs(q);
-      }
+      // Disparo de red paralelo directo a Firestore
+      const [snapCorreo, snapTel, snapTelIndicativo] = await Promise.all([
+        getDocs(query(usuariosRef, where('correo', '==', entrada))),
+        getDocs(query(usuariosRef, where('telefono', '==', entrada))),
+        getDocs(query(usuariosRef, where('telefono', '==', telConIndicativo)))
+      ]);
 
-      if (querySnapshot.empty && !entrada.startsWith('+')) {
-        const telConIndicativo = `${indicativo}${entrada.replace(/\D/g, '')}`;
-        q = query(usuariosRef, where('telefono', '==', telConIndicativo));
-        querySnapshot = await getDocs(q);
-      }
+      const querySnapshot = !snapCorreo.empty ? snapCorreo : !snapTel.empty ? snapTel : snapTelIndicativo;
 
       if (querySnapshot.empty) {
         setError('No encontramos tus datos. Por favor, crea tu cuenta a continuación.');
@@ -185,7 +173,6 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
       }
 
       guardarSesionLocal(usuarioDoc.uid, entrada);
-      
       setCargando(false);
       onLoginSuccess();
 
@@ -199,7 +186,7 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
   return (
     <section className="relative w-full min-h-screen bg-[#070B14] flex flex-col md:flex-row overflow-hidden text-slate-200">
       
-      {/* PANEL IZQUIERDO: BRANDING */}
+      {/* PANEL IZQUIERDO */}
       <div className="relative w-full md:w-1/2 min-h-[380px] md:min-h-screen flex flex-col justify-between p-8 lg:p-16 border-b md:border-b-0 md:border-r border-slate-800/60 overflow-hidden bg-[#0A0E1A]">
         <Fondos variante={variante} modo="absolute" />
         
@@ -210,7 +197,6 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
             className="h-20 sm:h-28 w-auto mb-6 object-contain drop-shadow-[0_0_25px_rgba(13,237,192,0.3)]"
           />
 
-          {/* KICKER ANIMADO NEÓN */}
           <div className="inline-block animate-pulse mb-3">
             <span className="text-[#0DEDC0] text-xs font-mono font-bold tracking-[0.2em] uppercase bg-[#0DEDC0]/10 border border-[#0DEDC0]/40 px-3 py-1.5 rounded-full shadow-[0_0_15px_rgba(13,237,192,0.4)]">
               SISTEMA EXCLUSIVO PARA BODEGAS
@@ -225,13 +211,11 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
             Analítica avanzada, blindaje de precios, mermas y comisiones en tiempo real.
           </Subtitulo>
 
-          {/* TARJETA ADVERTENCIA PROVEEDORES ANIMADA */}
-          <div className="w-full text-left bg-[#0E1726]/90 border border-amber-500/50 rounded-xl p-4 shadow-[0_0_20px_rgba(245,158,11,0.15)] backdrop-blur-md relative overflow-hidden animate-fade-in-up hover:scale-[1.02] transition-transform duration-300">
-            {/* Barra lateral brillante */}
+          <div className="w-full text-left bg-[#0E1726]/90 border border-amber-500/50 rounded-xl p-4 shadow-[0_0_20px_rgba(245,158,11,0.15)] backdrop-blur-md relative overflow-hidden transition-transform duration-300 hover:scale-[1.02]">
             <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-amber-400 to-amber-600 shadow-[0_0_10px_rgba(245,158,11,0.8)]"></div>
             
             <div className="flex items-start gap-3 pl-2">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/40 flex items-center justify-center text-amber-400 text-base font-bold shrink-0 animate-bounce" style={{ animationDuration: '2s' }}>
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/40 flex items-center justify-center text-amber-400 text-base font-bold shrink-0 animate-bounce [animation-duration:2s]">
                 ⚠️
               </div>
               <div>
@@ -254,7 +238,7 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
         </div>
       </div>
 
-      {/* PANEL DERECHO: FORMULARIOS */}
+      {/* PANEL DERECHO */}
       <div className="relative w-full md:w-1/2 min-h-screen flex flex-col justify-center px-8 sm:px-16 lg:px-24 py-12 bg-[#090D18]">
         <div className="w-full max-w-md mx-auto">
           
@@ -271,7 +255,7 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
           </div>
 
           {error && (
-            <div className={`mb-5 p-3.5 rounded-xl border text-xs text-center font-medium leading-relaxed animate-fade-in-up ${
+            <div className={`mb-5 p-3.5 rounded-xl border text-xs text-center font-medium leading-relaxed ${
               error.includes('seguridad') 
                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' 
                 : 'bg-red-500/10 border-red-500/30 text-red-400'
@@ -281,11 +265,8 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
           )}
 
           {modo === 'registro' ? (
-            /* ========================================== */
-            /* FORMULARIO DE REGISTRO DIRECTO             */
-            /* ========================================== */
             <form onSubmit={manejarRegistro} className="space-y-4">
-              <div className="animate-fade-in-up">
+              <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   Nombre de la Bodega / Empresa <span className="text-[#0DEDC0]">*</span>
                 </label>
@@ -299,7 +280,7 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
                 />
               </div>
 
-              <div className="animate-fade-in-up" style={{ animationDelay: '50ms' }}>
+              <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   Correo electrónico empresarial <span className="text-[#0DEDC0]">*</span>
                 </label>
@@ -313,7 +294,7 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
                 />
               </div>
 
-              <div className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+              <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   Número Celular / WhatsApp <span className="text-[#0DEDC0]">*</span>
                 </label>
@@ -344,7 +325,7 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
                 </div>
               </div>
 
-              <div className="animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+              <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   Perfil Logístico <span className="text-[#0DEDC0]">*</span>
                 </label>
@@ -367,11 +348,8 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
               </button>
             </form>
           ) : (
-            /* ========================================== */
-            /* FORMULARIO DE LOGIN RÁPIDO                 */
-            /* ========================================== */
             <form onSubmit={manejarLogin} className="space-y-4">
-              <div className="animate-fade-in-up">
+              <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   Correo o Celular registrado <span className="text-[#0DEDC0]">*</span>
                 </label>

@@ -22,7 +22,13 @@ export const MONEDAS: MonedaConfig[] = [
   { codigo: 'VES', nombre: 'Venezuela (VES)', simbolo: 'Bs', locale: 'es-VE' }
 ];
 
-export const MAPA_INDICATIVO_MONEDA: { [key: string]: string } = {
+// ⚡ BÚSQUEDA O(1): Mapa de monedas por código en scope global
+const MAPA_MONEDAS: Record<string, MonedaConfig> = MONEDAS.reduce((acc, m) => {
+  acc[m.codigo] = m;
+  return acc;
+}, {} as Record<string, MonedaConfig>);
+
+export const MAPA_INDICATIVO_MONEDA: Record<string, string> = {
   '+57': 'COP',
   '+593': 'USD',
   '+52': 'MXN',
@@ -36,7 +42,7 @@ export const MAPA_INDICATIVO_MONEDA: { [key: string]: string } = {
   '+58': 'VES',
 };
 
-export const IMPUESTOS_POR_MONEDA: { [codigoMoneda: string]: TarifaImpuesto[] } = {
+export const IMPUESTOS_POR_MONEDA: Record<string, TarifaImpuesto[]> = {
   COP: [
     { valor: 19, label: '19% - IVA Tarifa General' },
     { valor: 5, label: '5% - IVA Tarifa Reducida' },
@@ -104,12 +110,23 @@ export const obtenerTarifasImpuesto = (codigoMoneda: string = 'COP'): TarifaImpu
   return IMPUESTOS_POR_MONEDA[codigoMoneda] || IMPUESTOS_POR_MONEDA['COP'];
 };
 
-export const formatearMonedaGlobal = (monto: number, codigoMoneda: string = 'COP'): string => {
-  const config = MONEDAS.find(m => m.codigo === codigoMoneda) || MONEDAS[0];
-  return new Intl.NumberFormat(config.locale, {
-    style: 'currency',
-    currency: config.codigo,
-    minimumFractionDigits: config.codigo === 'CLP' || config.codigo === 'COP' ? 0 : 2,
-    maximumFractionDigits: config.codigo === 'CLP' || config.codigo === 'COP' ? 0 : 2
-  }).format(monto || 0);
+// ⚡ CACHÉ EN MEMORIA PARA INSTANCIAS DE INTL.NUMBERFORMAT
+const CACHE_FORMATO = new Map<string, Intl.NumberFormat>();
+
+export const formatearMonedaGlobal = (monto: number = 0, codigoMoneda: string = 'COP'): string => {
+  const config = MAPA_MONEDAS[codigoMoneda] || MONEDAS[0];
+  
+  let formatter = CACHE_FORMATO.get(config.codigo);
+  if (!formatter) {
+    const decimals = config.codigo === 'CLP' || config.codigo === 'COP' ? 0 : 2;
+    formatter = new Intl.NumberFormat(config.locale, {
+      style: 'currency',
+      currency: config.codigo,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+    CACHE_FORMATO.set(config.codigo, formatter);
+  }
+
+  return formatter.format(monto || 0);
 };

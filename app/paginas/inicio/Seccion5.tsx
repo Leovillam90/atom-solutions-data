@@ -20,92 +20,91 @@ interface Seccion5Props {
   variante?: TipoFondo;
 }
 
+// Asignación estática fuera del ciclo de vida de React
+const PLANES: PlanPricing[] = [
+  {
+    id: 'despegue',
+    nombre: 'DESPEGUE',
+    badge: null,
+    perfil: 'Bodegas nacientes (hasta 700 órdenes)',
+    precioCOP: '$55.000',
+    precioUSD: '$15 USD',
+    destacado: false,
+    caracteristicas: [
+      '1 Conexión Nativa a Dropi',
+      'Hasta 700 guías auditadas/mes',
+      'Radar de Detección de Fugas',
+      'Auditoría en Tiempo Real',
+      'Soporte Táctico Directo',
+    ],
+    cta: 'Iniciar con Despegue →',
+  },
+  {
+    id: 'escala',
+    nombre: 'ESCALA',
+    badge: null,
+    perfil: 'Bodegas en aceleración (hasta 1.500 órdenes)',
+    precioCOP: '$150.000',
+    precioUSD: '$49 USD',
+    destacado: false,
+    caracteristicas: [
+      '1 Conexión Nativa a Dropi',
+      'Hasta 1.500 guías auditadas/mes',
+      'Radar de Detección de Fugas',
+      'Auditoría en Tiempo Real',
+      'Detección de Devoluciones Fantasma',
+      'Soporte Táctico Directo',
+    ],
+    cta: 'Escalar mi Bodega →',
+  },
+  {
+    id: 'experto',
+    nombre: 'EXPERTO',
+    badge: '🔥 MÁS VENDIDO',
+    perfil: 'Operaciones masivas sin límite de órdenes',
+    precioCOP: '$250.000',
+    precioUSD: '$69 USD',
+    destacado: true,
+    caracteristicas: [
+      'Conexión Nativa Multicanal',
+      'Guías auditadas ILIMITADAS/mes',
+      'Radar de Detección de Fugas Pro',
+      'Auditoría en Tiempo Real',
+      'Alertas de Vendedores Tóxicos',
+      'Soporte Táctico Dedicado Prioritario',
+    ],
+    cta: 'Activar Operación Masiva →',
+  },
+  {
+    id: 'control',
+    nombre: 'CONTROL',
+    badge: null,
+    perfil: 'Redes de bodegas o holding (hasta 5 cuentas)',
+    precioCOP: '$350.000',
+    precioUSD: '$97 USD',
+    destacado: false,
+    caracteristicas: [
+      'Hasta 5 Cuentas / Bodegas Centralizadas',
+      'Guías e inventario ILIMITADO',
+      'Suite Completa de Automatizaciones',
+      'Directorio de Proveedores Élite',
+      'Aviso Automático de Novedades',
+      'Asistente y Estratega Dedicado 1:1',
+    ],
+    cta: 'Control Multi-cuenta →',
+  },
+];
+
 export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
   const [moneda, setMoneda] = useState<'COP' | 'USD'>('COP');
 
-  const planes: PlanPricing[] = [
-    {
-      id: 'despegue',
-      nombre: 'DESPEGUE',
-      badge: null,
-      perfil: 'Bodegas nacientes (hasta 700 órdenes)',
-      precioCOP: '$55.000',
-      precioUSD: '$15 USD',
-      destacado: false,
-      caracteristicas: [
-        '1 Conexión Nativa a Dropi',
-        'Hasta 700 guías auditadas/mes',
-        'Radar de Detección de Fugas',
-        'Auditoría en Tiempo Real',
-        'Soporte Táctico Directo',
-      ],
-      cta: 'Iniciar con Despegue →',
-    },
-    {
-      id: 'escala',
-      nombre: 'ESCALA',
-      badge: null,
-      perfil: 'Bodegas en aceleración (hasta 1.500 órdenes)',
-      precioCOP: '$150.000',
-      precioUSD: '$49 USD',
-      destacado: false,
-      caracteristicas: [
-        '1 Conexión Nativa a Dropi',
-        'Hasta 1.500 guías auditadas/mes',
-        'Radar de Detección de Fugas',
-        'Auditoría en Tiempo Real',
-        'Detección de Devoluciones Fantasma',
-        'Soporte Táctico Directo',
-      ],
-      cta: 'Escalar mi Bodega →',
-    },
-    {
-      id: 'experto',
-      nombre: 'EXPERTO',
-      badge: '🔥 MÁS VENDIDO',
-      perfil: 'Operaciones masivas sin límite de órdenes',
-      precioCOP: '$250.000',
-      precioUSD: '$69 USD',
-      destacado: true,
-      caracteristicas: [
-        'Conexión Nativa Multicanal',
-        'Guías auditadas ILIMITADAS/mes',
-        'Radar de Detección de Fugas Pro',
-        'Auditoría en Tiempo Real',
-        'Alertas de Vendedores Tóxicos',
-        'Soporte Táctico Dedicado Prioritario',
-      ],
-      cta: 'Activar Operación Masiva →',
-    },
-    {
-      id: 'control',
-      nombre: 'CONTROL',
-      badge: null,
-      perfil: 'Redes de bodegas o holding (hasta 5 cuentas)',
-      precioCOP: '$350.000',
-      precioUSD: '$97 USD',
-      destacado: false,
-      caracteristicas: [
-        'Hasta 5 Cuentas / Bodegas Centralizadas',
-        'Guías e inventario ILIMITADO',
-        'Suite Completa de Automatizaciones',
-        'Directorio de Proveedores Élite',
-        'Aviso Automático de Novedades',
-        'Asistente y Estratega Dedicado 1:1',
-      ],
-      cta: 'Control Multi-cuenta →',
-    },
-  ];
-
   return (
     <section className="relative z-20 py-14 w-full overflow-hidden">
-      
-      {/* CAPA DE FONDO DINÁMICO */}
       <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-5">
         
-        {/* ENCABEZADO CON TIPOGRAFÍA REUTILIZABLE */}
+        {/* ENCABEZADO */}
         <div className="text-center mb-10">
           <Kicker>INVERSIÓN TRANSPARENTE</Kicker>
 
@@ -144,9 +143,9 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
           </div>
         </div>
 
-        {/* PARRILLA DE PLANES (4 COLUMNAS) */}
+        {/* PARRILLA DE PLANES */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-          {planes.map((plan) => (
+          {PLANES.map((plan) => (
             <div
               key={plan.id}
               className={`flex flex-col justify-between p-5 rounded-xl relative transition-all duration-300 backdrop-blur-md ${
@@ -193,7 +192,6 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
                 </ul>
               </div>
 
-              {/* BOTÓN CTA */}
               <a
                 href="https://atomapp.com.co/register"
                 target="_blank"

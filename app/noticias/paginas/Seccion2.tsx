@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 
@@ -27,17 +25,17 @@ interface Seccion2Props {
 const ARTICULOS_DEFAULT: Articulo[] = [
   {
     id: 2,
-  titulo: 'EVENTO PRESENCIAL ✕ EXPO WINNERS BY DROPI',
-  resumen: 'En Expo Winners, los verdaderos top sellers no buscan cualquier proveedor: buscan Proveedores de Alto Rendimiento ATOM. Posiciona tu bodega en el evento como el aliado clave para privatizar productos ganadores y cerrar acuerdos exclusivos por efectividad de entrega.',
-  categoria: 'ALIANZAS ESTRATÉGICAS',
-  fecha: ' 12 y 13 de Septiembre | Ágora Bogotá',
-  tiempoLectura: 'Proveedores ATOM',
-  autor: 'Producto & Tech',
-  destacado: true,
-  tagColor: '#6884C5',
-  link: '[https://wa.me/573122521130?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20la%20estrategia%20Expo%20Winners](https://wa.me/573122521130?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20la%20estrategia%20Expo%20Winners).',
-  badge: 'IMPORTANTE ',
-  textoCta: 'SABER MÁS DEL EVENTO →',
+    titulo: 'EVENTO PRESENCIAL ✕ EXPO WINNERS BY DROPI',
+    resumen: 'En Expo Winners, los verdaderos top sellers no buscan cualquier proveedor: buscan Proveedores de Alto Rendimiento ATOM. Posiciona tu bodega en el evento como el aliado clave para privatizar productos ganadores y cerrar acuerdos exclusivos por efectividad de entrega.',
+    categoria: 'ALIANZAS ESTRATÉGICAS',
+    fecha: '12 y 13 de Septiembre | Ágora Bogotá',
+    tiempoLectura: 'Proveedores ATOM',
+    autor: 'Producto & Tech',
+    destacado: true,
+    tagColor: '#6884C5',
+    link: 'https://wa.me/573122521130?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20la%20estrategia%20Expo%20Winners',
+    badge: 'IMPORTANTE',
+    textoCta: 'SABER MÁS DEL EVENTO →',
   },
   {
     id: 3,
@@ -74,13 +72,10 @@ export default function Seccion2({
 }: Seccion2Props) {
   return (
     <section className="relative z-10 py-16 lg:py-24 px-6 overflow-hidden w-full border-t border-[#0DEDC0]/10">
-      {/* 1. CAPA DE FONDO DINÁMICO */}
       <Fondos variante={variante} modo="absolute" />
 
-      {/* 2. CONTENIDO SOBREPUESTO */}
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center">
         
-        {/* ENCABEZADO */}
         <div className="w-full flex items-center gap-3 mb-8">
           <div className="w-1 h-6 bg-[#0DEDC0] rounded-full" />
           <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
@@ -88,7 +83,6 @@ export default function Seccion2({
           </h3>
         </div>
 
-        {/* GRILLA DE ARTÍCULOS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
           {articulosSecundarios.map((art) => (
             <article

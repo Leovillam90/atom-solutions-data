@@ -46,3 +46,4 @@ export function Texto({ children, className = '' }: TextoProps) {
 export function Highlight({ children, className = '' }: TextoProps) {
   return <span className={`${ESTILOS_TEXTO.destacado} ${className}`}>{children}</span>;
 }
+
