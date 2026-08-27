@@ -29,7 +29,7 @@ export default function Seccion2({ variante = 'gridCyber' }: Seccion2Props) {
       {/* CAPA DE FONDO DINÁMICO */}
       <Fondos variante={variante} modo="absolute" />
 
-      {/* KEYFRAMES DE ANIMACIÓN */}
+      {/* KEYFRAMES DE ANIMACIÓN FORZANDO A QUE NO SE PAUSE NUNCA */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes borderLightSweep {
           0% { background-position: -200% 0; }
@@ -42,8 +42,9 @@ export default function Seccion2({ variante = 'gridCyber' }: Seccion2Props) {
         .marquee-track {
           animation: marqueeScroll 30s linear infinite;
         }
+        /* Forzamos que siga corriendo incluso si hay un hover residual global */
         .marquee-container:hover .marquee-track {
-          animation-play-state: paused;
+          animation-play-state: running !important;
         }
       ` }} />
 
@@ -57,13 +58,13 @@ export default function Seccion2({ variante = 'gridCyber' }: Seccion2Props) {
         style={{ animation: 'borderLightSweep 5s linear infinite' }} 
       />
 
-      {/* MARQUEE CONTINUO DE PAÍSES */}
-      <div className="relative z-10 marquee-container w-full overflow-hidden whitespace-nowrap flex [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+      {/* MARQUEE CONTINUO DE PAÍSES (Se agregó pointer-events-none) */}
+      <div className="relative z-10 marquee-container w-full overflow-hidden whitespace-nowrap flex pointer-events-none [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
         <div className="marquee-track flex gap-6 items-center will-change-transform">
           {paisesDobles.map((item, idx) => (
             <div 
               key={`${item.code}-${idx}`} 
-              className="flex items-center gap-2.5 bg-[#091A23]/80 border border-[#0DEDC0]/30 px-4.5 py-2 rounded-full backdrop-blur-md shrink-0 transition-all duration-300 hover:border-[#0DEDC0] hover:shadow-[0_0_15px_rgba(13,237,192,0.4)] hover:-translate-y-0.5"
+              className="flex items-center gap-2.5 bg-[#091A23]/80 border border-[#0DEDC0]/30 px-4.5 py-2 rounded-full backdrop-blur-md shrink-0"
             >
               <img 
                 src={`https://flagcdn.com/w40/${item.code}.png`} 

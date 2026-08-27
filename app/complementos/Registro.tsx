@@ -2,26 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  RecaptchaVerifier,
-  linkWithPhoneNumber,
-  sendPasswordResetEmail,
-  setPersistence,
-  browserLocalPersistence,
-  browserSessionPersistence,
-  ConfirmationResult
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '@/app/lib/firebase';
+  doc, 
+  setDoc, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { db } from '@/app/lib/firebase';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H2, Subtitulo, Highlight, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
-
-declare global {
-  interface Window {
-    recaptchaVerifier: any;
-  }
-}
 
 interface RegistroProps {
   onLoginSuccess: () => void;
@@ -29,184 +20,186 @@ interface RegistroProps {
 }
 
 export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: RegistroProps) {
-  const [modo, setModo] = useState<'login' | 'registro'>('registro');
-  const [pasoRegistro, setPasoRegistro] = useState<1 | 2>(1);
+  const [modo, setModo] = useState<'registro' | 'login'>('login');
 
-  // Campos del formulario
-  const [correo, setCorreo] = useState('');
-  const [clave, setClave] = useState('');
+  // CAMPOS DE REGISTRO
   const [nombreEmpresa, setNombreEmpresa] = useState('');
+  const [correo, setCorreo] = useState('');
   const [indicativo, setIndicativo] = useState('+57');
   const [telefono, setTelefono] = useState('');
   const [rol, setRol] = useState<'proveedor' | 'emprendedor'>('proveedor');
-  const [codigoSMS, setCodigoSMS] = useState('');
 
-  // Estados UI y Firebase
-  const [recordar, setRecordar] = useState(true);
-  const [mostrarClave, setMostrarClave] = useState(false);
+  // CAMPO DE LOGIN
+  const [loginIdentificador, setLoginIdentificador] = useState('');
+
+  // ESTADOS UI
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
-  const [mensajeExito, setMensajeExito] = useState('');
-  const [resultadoSMS, setResultadoSMS] = useState<ConfirmationResult | null>(null);
+
+  // ==========================================
+  // MANEJO DE SESIÓN Y RECUPERACIÓN DE DATOS
+  // ==========================================
+  useEffect(() => {
+    const datoGuardado = localStorage.getItem('atom_user_identificador');
+    if (datoGuardado) {
+      setLoginIdentificador(datoGuardado);
+    }
+
+    const expiracion = localStorage.getItem('atom_session_expiry');
+    if (expiracion && new Date().getTime() > parseInt(expiracion)) {
+      localStorage.removeItem('atom_user_registered');
+      localStorage.removeItem('atom_user_id');
+      localStorage.removeItem('atom_session_expiry');
+      
+      setModo('login');
+      setError('Por tu seguridad, la sesión de 5 días ha caducado. Vuelve a ingresar.');
+    }
+  }, []);
 
   useEffect(() => {
-    if (modo === 'login') {
-      setPasoRegistro(1);
-      setError('');
-      setMensajeExito('');
+    if (error !== 'Por tu seguridad, la sesión de 5 días ha caducado. Vuelve a ingresar.') {
+       setError('');
     }
   }, [modo]);
 
-  // ==========================================
-  // MANEJO DE RECUPERACIÓN DE CONTRASEÑA
-  // ==========================================
-  const manejarRecuperarClave = async () => {
-    setError('');
-    setMensajeExito('');
-
-    if (!correo || !correo.includes('@')) {
-      setError('Ingresa tu correo electrónico en el campo superior para enviarte el enlace de recuperación.');
-      return;
-    }
-
-    try {
-      await sendPasswordResetEmail(auth, correo);
-      setMensajeExito(`Te hemos enviado un correo a ${correo} para restablecer tu contraseña.`);
-    } catch (err: any) {
-      if (err.code === 'auth/user-not-found') {
-        setError('No existe ninguna cuenta registrada con este correo.');
-      } else {
-        setError('Error al enviar el correo de recuperación. Intenta nuevamente.');
-      }
-    }
+  const guardarSesionLocal = (uid: string, identificador: string) => {
+    const tiempoExpiracion = new Date().getTime() + (5 * 24 * 60 * 60 * 1000); 
+    localStorage.setItem('atom_user_registered', 'true');
+    localStorage.setItem('atom_user_id', uid);
+    localStorage.setItem('atom_user_identificador', identificador);
+    localStorage.setItem('atom_session_expiry', tiempoExpiracion.toString());
   };
 
   // ==========================================
-  // PASO 1: LOGIN O ENVÍO DE CÓDIGO SMS
+  // REGISTRO DE NUEVA BODEGA
   // ==========================================
-  const manejarAutenticacion = async (e: React.FormEvent) => {
+  const manejarRegistro = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setMensajeExito('');
-
-    if (!correo.includes('@') || clave.length < 6) {
-      setError('Ingresa un correo válido y una clave de al menos 6 caracteres.');
-      return;
-    }
-
     setCargando(true);
 
-    try {
-      if (modo === 'login') {
-        // Persistencia de credenciales
-        const persistencia = recordar ? browserLocalPersistence : browserSessionPersistence;
-        await setPersistence(auth, persistencia);
-
-        const userCredential = await signInWithEmailAndPassword(auth, correo, clave);
-        const user = userCredential.user;
-
-        const userDocRef = doc(db, 'usuarios', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists()) {
-          const data = userDocSnap.data();
-          if (data.estadoCuenta !== 'activo' && data.estadoCuenta !== true) {
-            setCargando(false);
-            setError('Tu cuenta se encuentra inactiva. Contacta al soporte de ATOM.');
-            return;
-          }
-        }
-
-        localStorage.setItem('atom_user_registered', 'true');
-        setCargando(false);
-        onLoginSuccess();
-
-      } else {
-        if (!telefono || telefono.length < 7) {
-          setError('Ingresa un número telefónico celular válido.');
-          setCargando(false);
-          return;
-        }
-
-        const userCredential = await createUserWithEmailAndPassword(auth, correo, clave);
-        const user = userCredential.user;
-
-        if (!window.recaptchaVerifier) {
-          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            size: 'invisible'
-          });
-        }
-
-        const telefonoCompleto = `${indicativo}${telefono.trim()}`;
-        const confirmation = await linkWithPhoneNumber(user, telefonoCompleto, window.recaptchaVerifier);
-        
-        setResultadoSMS(confirmation);
-        setCargando(false);
-        setPasoRegistro(2);
-      }
-    } catch (err: any) {
+    if (!nombreEmpresa.trim() || !correo.includes('@') || telefono.length < 7) {
+      setError('Por favor completa todos los campos correctamente.');
       setCargando(false);
-      if (err.code === 'auth/email-already-in-use') {
-        setError('Este correo ya está registrado. Intenta iniciar sesión.');
-      } else if (err.code === 'auth/invalid-phone-number') {
-        setError('El número telefónico ingresado no es válido.');
-      } else if (err.code === 'auth/credential-already-in-use') {
-        setError('Este número celular ya está registrado en otra cuenta.');
-      } else {
-        setError('Error al procesar la solicitud. Verifica tus datos.');
-      }
+      return;
     }
-  };
-
-  // ==========================================
-  // PASO 2: VERIFICAR SMS Y GUARDAR BODEGA
-  // ==========================================
-  const verificarCodigoSMS = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!resultadoSMS) return;
-    
-    setError('');
-    setCargando(true);
 
     try {
-      await resultadoSMS.confirm(codigoSMS);
+      const correoMinusculas = correo.trim().toLowerCase();
+      const telefonoCompleto = `${indicativo}${telefono.trim()}`;
+      const usuariosRef = collection(db, 'usuarios');
+
+      const qCorreo = query(usuariosRef, where('correo', '==', correoMinusculas));
+      const snapCorreo = await getDocs(qCorreo);
+      if (!snapCorreo.empty) {
+        setError('Este correo ya está registrado. Inicia sesión directamente.');
+        setCargando(false);
+        return;
+      }
+
+      const qTel = query(usuariosRef, where('telefono', '==', telefonoCompleto));
+      const snapTel = await getDocs(qTel);
+      if (!snapTel.empty) {
+        setError('Este teléfono celular ya está registrado en otra cuenta.');
+        setCargando(false);
+        return;
+      }
+
+      const nuevoDocRef = doc(collection(db, 'usuarios'));
+      const nuevoUsuarioId = nuevoDocRef.id;
+
+      await setDoc(nuevoDocRef, {
+        uid: nuevoUsuarioId,
+        correo: correoMinusculas,
+        nombreEmpresa: nombreEmpresa.trim(),
+        telefono: telefonoCompleto,
+        indicativoPais: indicativo,
+        rol: rol,
+        esDropshipper: false,
+        estadoCuenta: true,
+        fechaCreacion: serverTimestamp(),
+      });
+
+      guardarSesionLocal(nuevoUsuarioId, correoMinusculas);
       
-      const user = auth.currentUser;
-      if (user) {
-        const telefonoCompleto = `${indicativo}${telefono.trim()}`;
-        await setDoc(doc(db, 'usuarios', user.uid), {
-          uid: user.uid,
-          correo: user.email,
-          nombreEmpresa: nombreEmpresa.trim() || 'Bodega / Proveedor',
-          telefono: telefonoCompleto,
-          indicativoPais: indicativo,
-          rol: rol,
-          esDropshipper: false,
-          estadoCuenta: true,
-          telefonoVerificado: true,
-          fechaCreacion: serverTimestamp(),
-        });
+      setCargando(false);
+      onLoginSuccess();
 
-        localStorage.setItem('atom_user_registered', 'true');
-        setCargando(false);
-        onLoginSuccess();
-      }
     } catch (err: any) {
       setCargando(false);
-      if (err.code === 'auth/invalid-verification-code') {
-        setError('El código ingresado es incorrecto.');
-      } else {
-        setError('Error al verificar el código SMS.');
+      console.error('Error en el registro:', err);
+      setError('Ocurrió un error al guardar los datos en Firestore. Intenta nuevamente.');
+    }
+  };
+
+  // ==========================================
+  // LOGIN (BÚSQUEDA DIRECTA)
+  // ==========================================
+  const manejarLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setCargando(true);
+
+    const entrada = loginIdentificador.trim().toLowerCase();
+    if (!entrada) {
+      setError('Ingresa tu correo o número celular completo.');
+      setCargando(false);
+      return;
+    }
+
+    try {
+      const usuariosRef = collection(db, 'usuarios');
+      
+      let q = query(usuariosRef, where('correo', '==', entrada));
+      let querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        q = query(usuariosRef, where('telefono', '==', entrada));
+        querySnapshot = await getDocs(q);
       }
+
+      if (querySnapshot.empty && !entrada.startsWith('+')) {
+        const telConIndicativo = `${indicativo}${entrada.replace(/\D/g, '')}`;
+        q = query(usuariosRef, where('telefono', '==', telConIndicativo));
+        querySnapshot = await getDocs(q);
+      }
+
+      if (querySnapshot.empty) {
+        setError('No encontramos tus datos. Por favor, crea tu cuenta a continuación.');
+        if (entrada.includes('@')) {
+          setCorreo(entrada);
+        } else {
+          setTelefono(entrada.replace(/\D/g, ''));
+        }
+        setModo('registro');
+        setCargando(false);
+        return;
+      }
+
+      const usuarioDoc = querySnapshot.docs[0].data();
+
+      if (usuarioDoc.estadoCuenta !== true && usuarioDoc.estadoCuenta !== 'activo') {
+        setError('Tu cuenta se encuentra inactiva. Contacta al soporte de ATOM.');
+        setCargando(false);
+        return;
+      }
+
+      guardarSesionLocal(usuarioDoc.uid, entrada);
+      
+      setCargando(false);
+      onLoginSuccess();
+
+    } catch (err: any) {
+      setCargando(false);
+      console.error('Error al buscar cuenta:', err);
+      setError('Error al conectar con la base de datos. Intenta nuevamente.');
     }
   };
 
   return (
     <section className="relative w-full min-h-screen bg-[#070B14] flex flex-col md:flex-row overflow-hidden text-slate-200">
       
-      <div id="recaptcha-container"></div>
-
-      {/* PANEL IZQUIERDO: BRANDING EXCLUSIVO PARA PROVEEDORES */}
+      {/* PANEL IZQUIERDO: BRANDING */}
       <div className="relative w-full md:w-1/2 min-h-[380px] md:min-h-screen flex flex-col justify-between p-8 lg:p-16 border-b md:border-b-0 md:border-r border-slate-800/60 overflow-hidden bg-[#0A0E1A]">
         <Fondos variante={variante} modo="absolute" />
         
@@ -214,276 +207,217 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
           <img 
             src="/logo-color.png" 
             alt="ATOM Logo" 
-            className="h-20 sm:h-28 w-auto mb-8 object-contain drop-shadow-[0_0_25px_rgba(13,237,192,0.3)]"
+            className="h-20 sm:h-28 w-auto mb-6 object-contain drop-shadow-[0_0_25px_rgba(13,237,192,0.3)]"
           />
 
-          <Kicker className="!text-[#0DEDC0] !bg-transparent !border-transparent !p-0 mb-3 tracking-widest font-mono">
-            SISTEMA EXCLUSIVO PARA PROVEEDORES Y BODEGAS
-          </Kicker>
+          {/* KICKER ANIMADO NEÓN */}
+          <div className="inline-block animate-pulse mb-3">
+            <span className="text-[#0DEDC0] text-xs font-mono font-bold tracking-[0.2em] uppercase bg-[#0DEDC0]/10 border border-[#0DEDC0]/40 px-3 py-1.5 rounded-full shadow-[0_0_15px_rgba(13,237,192,0.4)]">
+              SISTEMA EXCLUSIVO PARA BODEGAS
+            </span>
+          </div>
 
-          <H2 className="text-2xl sm:text-3xl lg:text-4xl text-white mb-4">
+          <H2 className="text-2xl sm:text-3xl lg:text-4xl text-white mb-3">
             Toma el control de tu <Highlight>operación</Highlight>
           </H2>
 
-          <Subtitulo className="!text-xs sm:!text-sm text-slate-400 max-w-sm leading-relaxed">
+          <Subtitulo className="!text-xs sm:!text-sm text-slate-400 max-w-sm leading-relaxed mb-6">
             Analítica avanzada, blindaje de precios, mermas y comisiones en tiempo real.
-            <span className="block mt-3 text-[#0DEDC0] font-semibold text-xs border border-[#0DEDC0]/30 bg-[#0DEDC0]/10 p-2.5 rounded-xl">
-              Plataforma desarrollada únicamente para Fabricantes, Bodegas y Proveedores Directos con inventario. <br />
-              <strong className="text-amber-300 uppercase tracking-wider block mt-1">(No diseñada para Dropshippers)</strong>
-            </span>
           </Subtitulo>
+
+          {/* TARJETA ADVERTENCIA PROVEEDORES ANIMADA */}
+          <div className="w-full text-left bg-[#0E1726]/90 border border-amber-500/50 rounded-xl p-4 shadow-[0_0_20px_rgba(245,158,11,0.15)] backdrop-blur-md relative overflow-hidden animate-fade-in-up hover:scale-[1.02] transition-transform duration-300">
+            {/* Barra lateral brillante */}
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-amber-400 to-amber-600 shadow-[0_0_10px_rgba(245,158,11,0.8)]"></div>
+            
+            <div className="flex items-start gap-3 pl-2">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/40 flex items-center justify-center text-amber-400 text-base font-bold shrink-0 animate-bounce" style={{ animationDuration: '2s' }}>
+                ⚠️
+              </div>
+              <div>
+                <span className="text-[11px] font-mono font-bold text-amber-400 uppercase tracking-widest block mb-1">
+                  Alerta de Restricción
+                </span>
+                <p className="text-slate-300 text-xs leading-relaxed font-medium">
+                  Plataforma restringida y exclusiva para <strong className="text-white">Fabricantes y Proveedores Directos</strong> con stock físico.
+                </p>
+                <div className="mt-3 text-[10px] font-mono font-bold text-[#090D18] bg-amber-400 inline-block px-2.5 py-1 rounded shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                  🚫 NO APTO PARA DROPSHIPPERS
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="relative z-10 text-[10px] text-slate-600 font-mono">
-          v1.0.0 · 20260825
+        <div className="relative z-10 text-[10px] text-slate-600 font-mono text-center md:text-left">
+          v1.4.0 · Security & Access
         </div>
       </div>
 
       {/* PANEL DERECHO: FORMULARIOS */}
       <div className="relative w-full md:w-1/2 min-h-screen flex flex-col justify-center px-8 sm:px-16 lg:px-24 py-12 bg-[#090D18]">
-        
         <div className="w-full max-w-md mx-auto">
           
-          {pasoRegistro === 1 && (
-            <>
-              <div className="mb-6">
-                <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
-                  {modo === 'registro' ? 'Crear Cuenta de Bodega' : 'Iniciar sesión'}
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-400">
-                  {modo === 'registro' 
-                    ? 'Registra tu infraestructura logística de proveedor para habilitar el simulador'
-                    : 'Ingresa tus credenciales para acceder a la plataforma'
-                  }
-                </p>
-              </div>
+          <div className="mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
+              {modo === 'registro' ? 'Crear Cuenta de Bodega' : 'Iniciar Sesión'}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400">
+              {modo === 'registro' 
+                ? 'Ingresa tu información. Entrarás automáticamente a la plataforma.'
+                : 'Ingresa tu correo o celular registrado para entrar de una.'
+              }
+            </p>
+          </div>
 
-              {error && (
-                <div className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center font-medium leading-relaxed">
-                  {error}
-                </div>
-              )}
-
-              {mensajeExito && (
-                <div className="mb-5 p-3.5 rounded-xl bg-[#0DEDC0]/10 border border-[#0DEDC0]/30 text-[#0DEDC0] text-xs text-center font-medium leading-relaxed">
-                  {mensajeExito}
-                </div>
-              )}
-
-              <form onSubmit={manejarAutenticacion} className="space-y-4">
-                
-                {/* NOMBRE EMPRESA */}
-                {modo === 'registro' && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Nombre de la Bodega o Empresa <span className="text-[#0DEDC0]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ej. Distribuidora Central S.A.S"
-                      value={nombreEmpresa}
-                      onChange={(e) => setNombreEmpresa(e.target.value)}
-                      className="w-full bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-all placeholder:text-slate-600"
-                    />
-                  </div>
-                )}
-
-                {/* CORREO ELECTRÓNICO */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Correo electrónico empresarial <span className="text-[#0DEDC0]">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="contacto@tuempresa.com"
-                    value={correo}
-                    onChange={(e) => setCorreo(e.target.value)}
-                    className="w-full bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-all placeholder:text-slate-600"
-                  />
-                </div>
-
-                {/* TELÉFONO Y PAÍS */}
-                {modo === 'registro' && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Número Celular / WhatsApp <span className="text-[#0DEDC0]">*</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <select
-                        value={indicativo}
-                        onChange={(e) => setIndicativo(e.target.value)}
-                        className="bg-[#101625] border border-slate-800 text-slate-300 text-xs rounded-lg px-2.5 py-2.5 outline-none focus:border-[#0DEDC0]"
-                      >
-                        <option value="+57">🇨🇴 Colombia (+57)</option>
-                        <option value="+52">🇲🇽 México (+52)</option>
-                        <option value="+51">🇵🇪 Perú (+51)</option>
-                        <option value="+56">🇨🇱 Chile (+56)</option>
-                        <option value="+593">🇪🇨 Ecuador (+593)</option>
-                        <option value="+507">🇵🇦 Panamá (+507)</option>
-                        <option value="+595">🇵🇾 Paraguay (+595)</option>
-                        <option value="+58">🇻🇪 Venezuela (+58)</option>
-                        <option value="+54">🇦🇷 Argentina (+54)</option>
-                        <option value="+502">🇬🇹 Guatemala (+502)</option>
-                        <option value="+506">🇨🇷 Costa Rica (+506)</option>
-                      </select>
-                      <input
-                        type="tel"
-                        required
-                        placeholder="300 123 4567"
-                        value={telefono}
-                        onChange={(e) => setTelefono(e.target.value)}
-                        className="flex-1 bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-all placeholder:text-slate-600"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* PERFIL LOGÍSTICO */}
-                {modo === 'registro' && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Tipo de Perfil Logístico <span className="text-[#0DEDC0]">*</span>
-                    </label>
-                    <select
-                      value={rol}
-                      onChange={(e) => setRol(e.target.value as 'proveedor' | 'emprendedor')}
-                      className="w-full bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-2.5 text-slate-200 text-sm outline-none"
-                    >
-                      <option value="proveedor">Proveedor / Fabricante Directo</option>
-                      <option value="emprendedor">Emprendedor con Inventario / Bodega Propia</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* CONTRASEÑA */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Contraseña <span className="text-[#0DEDC0]">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={mostrarClave ? 'text' : 'password'}
-                      required
-                      placeholder="••••••••"
-                      value={clave}
-                      onChange={(e) => setClave(e.target.value)}
-                      className="w-full bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-all placeholder:text-slate-600 pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setMostrarClave(!mostrarClave)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors bg-transparent border-none cursor-pointer text-xs font-medium"
-                    >
-                      {mostrarClave ? 'Ocultar' : 'Ver'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* OPCIONES DE LOGIN (RECORDAR SESIÓN Y RECUPERAR CONTRASEÑA) */}
-                {modo === 'login' && (
-                  <div className="flex items-center justify-between text-xs pt-1">
-                    <label className="flex items-center gap-2 text-slate-400 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={recordar}
-                        onChange={(e) => setRecordar(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-800 bg-[#101625] accent-[#0DEDC0] cursor-pointer"
-                      />
-                      Recordar sesión
-                    </label>
-
-                    <button
-                      type="button"
-                      onClick={manejarRecuperarClave}
-                      className="text-[#0DEDC0]/90 hover:text-[#0DEDC0] hover:underline font-medium bg-transparent border-none cursor-pointer"
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </button>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={cargando}
-                  className={`w-full bg-[#182338] hover:bg-[#0DEDC0] text-slate-200 hover:text-[#090D18] font-bold py-3.5 px-6 rounded-lg tracking-wide transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer mt-4 border border-slate-700/50 hover:border-[#0DEDC0] shadow-lg ${ESTILOS_TEXTO.boton}`}
-                >
-                  {cargando ? 'Procesando...' : (modo === 'registro' ? 'Crear Cuenta de Bodega' : 'Ingresar')}
-                </button>
-              </form>
-
-              <div className="mt-6 text-center text-xs text-slate-400">
-                {modo === 'registro' ? (
-                  <>
-                    ¿Ya tienes una cuenta registrada?{' '}
-                    <button onClick={() => setModo('login')} className="text-[#0DEDC0] hover:underline font-semibold bg-transparent border-none cursor-pointer">
-                      Inicia sesión
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    ¿Eres proveedor y no tienes cuenta?{' '}
-                    <button onClick={() => setModo('registro')} className="text-[#0DEDC0] hover:underline font-semibold bg-transparent border-none cursor-pointer">
-                      Regístrate gratis
-                    </button>
-                  </>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* VERIFICACIÓN SMS */}
-          {pasoRegistro === 2 && (
-            <div className="animate-fade-in-up">
-              <div className="mb-6">
-                <button 
-                  onClick={() => setPasoRegistro(1)} 
-                  className="text-slate-500 hover:text-white text-xs font-bold mb-4 flex items-center gap-1 bg-transparent border-none cursor-pointer transition-colors"
-                >
-                  ← Cambiar teléfono
-                </button>
-                <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
-                  Verifica tu celular
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                  Hemos enviado un código SMS de 6 dígitos al número <br />
-                  <span className="text-[#0DEDC0] font-bold font-mono tracking-wider">{indicativo} {telefono}</span>
-                </p>
-              </div>
-
-              {error && (
-                <div className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center font-medium leading-relaxed">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={verificarCodigoSMS} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Código de 6 dígitos
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="123456"
-                    maxLength={6}
-                    value={codigoSMS}
-                    onChange={(e) => setCodigoSMS(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-3 text-white text-center text-2xl font-mono tracking-[0.5em] outline-none transition-all placeholder:text-slate-700"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={cargando || codigoSMS.length < 6}
-                  className={`w-full bg-[#0DEDC0] text-[#090D18] hover:bg-[#0DEDC0]/90 font-bold py-3.5 px-6 rounded-lg tracking-wide transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-4 shadow-[0_0_15px_rgba(13,237,192,0.4)] ${ESTILOS_TEXTO.boton}`}
-                >
-                  {cargando ? 'Verificando...' : 'Confirmar Registro'}
-                </button>
-              </form>
+          {error && (
+            <div className={`mb-5 p-3.5 rounded-xl border text-xs text-center font-medium leading-relaxed animate-fade-in-up ${
+              error.includes('seguridad') 
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' 
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`}>
+              {error}
             </div>
           )}
+
+          {modo === 'registro' ? (
+            /* ========================================== */
+            /* FORMULARIO DE REGISTRO DIRECTO             */
+            /* ========================================== */
+            <form onSubmit={manejarRegistro} className="space-y-4">
+              <div className="animate-fade-in-up">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Nombre de la Bodega / Empresa <span className="text-[#0DEDC0]">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej. Distribuidora Central S.A.S"
+                  value={nombreEmpresa}
+                  onChange={(e) => setNombreEmpresa(e.target.value)}
+                  className="w-full bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-all placeholder:text-slate-600"
+                />
+              </div>
+
+              <div className="animate-fade-in-up" style={{ animationDelay: '50ms' }}>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Correo electrónico empresarial <span className="text-[#0DEDC0]">*</span>
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="contacto@tuempresa.com"
+                  value={correo}
+                  onChange={(e) => setCorreo(e.target.value)}
+                  className="w-full bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-all placeholder:text-slate-600"
+                />
+              </div>
+
+              <div className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Número Celular / WhatsApp <span className="text-[#0DEDC0]">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={indicativo}
+                    onChange={(e) => setIndicativo(e.target.value)}
+                    className="bg-[#101625] border border-slate-800 text-slate-300 text-xs rounded-lg px-2.5 py-2.5 outline-none focus:border-[#0DEDC0]"
+                  >
+                    <option value="+57">🇨🇴 +57</option>
+                    <option value="+52">🇲🇽 +52</option>
+                    <option value="+51">🇵🇪 +51</option>
+                    <option value="+56">🇨🇱 +56</option>
+                    <option value="+593">🇪🇨 +593</option>
+                    <option value="+507">🇵🇦 +507</option>
+                    <option value="+595">🇵🇾 +595</option>
+                    <option value="+58">🇻🇪 +58</option>
+                    <option value="+54">🇦🇷 +54</option>
+                  </select>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="300 123 4567"
+                    value={telefono}
+                    onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
+                    className="flex-1 bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-all placeholder:text-slate-600"
+                  />
+                </div>
+              </div>
+
+              <div className="animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Perfil Logístico <span className="text-[#0DEDC0]">*</span>
+                </label>
+                <select
+                  value={rol}
+                  onChange={(e) => setRol(e.target.value as 'proveedor' | 'emprendedor')}
+                  className="w-full bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-2.5 text-slate-200 text-sm outline-none"
+                >
+                  <option value="proveedor">Proveedor / Fabricante Directo</option>
+                  <option value="emprendedor">Emprendedor con Inventario Propio</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={cargando}
+                className={`w-full bg-[#0DEDC0] text-[#090D18] hover:bg-[#0DEDC0]/90 font-bold py-3.5 px-6 rounded-lg tracking-wide transition-all duration-300 disabled:opacity-50 cursor-pointer mt-4 shadow-[0_0_15px_rgba(13,237,192,0.3)] flex justify-center items-center ${ESTILOS_TEXTO.boton}`}
+              >
+                {cargando ? 'Guardando en Firestore...' : 'Registrar Bodega e Ingresar'}
+              </button>
+            </form>
+          ) : (
+            /* ========================================== */
+            /* FORMULARIO DE LOGIN RÁPIDO                 */
+            /* ========================================== */
+            <form onSubmit={manejarLogin} className="space-y-4">
+              <div className="animate-fade-in-up">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Correo o Celular registrado <span className="text-[#0DEDC0]">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: contacto@tuempresa.com o 3001234567"
+                  value={loginIdentificador}
+                  onChange={(e) => setLoginIdentificador(e.target.value)}
+                  className="w-full bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-3 text-white text-sm outline-none transition-all placeholder:text-slate-600"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={cargando}
+                className={`w-full bg-[#0DEDC0] text-[#090D18] hover:bg-[#0DEDC0]/90 font-bold py-3.5 px-6 rounded-lg tracking-wide transition-all duration-300 disabled:opacity-50 cursor-pointer mt-4 shadow-[0_0_15px_rgba(13,237,192,0.3)] flex justify-center items-center ${ESTILOS_TEXTO.boton}`}
+              >
+                {cargando ? 'Buscando cuenta...' : 'Entrar a la Plataforma'}
+              </button>
+            </form>
+          )}
+
+          <div className="mt-6 text-center text-xs text-slate-400">
+            {modo === 'registro' ? (
+              <>
+                ¿Ya registraste tu empresa antes?{' '}
+                <button 
+                  onClick={() => setModo('login')} 
+                  className="text-[#0DEDC0] hover:underline font-semibold bg-transparent border-none cursor-pointer"
+                >
+                  Inicia sesión aquí
+                </button>
+              </>
+            ) : (
+              <>
+                ¿Eres nuevo en la plataforma?{' '}
+                <button 
+                  onClick={() => setModo('registro')} 
+                  className="text-[#0DEDC0] hover:underline font-semibold bg-transparent border-none cursor-pointer"
+                >
+                  Registra tu bodega gratis
+                </button>
+              </>
+            )}
+          </div>
 
         </div>
       </div>

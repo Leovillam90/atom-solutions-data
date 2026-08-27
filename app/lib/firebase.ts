@@ -1,6 +1,6 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBW9yS4wPDE2H1f6sOV_N_Uhw36YeKeU5s",
@@ -12,8 +12,11 @@ const firebaseConfig = {
   measurementId: "G-X7XGH84EGE"
 };
 
-// Evita reinstanciar la App en recargas de Next.js
+// Evita reinicializaciones en Next.js durante la recarga rápida (HMR)
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+// Instancias exportadas para utilizar en Registro.tsx
 export const db = getFirestore(app);
+export const auth = getAuth(app);
+
+export default app;

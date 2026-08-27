@@ -139,7 +139,7 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
                   : 'bg-transparent text-slate-400 hover:text-white'
               }`}
             >
-              Internacional (USD)
+             🌏 Internacional (USD)
             </button>
           </div>
         </div>

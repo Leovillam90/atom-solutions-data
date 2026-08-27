@@ -41,7 +41,7 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1Props) {
           
           {/* Subtítulo */}
           <Subtitulo className="max-w-[550px] mb-6">
-            ATOM audita tu cuenta de Dropi en tiempo real, detecta devoluciones fantasma y te entrega los números exactos para recuperar el dinero que hoy tienes atrapado en la calle.
+            ATOM audita tu cuenta Dropi 24/7 y detecta mercancía "devuelta" que jamás reingresó a tu bodega o en "curso" que sigue en la calle. Te damos la información exacta y las pruebas necesarias para recuperar el control de tu inventario y tu dinero.
           </Subtitulo>
           
           {/* Beneficios Rápidos */}

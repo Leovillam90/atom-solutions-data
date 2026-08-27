@@ -52,8 +52,8 @@ export default function CalculadoraPage() {
   // Si YA está autenticado, muestra la calculadora completa
   return (
     <main className="min-h-screen bg-[#0B171C] text-white relative">
-      <Seccion1 variante="darkNoise" />
-      <Seccion2 variante="darkNoise" />
+      <Seccion1 variante="hexGrid" />
+      <Seccion2 variante="hexGrid" />
     </main>
   );
 }

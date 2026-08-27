@@ -34,7 +34,7 @@ const LESSONS: VideoLesson[] = [
   {
     id: '1',
     titulo: 'Cómo integrar ATOM a tu negocio en Dropi',
-    duracion: '00:45',
+    duracion: '01:04',
     categoria: 'Integraciones',
     badge: 'Táctica Rápida',
     badgeColor: 'rgba(13, 237, 192, 0.12)',

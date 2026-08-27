@@ -26,7 +26,7 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
           </H2>
 
           <Subtitulo className="max-w-[720px] mx-auto mt-3">
-            El descontrol logístico no es un error de cálculo, es pérdida de patrimonio.
+            El descontrol logístico no es un error de cálculo, es la pérdida directa de tu dinero.
           </Subtitulo>
         </div>
 
@@ -45,7 +45,7 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
               </div>
               <H3 className="mb-3">Descontrol de Guías</H3>
               <Texto className="mb-6">
-                Pierdes el rastro de las devoluciones y asumes pérdidas netas mes a mes.
+                Dejas de rastrear el estado real de tus envíos y las devoluciones que jamás reingresan a tus estantes. Al no auditar en tiempo real, tu bodega asume pérdidas netas mes a mes en silencio.
               </Texto>
             </div>
             
@@ -70,7 +70,7 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
               </div>
               <H3 className="mb-3">Novedades Manuales</H3>
               <Texto className="mb-6">
-                Pasas horas chateando con dropshippers, transportadoras o Dropi intentando destrabar envíos uno a uno.
+                Pierdes horas al día chateando con soporte Dropi y transportadoras para destrabar envíos uno por uno. Sin una automatización que tome el control en tiempo real, las soluciones llegan tarde, las guías se marcan como devueltas y tu bodega absorbe el costo de la ineficiencia.
               </Texto>
             </div>
             
@@ -95,7 +95,7 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
               </div>
               <H3 className="mb-3">Márgenes a Ciegas</H3>
               <Texto className="mb-6">
-                Adivinas tu ganancia real, subsidiando fletes ocultos que comen tu utilidad.
+                Adivinas tu ganancia real sin conocer el costo exacto de la mercancía no devuelta. Al calcular tu utilidad sobre el precio de lista y no sobre despachos efectivos, absorbes mermas invisibles que devoran tu margen neto mes a mes.
               </Texto>
             </div>
             

@@ -13,6 +13,8 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
   const [herramientasOpen, setHerramientasOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [herramientasMobileOpen, setHerramientasMobileOpen] = useState(false);
+  const [proveedoresMobileOpen, setProveedoresMobileOpen] = useState(true);
+  const [dropshippersMobileOpen, setDropshippersMobileOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-[1000] overflow-visible relative bg-[#091A23]">
@@ -41,22 +43,22 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
         }
       ` }} />
 
-      {/* CAPA DE FONDO DINÁMICO (z-0) */}
+      {/* CAPA DE FONDO DINÁMICO */}
       <div className="absolute inset-0 z-0 pointer-events-none w-full h-full opacity-60 overflow-hidden">
         <Fondos variante={variante} modo="absolute" />
       </div>
 
-      {/* BARRA DE NAVEGACIÓN PRINCIPAL (z-30 PARA QUEDAR POR ENCIMA DE LA LÍNEA) */}
+      {/* BARRA DE NAVEGACIÓN PRINCIPAL */}
       <div className="relative z-30 max-w-7xl mx-auto px-4 sm:px-6 py-2">
         <div className="flex items-center justify-between lg:flex lg:items-center lg:justify-between gap-4">
           
-          {/* LOGO (EXTREMO IZQUIERDO) */}
+          {/* LOGO */}
           <div className="flex items-center justify-start shrink-0">
             <Link href="/" className="flex items-center gap-3.5 no-underline group">
               <img 
                 src="/logo-color.png" 
                 alt="ATOM Solutions Data" 
-                className="h-12 md:h-16 w-auto block transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
+                className="h-14 md:h-18 w-auto block transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
@@ -86,7 +88,14 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
               </Link>
             </div>
 
-            {/* 2. HERRAMIENTAS */}
+            {/* 2. SIMULADOR $ */}
+            <div className="h-10 flex items-center justify-center">
+              <Link href="/calculadora/basica" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap flex items-center gap-1.5 group">
+                <span>Simulador $</span>
+              </Link>
+            </div>
+
+            {/* 3. HERRAMIENTAS (MENÚ EN CASCADA / FLYOUT) */}
             <div
               className="relative h-10 flex items-center justify-center"
               onMouseEnter={() => setHerramientasOpen(true)}
@@ -112,41 +121,88 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
                 </svg>
               </button>
 
-              {/* CUADRO DESPLEGABLE (z-[9999] SOBRE LA NAVEGACIÓN) */}
+              {/* NIVEL 1 CASCADA: MENÚ PRINCIPAL DE CATEGORÍAS */}
               {herramientasOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 w-64 bg-[#091A23] border border-[#0DEDC0]/40 rounded-xl py-2 shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-[9999]">
-                  {/* PROVEEDORES */}
-                  <div className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:bg-[#0DEDC0]/10 transition-all cursor-not-allowed">
-                    <span>Proveedores</span>
-                    <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
-                      Próximamente
-                    </span>
+                <div className="absolute top-full left-0 w-56 bg-[#091A23] border border-[#0DEDC0]/40 rounded-xl py-2 shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-[9999]">
+                  
+                  {/* CATEGORÍA 1: PROVEEDORES (CASCADA NIVEL 2) */}
+                  <div className="relative group/sub1">
+                    <div className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:text-[#0DEDC0] hover:bg-[#0DEDC0]/10 transition-all cursor-pointer font-semibold">
+                      <span className="flex items-center gap-2">
+                        <span> </span> Proveedores
+                      </span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </div>
+
+                    {/* SUBMENÚ VOLANTE (FLYOUT DERECHA) */}
+                    <div className="absolute left-full top-0 ml-1 w-64 bg-[#091A23] border border-[#0DEDC0]/40 rounded-xl py-2 shadow-[0_15px_35px_rgba(0,0,0,0.95)] hidden group-hover/sub1:block z-[10000]">
+                      <div className="px-3 py-1.5 border-b border-slate-800 text-[10px] font-mono text-[#0DEDC0] font-bold uppercase tracking-wider">
+                        Soluciones para Proveedores
+                      </div>
+
+                      <Link
+                        href="/calculadora"
+                        className="group flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:text-[#0DEDC0] hover:bg-[#0DEDC0]/10 transition-all"
+                      >
+                        <span>Calculadora Avanzada</span>
+                        <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse">
+                          NUEVO
+                        </span>
+                      </Link>
+
+                      <a
+                        href="https://lobostock.vercel.app/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:text-[#0DEDC0] hover:bg-[#0DEDC0]/10 transition-all"
+                      >
+                        <span>LoboStock</span>
+                        <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse">
+                          NUEVO
+                        </span>
+                      </a>
+                    </div>
                   </div>
 
                   <div className="border-t border-slate-800 my-1"></div>
 
-                  {/* DROPSHIPPERS */}
-                  <Link
-                    href="/#beneficios"
-                    className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:text-[#0DEDC0] hover:bg-[#0DEDC0]/10 transition-all"
-                  >
-                    <span>Dropshippers</span>
-                    <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
-                      Próximamente
-                    </span>
-                  </Link>
+                  {/* CATEGORÍA 2: DROPSHIPPERS (CASCADA NIVEL 2) */}
+                  <div className="relative group/sub2">
+                    <div className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-200 hover:text-[#0DEDC0] hover:bg-[#0DEDC0]/10 transition-all cursor-pointer font-semibold">
+                      <span className="flex items-center gap-2">
+                        <span> </span> Dropshippers
+                      </span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </div>
+
+                    {/* SUBMENÚ VOLANTE (FLYOUT DERECHA) */}
+                    <div className="absolute left-full top-0 ml-1 w-60 bg-[#091A23] border border-[#0DEDC0]/40 rounded-xl py-2 shadow-[0_15px_35px_rgba(0,0,0,0.95)] hidden group-hover/sub2:block z-[10000]">
+                      <div className="px-3 py-1.5 border-b border-slate-800 text-[10px] font-mono text-[#6884C5] font-bold uppercase tracking-wider">
+                        Soluciones para Dropshippers
+                      </div>
+
+                      <div className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-400 hover:bg-[#0DEDC0]/5 cursor-not-allowed">
+                        <span>Auditoría de Envíos</span>
+                        <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
+                          Próximamente
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between px-4 py-2.5 text-xs text-slate-400 hover:bg-[#0DEDC0]/5 cursor-not-allowed">
+                        <span>Radar de Productos</span>
+                        <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
+                          Próximamente
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               )}
-            </div>
-
-            {/* 3. CALCULADORA */}
-            <div className="h-10 flex items-center justify-center">
-              <Link href="/calculadora" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap flex items-center gap-1.5 group">
-                <span>Calculadora</span>
-                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse group-hover:scale-105 transition-transform leading-none">
-                  NUEVO
-                </span>
-              </Link>
             </div>
 
             {/* 4. ATOM ACADEMY */}
@@ -209,14 +265,15 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
         </div>
       </div>
 
-      {/* LÍNEA DIVISORIA INFERIOR ANIMADA (z-10 PARA QUEDAR POR DEBAJO DEL DESPLEGABLE) */}
+      {/* LÍNEA DIVISORIA INFERIOR ANIMADA */}
       <div 
         className="absolute bottom-0 inset-x-0 h-[2px] z-10 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep"
       />
 
-      {/* MENÚ DESPLEGABLE MÓVIL */}
+      {/* MENÚ DESPLEGABLE MÓVIL EN ACORDEÓN CASCADA */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#091A23] border-t border-[#0DEDC0]/20 px-6 py-5 flex flex-col gap-4 relative z-[9999]">
+          
           <Link
             href="/"
             onClick={() => setMobileMenuOpen(false)}
@@ -225,6 +282,15 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
             Inicio
           </Link>
 
+          <Link
+            href="/calculadora/basica"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between"
+          >
+            <span>Simulador $</span>
+          </Link>
+
+          {/* HERRAMIENTAS ACORDEÓN MÓVIL */}
           <div>
             <button
               type="button"
@@ -246,38 +312,74 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
             </button>
 
             {herramientasMobileOpen && (
-              <div className="flex flex-col gap-3 pl-3 pt-3">
-                <div className="flex items-center justify-between text-slate-300 font-medium text-xs py-1">
-                  <span>• Proveedores</span>
-                  <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
-                    Próximamente
-                  </span>
+              <div className="flex flex-col pl-3 pt-3 gap-3 pb-2 border-b border-white/5">
+                
+                {/* SUB-ACORDEÓN: PROVEEDORES */}
+                <div className="bg-[#102935]/50 p-3 rounded-xl border border-slate-800 space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setProveedoresMobileOpen(!proveedoresMobileOpen)}
+                    className="w-full flex items-center justify-between text-xs font-mono font-bold text-[#0DEDC0] uppercase bg-transparent border-none cursor-pointer"
+                  >
+                    <span> Para Proveedores</span>
+                    <span>{proveedoresMobileOpen ? '−' : '+'}</span>
+                  </button>
+
+                  {proveedoresMobileOpen && (
+                    <div className="flex flex-col gap-2.5 pt-2 pl-2 border-t border-slate-800">
+                      <Link
+                        href="/calculadora"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-slate-200 font-medium text-xs flex items-center justify-between"
+                      >
+                        <span>Calculadora Avanzada</span>
+                        <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23]">
+                          NUEVO
+                        </span>
+                      </Link>
+
+                      <a
+                        href="https://lobostock.vercel.app/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-slate-200 font-medium text-xs flex items-center justify-between"
+                      >
+                        <span>LoboStock</span>
+                        <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23]">
+                          NUEVO
+                        </span>
+                      </a>
+                    </div>
+                  )}
                 </div>
 
-                <Link
-                  href="/#beneficios"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-slate-300 font-medium text-xs flex items-center justify-between pt-1"
-                >
-                  <span>• Dropshippers</span>
-                  <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
-                    Próximamente
-                  </span>
-                </Link>
+                {/* SUB-ACORDEÓN: DROPSHIPPERS */}
+                <div className="bg-[#102935]/50 p-3 rounded-xl border border-slate-800 space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setDropshippersMobileOpen(!dropshippersMobileOpen)}
+                    className="w-full flex items-center justify-between text-xs font-mono font-bold text-[#6884C5] uppercase bg-transparent border-none cursor-pointer"
+                  >
+                    <span> Para Dropshippers</span>
+                    <span>{dropshippersMobileOpen ? '−' : '+'}</span>
+                  </button>
+
+                  {dropshippersMobileOpen && (
+                    <div className="flex flex-col gap-2 pt-2 pl-2 border-t border-slate-800">
+                      <div className="text-slate-400 font-medium text-xs flex items-center justify-between">
+                        <span>Auditoría de Envíos</span>
+                        <span className="text-[8px] font-mono text-[#6884C5] bg-[#6884C5]/15 border border-[#6884C5]/30 px-1.5 py-0.5 rounded-full">
+                          Próximamente
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
               </div>
             )}
           </div>
-
-          <Link
-            href="/calculadora"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between"
-          >
-            <span>Calculadora</span>
-            <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse">
-              NUEVO
-            </span>
-          </Link>
 
           <Link
             href="/academy"

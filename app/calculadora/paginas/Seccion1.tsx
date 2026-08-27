@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
-import { Kicker, H1, Highlight, ESTILOS_TEXTO, Subtitulo } from '@/app/complementos/Tipografia';
+import { Kicker, H1, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
 
 interface PaisConfig {
   codigo: string;
@@ -10,83 +10,56 @@ interface PaisConfig {
   moneda: string;
   locale: string;
   simbolo: string;
-  ivaPorDefecto: number;
+  impuestoDefault: number;
 }
 
 const PAISES_ATOM: PaisConfig[] = [
-  { codigo: 'CO', nombre: 'Colombia', moneda: 'COP', locale: 'es-CO', simbolo: '$', ivaPorDefecto: 19 },
-  { codigo: 'MX', nombre: 'México', moneda: 'MXN', locale: 'es-MX', simbolo: '$', ivaPorDefecto: 16 },
-  { codigo: 'CL', nombre: 'Chile', moneda: 'CLP', locale: 'es-CL', simbolo: '$', ivaPorDefecto: 19 },
-  { codigo: 'PE', nombre: 'Perú', moneda: 'PEN', locale: 'es-PE', simbolo: 'S/', ivaPorDefecto: 18 },
-  { codigo: 'EC', nombre: 'Ecuador', moneda: 'USD', locale: 'en-US', simbolo: '$', ivaPorDefecto: 15 },
-  { codigo: 'GT', nombre: 'Guatemala', moneda: 'GTQ', locale: 'es-GT', simbolo: 'Q', ivaPorDefecto: 12 },
+  { codigo: 'CO', nombre: 'Colombia', moneda: 'COP', locale: 'es-CO', simbolo: '$', impuestoDefault: 19 },
+  { codigo: 'MX', nombre: 'México', moneda: 'MXN', locale: 'es-MX', simbolo: '$', impuestoDefault: 16 },
+  { codigo: 'CL', nombre: 'Chile', moneda: 'CLP', locale: 'es-CL', simbolo: '$', impuestoDefault: 19 },
+  { codigo: 'PE', nombre: 'Perú', moneda: 'PEN', locale: 'es-PE', simbolo: 'S/', impuestoDefault: 18 },
+  { codigo: 'EC', nombre: 'Ecuador', moneda: 'USD', locale: 'en-US', simbolo: '$', impuestoDefault: 15 },
+  { codigo: 'GT', nombre: 'Guatemala', moneda: 'GTQ', locale: 'es-GT', simbolo: 'Q', impuestoDefault: 12 },
 ];
+
+type EscenarioTipo = 'PESIMO' | 'FAVORABLE' | 'OPTIMO' | 'OBJETIVO';
+type OpcionPropuestaTipo = 'OPCION1' | 'OPCION2';
 
 interface Seccion1Props {
   variante?: TipoFondo;
 }
 
 export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
-  // CONFIGURACIÓN GEOGRÁFICA Y MONEDA
   const [paisSeleccionado, setPaisSeleccionado] = useState<PaisConfig>(PAISES_ATOM[0]);
-  const [aplicaIva, setAplicaIva] = useState<boolean>(false);
-  const [tarifaIvaPersonalizada, setTarifaIvaPersonalizada] = useState<number>(PAISES_ATOM[0].ivaPorDefecto);
 
-  // CANAL DE VENTA
-  const [canalSeleccionado, setSimCanal] = useState<'MAYOR' | 'ECOM' | 'DROKO'>('ECOM');
+  // ==========================================
+  // INPUTS PASO 1: COSTOS BODEGA Y FRICCIÓN
+  // ==========================================
+  const [costoFabricacion, setCostoFabricacion] = useState<number>(15000);
+  const [costoEmpaque, setCostoEmpaque] = useState<number>(2000);
+  const [costoLogisticaInversa, setCostoLogisticaInversa] = useState<number>(0); 
+  
+  const [porcentajeDevoluciones, setPorcentajeDevoluciones] = useState<number>(20); 
+  const [porcentajeMermas, setPorcentajeMermas] = useState<number>(3); 
+  const [impactoFiscal, setImpactoFiscal] = useState<number>(PAISES_ATOM[0].impuestoDefault);
+  const [margenDeseado, setMargenDeseado] = useState<number>(30);
 
-  // INPUTS BASE DE COSTO (PREDETERMINADOS)
-  const [cogs, setCogs] = useState<number>(12500);
-  const [fleteYEmpaque, setFleteYEmpaque] = useState<number>(2500);
-  const [gastosOperativos, setGastosOperativos] = useState<number>(500);
-  const [margenDeseado, setSimMargenDeseado] = useState<number>(20);
+  // ==========================================
+  // SELECCIÓN DE ESCENARIO PASO 2 -> PASO 3
+  // ==========================================
+  const [escenarioSeleccionado, setEscenarioSeleccionado] = useState<EscenarioTipo>('OBJETIVO');
 
-  // VARIABLES EN EL DESGLOSE DE RENTABILIDAD MASIVA
-  const [unidadesVendidas, setUnidadesVendidas] = useState<number>(100);
-  const [simBonifVendedor, setSimBonifVendedor] = useState<number>(5);
+  // ==========================================
+  // INPUTS PASO 3: PROPUESTA COMERCIAL
+  // ==========================================
+  const [nombreProveedor, setNombreProveedor] = useState<string>(''); 
+  const [nombreProducto, setNombreProducto] = useState<string>('Producto Estrella');
+  const [skuProducto, setSkuProducto] = useState<string>('SKU-1001');
+  const [unidadesProyectadas, setUnidadesProyectadas] = useState<number>(100);
+  const [comisionDropExtra, setComisionDropExtra] = useState<number>(5);
+  const [opcionPropuestaSeleccionada, setOpcionPropuestaSeleccionada] = useState<OpcionPropuestaTipo>('OPCION2');
 
-  // ESCENARIO SELECCIONADO PARA EVALUACIÓN MASIVA (POR DEFECTO 'RIESGO')
-  const [escenarioElegido, setEscenarioElegido] = useState<'OPTIMO' | 'ESTABLE' | 'RIESGO'>('RIESGO');
-
-  // FACTORES DE FUGA (E-COMMERCE)
-  const [simDevRate, setSimDevRate] = useState<number>(18);
-  const [simLossRate, setSimLossRate] = useState<number>(5);
-
-  // FACTORES DROKO (COMISIÓN AL 3% PREDETERMINADA)
-  const [simPlatFee, setSimPlatFee] = useState<number>(3);
-  const [modalidadDroko, setModalidadDroko] = useState<'TRANSITO' | 'BODEGA'>('TRANSITO');
-  const [margenDrokoTransito, setMargenDrokoTransito] = useState<number>(18);
-  const [margenDrokoBodega, setMargenDrokoBodega] = useState<number>(28);
-
-  useEffect(() => {
-    setTarifaIvaPersonalizada(paisSeleccionado.ivaPorDefecto);
-  }, [paisSeleccionado]);
-
-  // Ajustes por canal al cambiar
-  useEffect(() => {
-    if (canalSeleccionado === 'MAYOR') {
-      setSimDevRate(0);
-      setSimLossRate(0);
-      setSimPlatFee(0);
-      setSimBonifVendedor(0);
-      setSimMargenDeseado(20);
-      setFleteYEmpaque(0);
-    } else if (canalSeleccionado === 'ECOM') {
-      setSimDevRate(18);
-      setSimLossRate(5);
-      setSimPlatFee(0);
-      setSimBonifVendedor(5);
-      setSimMargenDeseado(25);
-      setFleteYEmpaque(2500);
-    } else if (canalSeleccionado === 'DROKO') {
-      setSimDevRate(0);
-      setSimLossRate(0);
-      setSimPlatFee(3);
-      setSimBonifVendedor(0);
-      setFleteYEmpaque(0);
-    }
-  }, [canalSeleccionado]);
-
+  // FORMATO DE MONEDA
   const formatoMoneda = (monto: number) => {
     const num = Number(monto) || 0;
     try {
@@ -102,873 +75,623 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
   };
 
   // ==========================================
-  // CÁLCULO FINANCIERO BASE (TARJETAS INTACTAS)
+  // MATEMÁTICA FINANCIERA CORPORATIVA (PRICING)
   // ==========================================
-  const escenariosCalculados = useMemo(() => {
-    const costoProducto = Number(cogs) || 0;
-    const costoOps = canalSeleccionado === 'ECOM' ? (Number(fleteYEmpaque) || 0) : 0;
-    const otros = Number(gastosOperativos) || 0;
-
-    const devPct = canalSeleccionado === 'ECOM' ? ((Number(simDevRate) || 0) / 100) : 0;
-    const lossPct = canalSeleccionado === 'ECOM' ? ((Number(simLossRate) || 0) / 100) : 0;
-    const platFeePct = canalSeleccionado === 'DROKO' ? ((Number(simPlatFee) || 0) / 100) : 0;
-
-    const costoDirectoUnit = costoProducto + costoOps + otros;
-    const provDevolucion = (costoOps * 2) * devPct;
-    const provMerma = (costoProducto + costoOps) * lossPct;
-    const totalProvisionFuga = provDevolucion + provMerma;
-
-    const costoRealUnit = costoDirectoUnit + totalProvisionFuga;
-
-    let margenBaseActual = margenDeseado;
-    if (canalSeleccionado === 'DROKO') {
-      margenBaseActual = modalidadDroko === 'TRANSITO' ? margenDrokoTransito : margenDrokoBodega;
-    }
-
-    let recomendacionBaseOptimo = 'Ideal para reinversión masiva. Absorbe imprevistos comerciales y permite financiar ofertas por volumen sin comprometer la caja.';
-    let recomendacionBaseEstable = 'Punto de equilibrio saludable. Mantiene la operación sostenible para pedidos frecuentes, cubriendo gastos fijos y la comisión de venta.';
+  const metricas = useMemo(() => {
+    const cFab = Math.max(0, Number(costoFabricacion));
+    const cEmp = Math.max(0, Number(costoEmpaque));
+    const cBase = cFab + cEmp; 
+    const cRetorno = Math.max(0, Number(costoLogisticaInversa)); 
+    const qty = Math.max(1, Number(unidadesProyectadas));
     
-    if (canalSeleccionado === 'DROKO') {
-      recomendacionBaseOptimo = 'Margen de seguridad alto. Este nivel te protege contra pérdidas de inventario, depreciación y riesgos operativos que impactan directamente a las empresas dueñas del producto.';
-      recomendacionBaseEstable = 'Nivel de rentabilidad sostenible. Asegura la recuperación de costos indirectos como almacenamiento o gestión administrativa.';
-    }
+    const pctMargenBase = Math.min(80, Math.max(1, Number(margenDeseado))) / 100;
+    const pctIVA = Math.min(50, Math.max(0, Number(impactoFiscal))) / 100;
+    
+    const pctDevBase = Math.min(0.50, Math.max(0.15, Number(porcentajeDevoluciones) / 100));
+    const pctMermasBase = Math.min(0.30, Math.max(0.01, Number(porcentajeMermas) / 100));
+    const pctComisionExtra = Math.min(0.30, Math.max(0, Number(comisionDropExtra) / 100));
 
-    const niveles = [
-      {
-        clave: 'OPTIMO' as const,
-        etiqueta: 'Escenario Óptimo',
-        deltaMargen: 5,
-        colorClass: 'text-[#0DEDC0]',
-        borderClass: 'border-[#0DEDC0]',
-        recomendacion: recomendacionBaseOptimo
-      },
-      {
-        clave: 'ESTABLE' as const,
-        etiqueta: 'Escenario Estable',
-        deltaMargen: 0,
-        colorClass: 'text-blue-400',
-        borderClass: 'border-blue-500',
-        recomendacion: recomendacionBaseEstable
-      },
-      {
-        clave: 'RIESGO' as const,
-        etiqueta: 'Escenario En Riesgo',
-        deltaMargen: -7,
-        colorClass: 'text-red-400',
-        borderClass: 'border-red-500',
-        recomendacion: 'Zona de peligro operativo. Cualquier incremento en devoluciones - perdida de producto o demoras en pagos dejará la utilidad neta en terreno negativo. Revisa tus precios.'
-      },
-    ];
+    const calcularEscenario = (pDev: number, pMerma: number, pMargen: number) => {
+      const factorDev = (1 - pDev) > 0 ? (pDev / (1 - pDev)) : 0;
+      const costoDev = cRetorno * factorDev;
+      
+      const factorMerma = (1 - pMerma) > 0 ? (pMerma / (1 - pMerma)) : 0;
+      const costoMerma = cBase * factorMerma;
 
-    return niveles.map((esc) => {
-      const margenTargetPct = Math.max(1, margenBaseActual + esc.deltaMargen) / 100;
-      const denominador = 1 - margenTargetPct - platFeePct;
-      const precioBaseSinIva = denominador > 0 ? (costoRealUnit / denominador) : (costoRealUnit * 2);
+      const costoAbsorbido = cBase + costoDev + costoMerma;
 
-      const comisionPlatMonto = precioBaseSinIva * platFeePct;
-      const utilidadNetaUnit = precioBaseSinIva * margenTargetPct;
+      const precioNeto = (1 - pMargen) > 0 ? (costoAbsorbido / (1 - pMargen)) : (costoAbsorbido * 2);
+      
+      const impuestoIVA = precioNeto * pctIVA;
+      const precioCatalogo = precioNeto + impuestoIVA;
+      
+      const ganancia = precioNeto * pMargen;
 
-      const pctIva = aplicaIva ? ((Number(tarifaIvaPersonalizada) || 0) / 100) : 0;
-      const montoIvaUnit = precioBaseSinIva * pctIva;
-      const precioFinalConIva = precioBaseSinIva + montoIvaUnit;
+      return { costoDev, costoMerma, costoAbsorbido, precioNeto, impuestoIVA, precioCatalogo, ganancia };
+    };
 
-      return {
-        ...esc,
-        margenRealPct: margenTargetPct * 100,
-        costoRealUnit,
-        totalProvisionFuga,
-        precioBaseSinIva,
-        montoIvaUnit,
-        precioFinalConIva,
-        comisionPlatMonto,
-        utilidadNetaUnit,
-      };
-    });
+    const fav = calcularEscenario(pctDevBase, pctMermasBase, pctMargenBase);
+
+    const pctDevPes = Math.min(0.50, pctDevBase * 1.5);
+    const pctMermasPes = Math.min(0.30, pctMermasBase * 2.0);
+    const pes = calcularEscenario(pctDevPes, pctMermasPes, pctMargenBase);
+    
+    const gananciaPesRealEnFav = fav.precioNeto - pes.costoAbsorbido;
+    const margenPesRealEnFav = fav.precioNeto > 0 ? (gananciaPesRealEnFav / fav.precioNeto) * 100 : 0;
+
+    const opt = calcularEscenario(0.15, 0.01, pctMargenBase);
+    const gananciaOptRealEnFav = fav.precioNeto - opt.costoAbsorbido;
+    const margenOptRealEnFav = fav.precioNeto > 0 ? (gananciaOptRealEnFav / fav.precioNeto) * 100 : 0;
+
+    const pctMargenObj = Math.min(0.70, pctMargenBase + 0.05);
+    const obj = calcularEscenario(pctDevBase, pctMermasBase, pctMargenObj);
+
+    let activo = fav;
+    let margenActivo = pctMargenBase;
+    let devActivo = pctDevBase;
+    
+    if (escenarioSeleccionado === 'PESIMO') { activo = pes; devActivo = pctDevPes; }
+    if (escenarioSeleccionado === 'OPTIMO') { activo = opt; devActivo = 0.15; }
+    if (escenarioSeleccionado === 'OBJETIVO') { activo = obj; margenActivo = pctMargenObj; }
+
+    const comisionOp1 = activo.precioNeto * pctComisionExtra;
+    const gananciaNetaOp1 = activo.ganancia - comisionOp1;
+    const margenNetaOp1 = activo.precioNeto > 0 ? (gananciaNetaOp1 / activo.precioNeto) * 100 : 0;
+
+    const divisorOp2 = 1 - margenActivo - pctComisionExtra;
+    const precioNetoOp2 = divisorOp2 > 0 ? (activo.costoAbsorbido / divisorOp2) : (activo.costoAbsorbido * 3);
+    const impuestoOp2 = precioNetoOp2 * pctIVA;
+    const precioCatalogoOp2 = precioNetoOp2 + impuestoOp2;
+    const comisionOp2 = precioNetoOp2 * pctComisionExtra;
+    const gananciaNetaOp2 = precioNetoOp2 * margenActivo;
+
+    // --- TOTALES LOTE ---
+    const totalVentasOp1 = activo.precioCatalogo * qty;
+    const totalComisionOp1 = comisionOp1 * qty;
+    const totalGananciaOp1 = gananciaNetaOp1 * qty;
+    const totalCostosOp1 = activo.costoAbsorbido * qty;
+
+    const totalVentasOp2 = precioCatalogoOp2 * qty;
+    const totalComisionOp2 = comisionOp2 * qty;
+    const totalGananciaOp2 = gananciaNetaOp2 * qty;
+    const totalCostosOp2 = activo.costoAbsorbido * qty;
+
+    return {
+      cBase, cRetorno, qty, pctDevBase, pctComisionExtra, pctIVA, pctMargenBase,
+      pctDevFav: (pctDevBase * 100).toFixed(0), pctMermasFav: (pctMermasBase * 100).toFixed(1), fav,
+      pctDevPes: (pctDevPes * 100).toFixed(0), pctMermasPes: (pctMermasPes * 100).toFixed(1), pes, gananciaPesRealEnFav, margenPesRealEnFav,
+      pctDevOpt: '15', pctMermasOpt: '1.0', opt, gananciaOptRealEnFav, margenOptRealEnFav,
+      obj, pctMargenObjetivo: (pctMargenObj * 100).toFixed(0),
+      activo, devActivo, margenActivo,
+      comisionOp1, gananciaNetaOp1, margenNetaOp1, totalVentasOp1, totalComisionOp1, totalGananciaOp1, totalCostosOp1,
+      precioCatalogoOp2, impuestoOp2, comisionOp2, gananciaNetaOp2, totalVentasOp2, totalComisionOp2, totalGananciaOp2, totalCostosOp2,
+    };
   }, [
-    cogs, fleteYEmpaque, gastosOperativos, margenDeseado, simDevRate,
-    simLossRate, simPlatFee, modalidadDroko, margenDrokoTransito, 
-    margenDrokoBodega, canalSeleccionado, aplicaIva, tarifaIvaPersonalizada
+    costoFabricacion, costoEmpaque, costoLogisticaInversa, margenDeseado, impactoFiscal, 
+    porcentajeDevoluciones, porcentajeMermas, unidadesProyectadas, comisionDropExtra, escenarioSeleccionado
   ]);
 
   // ==========================================
-  // DISCRIMINACIÓN Y LIQUIDACIÓN (MAYOR / ECOM / DROKO)
+  // ENVÍO WHATSAPP (ÚNICA OPCIÓN AHORA)
   // ==========================================
-  const discriminacionMasiva = useMemo(() => {
-    const escObj = escenariosCalculados.find(e => e.clave === escenarioElegido) || escenariosCalculados[2];
-    const qty = Math.max(1, Number(unidadesVendidas) || 1);
+  const enviarPorWhatsapp = () => {
+    const esOp1 = opcionPropuestaSeleccionada === 'OPCION1';
+    const precioElegido = esOp1 ? metricas.activo.precioCatalogo : metricas.precioCatalogoOp2;
+    const bonoElegido = esOp1 ? metricas.comisionOp1 : metricas.comisionOp2;
+    const bonoTotalLote = esOp1 ? metricas.totalComisionOp1 : metricas.totalComisionOp2;
 
-    // Totales Brutos Base
-    const ingresoBrutoTotal = escObj.precioBaseSinIva * qty;
-    const cogsTotal = (Number(cogs) || 0) * qty;
-    const fleteTotal = (canalSeleccionado === 'ECOM' ? (Number(fleteYEmpaque) || 0) : 0) * qty;
-    const gastosOpsTotal = (Number(gastosOperativos) || 0) * qty;
-    const provisionFugaTotal = escObj.totalProvisionFuga * qty;
-    
-    // Identificación del porcentaje de comisión según el canal activo
-    const esDroko = canalSeleccionado === 'DROKO';
-    const esMayor = canalSeleccionado === 'MAYOR';
-    const porcentajeComisionAplicada = esMayor ? 0 : (esDroko ? simPlatFee : simBonifVendedor);
-    const nombreComision = esDroko ? 'Comisión Plataforma Droko' : 'Comisión Vendedor';
-    const comisionPct = (Number(porcentajeComisionAplicada) || 0) / 100;
+    const textoMensaje = `*PROPUESTA DE META LOGÍSTICA & BONIFICACIÓN B2B* 📦🏆🚀
 
-    const comisionPlataformaTotal = escObj.comisionPlatMonto * qty;
-    const utilidadNetaTotal = escObj.utilidadNetaUnit * qty;
+*Proveedor:* 🏢 ${nombreProveedor || 'Bodega Autorizada'}
+*Producto:* 🏷️ ${nombreProducto} (${skuProducto})
+*Lote Proyectado:* 📦 ${metricas.qty} Unidades
 
-    // LIQUIDACIÓN OPCIÓN 1: Asumir la comisión
-    const comisionOp1Unit = escObj.precioBaseSinIva * comisionPct;
-    const comisionOp1Total = comisionOp1Unit * qty;
-    const gananciaReducidaOp1Unit = Math.max(0, escObj.utilidadNetaUnit - comisionOp1Unit);
-    const gananciaReducidaOp1Total = gananciaReducidaOp1Unit * qty;
-    const porcentajeUtilidadOp1 = escObj.precioBaseSinIva > 0 ? (gananciaReducidaOp1Unit / escObj.precioBaseSinIva) * 100 : 0;
+*Estructura de la Oferta:* 💰
+• Precio Público Sugerido (PVP): 💲${formatoMoneda(precioElegido)} / ud
+• Bono x Cumplimiento Logístico (${(metricas.pctComisionExtra * 100).toFixed(0)}%): 🎁 ${formatoMoneda(bonoElegido)} / unidad entregada
+• Fondo Total de Incentivos (${metricas.qty} uds): 🏦 ${formatoMoneda(bonoTotalLote)}
 
-    // LIQUIDACIÓN OPCIÓN 2: Proteger la ganancia aumentando el precio de venta
-    const margenPct = escObj.margenRealPct / 100;
-    const platFeePct = esDroko ? comisionPct : 0;
-    const vendedorFeePct = (!esDroko && !esMayor) ? comisionPct : 0;
-    
-    const denModificado = 1 - margenPct - platFeePct - vendedorFeePct;
-    const precioSugeridoConComision = denModificado > 0 ? (escObj.costoRealUnit / denModificado) : (escObj.costoRealUnit * 2);
-    const incrementoPrecioUnit = Math.max(0, precioSugeridoConComision - escObj.precioBaseSinIva);
+*KPIs de Meta Logística Exigidos:* 📊
+• Devoluciones Máximas Permitidas: 📉 ${(metricas.devActivo * 100).toFixed(0)}%
+• Efectividad de Entrega Mínima: ✅ ${(100 - (metricas.devActivo * 100)).toFixed(0)}%
 
-    const ventaBrutaAjustadaTotal = precioSugeridoConComision * qty;
-    const comisionAjustadaUnit = precioSugeridoConComision * comisionPct;
-    const comisionAjustadaTotal = comisionAjustadaUnit * qty;
-    const utilidadNetaAjustadaUnit = precioSugeridoConComision * margenPct;
-    const utilidadNetaAjustadaTotal = utilidadNetaAjustadaUnit * qty;
+📌 _Condición:_ El incentivo logístico se desembolsará el 25 de cada mes despues de confirmar y cerrar la operacion logistica del mes anterior, y se tomara como referencia las órdenes efectivamente entregadas en plataforma bajo los parámetros de efectividad acordados. 🤝`;
 
-    return {
-      qty,
-      escObj,
-      ingresoBrutoTotal,
-      cogsTotal,
-      fleteTotal,
-      gastosOpsTotal,
-      provisionFugaTotal,
-      comisionPlataformaTotal,
-      utilidadNetaTotal,
-      porcentajeComisionAplicada,
-      nombreComision,
-      esDroko,
-      esMayor,
-      // Liquidación Opción 1
-      comisionOp1Unit,
-      comisionOp1Total,
-      gananciaReducidaOp1Unit,
-      gananciaReducidaOp1Total,
-      porcentajeUtilidadOp1,
-      // Liquidación Opción 2
-      precioSugeridoConComision,
-      incrementoPrecioUnit,
-      ventaBrutaAjustadaTotal,
-      comisionAjustadaUnit,
-      comisionAjustadaTotal,
-      utilidadNetaAjustadaUnit,
-      utilidadNetaAjustadaTotal,
-    };
-  }, [escenariosCalculados, escenarioElegido, unidadesVendidas, cogs, fleteYEmpaque, gastosOperativos, canalSeleccionado, simBonifVendedor, simPlatFee]);
+    window.open(`https://wa.me/?text=${encodeURIComponent(textoMensaje)}`, '_blank');
+  };
 
   return (
-    <section className="relative z-10 py-12 px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10 text-white">
-      {/* CAPA DE FONDO DINÁMICO */}
-      <Fondos variante={variante} modo="absolute" />
-
-      {/* ESTILOS DE IMPRESIÓN */}
+    <section className="relative z-10 py-12 px-4 sm:px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10 text-white">
       <style dangerouslySetInnerHTML={{ __html: `
-        @media print {
-          body { background-color: #ffffff !important; color: #000000 !important; }
-          .no-print { display: none !important; }
-          .print-container { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
-          .print-card { border: 1px solid #000000 !important; background-color: #f8fafc !important; color: #000000 !important; page-break-inside: avoid; }
-          .print-text-dark { color: #000000 !important; }
-        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none !important; margin: 0 !important; }
+        input[type=number] { -moz-appearance: textfield !important; }
       ` }} />
 
-      <div className="relative z-10 max-w-7xl mx-auto space-y-10 print-container">
+      <Fondos variante={variante} modo="absolute" />
+
+      <div className="relative z-10 max-w-7xl mx-auto space-y-12">
         
         {/* CABECERA */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 border-b border-[#0DEDC0]/15 pb-8 no-print">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-800 pb-6">
           <div>
-            <Kicker>INTELIGENCIA FINANCIERA ATOM ({paisSeleccionado.moneda})</Kicker>
+            <Kicker className="!text-[#0DEDC0]">HERRAMIENTA PARA GERENCIA B2B</Kicker>
             <H1 className="text-balance mb-2">
-              SIMULADOR & BLINDAJE DE <Highlight>PRECIOS.</Highlight>
+              Arquitectura de <Highlight>Precios & Sensibilidad.</Highlight>
             </H1>
-            <Subtitulo className="max-w-3xl">
-              Calcula tus precios absorbiendo mermas, logística inversa y comisiones. Evalúa tus opciones en 3 escenarios financieros según el canal de venta.
+            <Subtitulo className="max-w-2xl">
+              Audita matemáticamente tus costos logísticos inversos. Analiza los 4 escenarios de sensibilidad operativa y emite la propuesta comercial definitiva.
             </Subtitulo>
           </div>
 
-          {/* SELECTOR DE PAÍS */}
-          <div className="bg-[#090D16] p-4 rounded-2xl border border-slate-800 space-y-2 shrink-0 w-full sm:w-auto">
-            <label className="block text-[10px] font-mono font-bold text-[#0DEDC0] uppercase">
-              País de Operación ATOM
+          <div className="bg-[#090D16] p-3.5 rounded-2xl border border-slate-800 shrink-0 w-full md:w-auto">
+            <label className="block text-[10px] font-mono font-bold text-[#0DEDC0] uppercase mb-1">
+              Moneda de Operación / País
             </label>
             <select
               value={paisSeleccionado.codigo}
               onChange={(e) => {
-                const p = PAISES_ATOM.find(x => x.codigo === e.target.value);
-                if (p) setPaisSeleccionado(p);
+                const p = PAISES_ATOM.find((x) => x.codigo === e.target.value);
+                if (p) {
+                  setPaisSeleccionado(p);
+                  setImpactoFiscal(p.impuestoDefault);
+                }
               }}
-              className="w-full bg-[#102935] border border-slate-700 text-white text-xs font-bold rounded-xl p-2.5 focus:border-[#0DEDC0] focus:outline-none cursor-pointer"
+              className="w-full bg-[#102935] border border-slate-700 text-white text-xs font-bold rounded-xl p-2.5 focus:border-[#0DEDC0] outline-none cursor-pointer"
             >
               {PAISES_ATOM.map((p) => (
                 <option key={p.codigo} value={p.codigo}>
-                  {p.nombre} ({p.moneda}) - IVA sugerido {p.ivaPorDefecto}%
+                  {p.nombre} ({p.moneda}) - IVA base {p.impuestoDefault}%
                 </option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* PANEL PRINCIPAL DE CONFIGURACIÓN */}
-        <div className="bg-[#090D16] rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-[0_15px_35px_rgba(9,13,22,0.6)] space-y-6 max-w-4xl mx-auto no-print">
-          
-          {/* TABS DE CANAL DE VENTA */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
-            <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider flex items-center gap-2">
-              <svg className="w-4 h-4 text-[#0DEDC0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              Selecciona el Canal de Comercialización
-            </span>
-
-            <div className="flex gap-1 bg-[#102935] p-1 rounded-xl border border-slate-800 w-full sm:w-auto justify-between sm:justify-start">
-              <button
-                type="button"
-                onClick={() => setSimCanal('MAYOR')}
-                className={`px-3 py-1 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer ${
-                  canalSeleccionado === 'MAYOR' ? 'bg-[#0DEDC0] text-[#090D16]' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Venta Al Por Mayor
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => setSimCanal('ECOM')}
-                className={`px-3 py-1 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer ${
-                  canalSeleccionado === 'ECOM' ? 'bg-[#0DEDC0] text-[#090D16]' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                E-Commerce
-              </button>
-
-              <div className="relative group">
-                <button
-                  type="button"
-                  onClick={() => setSimCanal('DROKO')}
-                  className={`px-3 py-1 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer flex items-center gap-1.5 ${
-                    canalSeleccionado === 'DROKO' ? 'bg-[#0DEDC0] text-[#090D16]' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Droko
-                  <span className="w-2 h-2 rounded-full bg-[#0DEDC0] animate-ping" />
-                </button>
-
-                <div className="absolute right-0 sm:left-1/2 sm:-translate-x-1/2 top-full mt-2 w-72 p-3.5 bg-[#050B0E] border border-[#0DEDC0]/40 rounded-xl shadow-2xl z-50 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300 text-left">
-                  <div className="text-[11px] font-mono text-[#0DEDC0] font-bold uppercase mb-1">
-                    🚀 LÍNEA ESPECIAL DROKO
-                  </div>
-                  <p className="text-[11px] text-slate-300 leading-relaxed font-medium normal-case">
-                    Droko es una nueva línea pensada en comprar al por mayor con precios únicos. Si eres importador, te permite vender directamente desde que el contenedor viene en tránsito por el océano.
-                  </p>
-                </div>
-              </div>
+        {/* ========================================================= */}
+        {/* SECCIÓN 1: ESTRUCTURA FINANCIERA BASE                     */}
+        {/* ========================================================= */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0DEDC0]/20 to-[#0DEDC0]/5 border border-[#0DEDC0]/40 text-[#0DEDC0] font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(13,237,192,0.2)] shrink-0">
+              1
             </div>
+            <h2 className="text-sm sm:text-base md:text-lg font-black text-white uppercase tracking-widest m-0">
+              Costo Operativo <span className="text-slate-400 font-medium tracking-wide">y Estructura Fiscal</span>
+            </h2>
+            <div className="flex-1 h-px bg-gradient-to-r from-[#0DEDC0]/40 via-slate-700 to-transparent hidden sm:block"></div>
           </div>
 
-          {/* INPUTS GENERALES DE COSTOS */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-medium">
-            <div>
-              <label className="block text-[10px] font-mono font-bold text-slate-400 uppercase mb-1">
-                Costo Producto (COGS)
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={cogs}
-                onChange={(e) => setCogs(Number(e.target.value))}
-                className="w-full bg-[#102935] border border-slate-700 rounded-xl p-2.5 font-mono text-white focus:border-[#0DEDC0] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-            </div>
-
-            {canalSeleccionado === 'ECOM' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            {/* COSTOS DIRECTOS */}
+            <div className="bg-[#090D16] p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full transition-transform hover:-translate-y-1">
+              <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-2">
+                Costos de Producción
+              </span>
               <div>
-                <label className="block text-[10px] font-mono font-bold text-slate-400 uppercase mb-1">
-                  Picking / Empaque ({paisSeleccionado.moneda})
-                </label>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Costo CIF / Fabricación</label>
                 <input
-                  type="number"
-                  min="0"
-                  value={fleteYEmpaque}
-                  onChange={(e) => setFleteYEmpaque(Number(e.target.value))}
-                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-2.5 font-mono text-white focus:border-[#0DEDC0] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  type="number" min="0" value={costoFabricacion} onChange={(e) => setCostoFabricacion(Number(e.target.value))}
+                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-2.5 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] outline-none"
                 />
               </div>
-            )}
-
-            <div>
-              <label className="block text-[10px] font-mono font-bold text-slate-400 uppercase mb-1">
-                Otros Gastos Directos
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={gastosOperativos}
-                onChange={(e) => setGastosOperativos(Number(e.target.value))}
-                className="w-full bg-[#102935] border border-slate-700 rounded-xl p-2.5 font-mono text-white focus:border-[#0DEDC0] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-            </div>
-
-            {canalSeleccionado !== 'DROKO' && (
               <div>
-                <label className="block text-[10px] font-mono font-bold text-[#0DEDC0] uppercase mb-1">
-                  % Margen Objetivo Base
-                </label>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Alistamiento / WaaS / Empaque</label>
                 <input
-                  type="number"
-                  min="1"
-                  max="80"
-                  value={margenDeseado}
-                  onChange={(e) => setSimMargenDeseado(Number(e.target.value))}
-                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-2.5 font-mono text-white focus:border-[#0DEDC0] focus:outline-none text-right font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  type="number" min="0" value={costoEmpaque} onChange={(e) => setCostoEmpaque(Number(e.target.value))}
+                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-2.5 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] outline-none"
                 />
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* MÓDULO EXCLUSIVO E-COMMERCE */}
-          {canalSeleccionado === 'ECOM' && (
-            <div className="bg-[#102935]/50 p-4.5 rounded-xl border border-slate-800 space-y-4">
-              <span className="block text-[11px] font-mono font-bold text-red-400 uppercase tracking-wider flex items-center gap-2">
-                <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                Variables de Fuga (E-Commerce)
+            {/* FRICCIÓN LOGÍSTICA PISOS REALES */}
+            <div className="bg-[#090D16] p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full transition-transform hover:-translate-y-1">
+              <span className="text-xs font-mono font-bold text-red-400 uppercase tracking-wider block border-b border-slate-800 pb-2">
+                Provisión Fricción Logística COD
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <div className="flex justify-between text-[11px] mb-1">
-                    <span className="text-slate-400">% Devolución Logística:</span>
-                    <span className="font-mono text-red-400 font-bold">{simDevRate}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="40"
-                    value={simDevRate}
-                    onChange={(e) => setSimDevRate(Number(e.target.value))}
-                    className="w-full accent-[#0DEDC0] cursor-pointer"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-[11px] mb-1">
-                    <span className="text-slate-400">% Pérdida / Merma Producto:</span>
-                    <span className="font-mono text-red-400 font-bold">{simLossRate}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="20"
-                    value={simLossRate}
-                    onChange={(e) => setSimLossRate(Number(e.target.value))}
-                    className="w-full accent-[#0DEDC0] cursor-pointer"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* MÓDULO EXCLUSIVO DROKO */}
-          {canalSeleccionado === 'DROKO' && (
-            <div className="bg-[#102935]/50 p-4.5 rounded-xl border border-slate-800 space-y-4">
-              <div className="flex justify-between items-center border-b border-slate-700/60 pb-2 flex-wrap gap-2">
-                <span className="block text-[11px] font-mono font-bold text-[#0DEDC0] uppercase tracking-wider">
-                  Configuración Droko (Precios Mayoristas)
-                </span>
-                
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setModalidadDroko('TRANSITO')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      modalidadDroko === 'TRANSITO' ? 'bg-[#0DEDC0] text-[#090D16]' : 'bg-[#090D16] text-slate-400'
-                    }`}
-                  >
-                    En Tránsito (Contenedor)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setModalidadDroko('BODEGA')}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      modalidadDroko === 'BODEGA' ? 'bg-[#0DEDC0] text-[#090D16]' : 'bg-[#090D16] text-slate-400'
-                    }`}
-                  >
-                    En Bodega
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className={`p-3 rounded-xl border ${modalidadDroko === 'TRANSITO' ? 'border-[#0DEDC0] bg-[#090D16]' : 'border-slate-800 opacity-50'}`}>
-                  <label className="block text-[10px] font-mono font-bold text-slate-300 uppercase mb-1">
-                    % Ganancia "En Tránsito"
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="80"
-                    value={margenDrokoTransito}
-                    onChange={(e) => setMargenDrokoTransito(Number(e.target.value))}
-                    className="w-full bg-[#102935] border border-slate-700 rounded-lg p-2 font-mono text-white text-xs text-right font-bold focus:border-[#0DEDC0] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
-
-                <div className={`p-3 rounded-xl border ${modalidadDroko === 'BODEGA' ? 'border-[#0DEDC0] bg-[#090D16]' : 'border-slate-800 opacity-50'}`}>
-                  <label className="block text-[10px] font-mono font-bold text-slate-300 uppercase mb-1">
-                    % Ganancia "En Bodega"
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="80"
-                    value={margenDrokoBodega}
-                    onChange={(e) => setMargenDrokoBodega(Number(e.target.value))}
-                    className="w-full bg-[#102935] border border-slate-700 rounded-lg p-2 font-mono text-white text-xs text-right font-bold focus:border-[#0DEDC0] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-[11px] mb-1">
-                    <span className="text-slate-400">% Comisión Plataforma:</span>
-                    <span className="font-mono text-[#0DEDC0] font-bold">{simPlatFee}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10"
-                    step="0.5"
-                    value={simPlatFee}
-                    onChange={(e) => setSimPlatFee(Number(e.target.value))}
-                    className="w-full accent-[#0DEDC0] cursor-pointer mt-2"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* OPCIÓN IVA */}
-          <div className="bg-[#102935]/40 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="checkboxIvaGlobal"
-                checked={aplicaIva}
-                onChange={(e) => setAplicaIva(e.target.checked)}
-                className="w-4 h-4 rounded text-[#0DEDC0] focus:ring-0 cursor-pointer accent-[#0DEDC0]"
-              />
-              <label htmlFor="checkboxIvaGlobal" className="text-xs font-bold text-white cursor-pointer">
-                ¿Aplicar IVA al precio de venta final?
-              </label>
-            </div>
-
-            {aplicaIva && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-300">Tarifa IVA ({paisSeleccionado.nombre}):</span>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1 text-amber-300">Costo Logística Inversa (Flete Retorno)</label>
                 <input
-                  type="number"
-                  value={tarifaIvaPersonalizada}
-                  onChange={(e) => setTarifaIvaPersonalizada(Number(e.target.value))}
-                  className="w-16 bg-[#090D16] border border-slate-700 text-[#0DEDC0] font-mono text-xs font-bold rounded-lg p-1 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  type="number" min="0" value={costoLogisticaInversa} onChange={(e) => setCostoLogisticaInversa(Number(e.target.value))} placeholder="0"
+                  className="w-full bg-[#1A160B] border border-amber-900/50 rounded-xl p-2.5 font-mono text-amber-100 text-sm font-bold focus:border-amber-500 outline-none"
                 />
-                <span className="text-xs font-bold text-[#0DEDC0]">%</span>
               </div>
-            )}
-          </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-red-900/10 border border-red-900/30 p-2.5 rounded-xl">
+                  <div className="flex justify-between text-[10px] font-semibold text-red-300 mb-1.5">
+                    <span>Devolución</span>
+                    <span className="font-mono text-red-400 font-bold">{porcentajeDevoluciones}%</span>
+                  </div>
+                  <input type="range" min="15" max="50" value={porcentajeDevoluciones} onChange={(e) => setPorcentajeDevoluciones(Number(e.target.value))} className="w-full accent-red-500" />
+                  <span className="text-[9px] text-slate-500 block mt-1">Piso Técnico 15%</span>
+                </div>
+                <div className="bg-red-950/10 border border-red-900/30 p-2.5 rounded-xl">
+                  <div className="flex justify-between text-[10px] font-semibold text-red-300 mb-1.5">
+                    <span>Mermas (Pérdida)</span>
+                    <span className="font-mono text-red-400 font-bold">{porcentajeMermas}%</span>
+                  </div>
+                  <input type="range" min="1" max="30" value={porcentajeMermas} onChange={(e) => setPorcentajeMermas(Number(e.target.value))} className="w-full accent-red-400" />
+                  <span className="text-[9px] text-slate-500 block mt-1">Piso Técnico 1%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* MARGEN Y FISCAL */}
+            <div className="bg-[#090D16] p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full transition-transform hover:-translate-y-1">
+              <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-2">
+                Objetivo de Rentabilidad & Fiscal
+              </span>
+              <div className="bg-[#102935]/40 border border-[#0DEDC0]/20 p-3 rounded-xl">
+                <div className="flex justify-between text-xs font-semibold text-[#0DEDC0] mb-2">
+                  <span>Margen Neto Libre</span>
+                  <span className="font-mono font-bold text-white">{margenDeseado}%</span>
+                </div>
+                <input type="range" min="1" max="70" value={margenDeseado} onChange={(e) => setMargenDeseado(Number(e.target.value))} className="w-full accent-[#0DEDC0]" />
+              </div>
+              <div className="bg-slate-800/30 border border-slate-700/50 p-3 rounded-xl">
+                <div className="flex justify-between text-xs font-semibold text-slate-300 mb-2">
+                  <span>Impuestos (IVA / Retenciones)</span>
+                  <span className="font-mono text-white">{impactoFiscal}%</span>
+                </div>
+                <input type="range" min="0" max="30" value={impactoFiscal} onChange={(e) => setImpactoFiscal(Number(e.target.value))} className="w-full accent-slate-400" />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* EVALUACIÓN DE 3 ESCENARIOS FINANCIEROS */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center no-print">
-            <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
-              Evaluación de 3 Escenarios Financieros ({canalSeleccionado})
-            </span>
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className={`bg-[#0DEDC0] hover:bg-white text-[#090D16] font-black px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(13,237,192,0.2)] cursor-pointer ${ESTILOS_TEXTO.boton}`}
+        {/* ========================================================= */}
+        {/* SECCIÓN 2: ANÁLISIS DE SENSIBILIDAD B2B (4 ESCENARIOS)   */}
+        {/* ========================================================= */}
+        <div className="space-y-6 pt-6 relative">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0DEDC0]/20 to-[#0DEDC0]/5 border border-[#0DEDC0]/40 text-[#0DEDC0] font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(13,237,192,0.2)] shrink-0">
+              2
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-sm sm:text-base md:text-lg font-black text-white uppercase tracking-widest m-0">
+                Análisis de Sensibilidad B2B
+              </h2>
+              <span className="text-[10px] sm:text-[11px] font-mono font-normal text-slate-400">
+                (Haz clic en un escenario para trasladar su precio a la propuesta comercial)
+              </span>
+            </div>
+            <div className="flex-1 h-px bg-gradient-to-r from-[#0DEDC0]/40 via-slate-700 to-transparent hidden lg:block"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
+            
+            {/* ESCENARIO 1: PÉSIMO */}
+            <div 
+              onClick={() => setEscenarioSeleccionado('PESIMO')}
+              className={`relative bg-[#1A0B12] rounded-2xl p-5 overflow-hidden shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+                escenarioSeleccionado === 'PESIMO' ? 'border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.3)] ring-1 ring-red-500/50 scale-[1.02]' : 'border-red-900/40 hover:border-red-500/40'
+              }`}
             >
-              Imprimir Resultado Completo
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {escenariosCalculados.map((esc) => (
-              <div
-                key={esc.clave}
-                onClick={() => setEscenarioElegido(esc.clave)}
-                className={`bg-[#090D16] border-2 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4 cursor-pointer transition-all ${
-                  escenarioElegido === esc.clave
-                    ? `${esc.borderClass} bg-[#102935]/90 shadow-[0_0_25px_rgba(13,237,192,0.2)] scale-[1.02]`
-                    : 'border-slate-800 opacity-70 hover:opacity-100'
-                } print-card`}
-              >
-                <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <span className={`text-xs font-mono font-bold uppercase ${esc.colorClass} print-text-dark`}>
-                      {esc.etiqueta}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      {escenarioElegido === esc.clave && (
-                        <span className="text-[9px] font-mono font-black uppercase px-2 py-0.5 rounded bg-[#0DEDC0] text-[#090D16]">
-                          Seleccionado
-                        </span>
-                      )}
-                      <span className="text-[10px] font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded font-bold">
-                        Margen: {esc.margenRealPct.toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* PRECIO SUGERIDO FINAL */}
-                  <div className="text-center py-4 my-2 bg-[#102935]/50 rounded-xl border border-slate-800">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">
-                      Precio de Venta Sugerido
-                    </span>
-                    <span className="text-2xl sm:text-3xl font-black text-white font-mono print-text-dark">
-                      {formatoMoneda(esc.precioFinalConIva)}
-                    </span>
-                    {aplicaIva && (
-                      <span className="text-[9px] text-slate-400 block mt-1">
-                        Incluye IVA ({tarifaIvaPersonalizada}%): {formatoMoneda(esc.montoIvaUnit)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* DESGLOSE MATEMÁTICO */}
-                  <div className="space-y-2 text-xs font-mono border-t border-slate-800 pt-3 text-slate-300 print-text-dark">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Precio Base (Sin IVA):</span>
-                      <span className="font-bold">{formatoMoneda(esc.precioBaseSinIva)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Costo Real Absorbiendo Fuga:</span>
-                      <span className="font-bold text-red-400">{formatoMoneda(esc.costoRealUnit)}</span>
-                    </div>
-
-                    {canalSeleccionado === 'ECOM' && (
-                      <div className="flex justify-between text-[11px] text-red-400/80">
-                        <span>• Provisión Devolución/Merma:</span>
-                        <span>{formatoMoneda(esc.totalProvisionFuga)}</span>
-                      </div>
-                    )}
-
-                    {esc.comisionPlatMonto > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Comisión Plataforma Droko:</span>
-                        <span>{formatoMoneda(esc.comisionPlatMonto)}</span>
-                      </div>
-                    )}
-                  </div>
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-red-500" />
+              <div className="space-y-2 border-b border-red-900/30 pb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-black uppercase bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/30">1. Pésimo</span>
+                  {escenarioSeleccionado === 'PESIMO' && <span className="text-[9px] font-mono font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">✓ Activo</span>}
                 </div>
-
-                {/* BLOQUE RECOMENDACIÓN FINANCIERA ESTRATÉGICA */}
-                <div className="bg-[#102935]/80 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
-                  <span className="text-[10px] font-mono font-bold text-[#0DEDC0] uppercase block">
-                    💡 Recomendación Financiera
-                  </span>
-                  <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
-                    {esc.recomendacion}
-                  </p>
-                </div>
-
-                {/* UTILIDAD NETA REAL */}
-                <div className="bg-[#102935] p-3 rounded-xl border border-slate-800 text-center">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block mb-0.5">
-                    Utilidad Neta Libre / Unidad
-                  </span>
-                  <span className={`text-lg font-black font-mono ${esc.colorClass} print-text-dark`}>
-                    {formatoMoneda(esc.utilidadNetaUnit)}
-                  </span>
+                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight">Estrés Logístico Máximo</h3>
+                <p className="text-[10px] text-slate-400 leading-relaxed m-0">Devolución {metricas.pctDevPes}% | Mermas {metricas.pctMermasPes}%</p>
+                <div className="pt-2">
+                  <span className="text-[9px] text-slate-500 uppercase font-bold block">Precio de Resguardo Requerido</span>
+                  <span className="text-xl font-mono font-black text-slate-200">{formatoMoneda(metricas.pes.precioCatalogo)}</span>
                 </div>
               </div>
-            ))}
+              <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-red-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.pes.precioNeto)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
+                  <div className="flex justify-between text-red-400"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.pes.costoMerma)}</span></div>
+                  <div className="flex justify-between text-red-400"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.pes.costoDev)}</span></div>
+                </div>
+                <div className="flex justify-between text-red-400 font-bold border-t border-slate-800 pt-2 text-[11px] mt-2">
+                  <span>Utilidad:</span><span>{formatoMoneda(metricas.pes.ganancia)} ({margenDeseado}%)</span>
+                </div>
+              </div>
+              <div className="text-[9px] text-red-400/80 leading-tight mt-1 text-center">
+                *Si vendes al precio Favorable bajo este estrés, tu ganancia se desploma a {formatoMoneda(metricas.gananciaPesRealEnFav)}.
+              </div>
+            </div>
+
+            {/* ESCENARIO 2: FAVORABLE */}
+            <div 
+              onClick={() => setEscenarioSeleccionado('FAVORABLE')}
+              className={`relative bg-[#0F2330] rounded-2xl p-5 overflow-hidden shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+                escenarioSeleccionado === 'FAVORABLE' ? 'border-blue-400 shadow-[0_0_25px_rgba(96,165,250,0.3)] ring-1 ring-blue-400/50 scale-[1.02]' : 'border-blue-900/40 hover:border-blue-400/40'
+              }`}
+            >
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-400" />
+              <div className="space-y-2 border-b border-blue-900/30 pb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-black uppercase bg-blue-500/10 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">2. Favorable</span>
+                  {escenarioSeleccionado === 'FAVORABLE' && <span className="text-[9px] font-mono font-bold bg-blue-400 text-[#090D16] px-1.5 py-0.5 rounded">✓ Activo</span>}
+                </div>
+                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight">Proyección Base Real</h3>
+                <p className="text-[10px] text-slate-400 leading-relaxed m-0">Devolución {porcentajeDevoluciones}% | Mermas {porcentajeMermas}%</p>
+                <div className="pt-2">
+                  <span className="text-[9px] text-slate-500 uppercase font-bold block">Precio Catálogo Base</span>
+                  <span className="text-xl font-mono font-black text-white">{formatoMoneda(metricas.fav.precioCatalogo)}</span>
+                </div>
+              </div>
+              <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-blue-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.fav.precioNeto)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.fav.costoMerma)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.fav.costoDev)}</span></div>
+                </div>
+                <div className="flex justify-between text-blue-300 font-bold border-t border-slate-800 pt-2 text-[11px] mt-2">
+                  <span>Utilidad Libre:</span><span>{formatoMoneda(metricas.fav.ganancia)} ({margenDeseado}%)</span>
+                </div>
+              </div>
+              <div className="text-[9px] text-blue-300/60 leading-tight mt-1 text-center">
+                El IVA {impactoFiscal}% es facturado al cliente y reservado intacto para declaración.
+              </div>
+            </div>
+
+            {/* ESCENARIO 3: ÓPTIMO */}
+            <div 
+              onClick={() => setEscenarioSeleccionado('OPTIMO')}
+              className={`relative bg-[#0B1A14] rounded-2xl p-5 overflow-hidden shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+                escenarioSeleccionado === 'OPTIMO' ? 'border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400/50 scale-[1.02]' : 'border-emerald-500/30 hover:border-emerald-400/40'
+              }`}
+            >
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-emerald-400" />
+              <div className="space-y-2 border-b border-emerald-900/30 pb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-black uppercase bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">3. Óptimo</span>
+                  {escenarioSeleccionado === 'OPTIMO' && <span className="text-[9px] font-mono font-bold bg-emerald-400 text-[#090D16] px-1.5 py-0.5 rounded">✓ Activo</span>}
+                </div>
+                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight">Piso Eficiencia (Control Total)</h3>
+                <p className="text-[10px] text-slate-400 leading-relaxed m-0">Devolución 15% | Mermas 1%</p>
+                <div className="pt-2">
+                  <span className="text-[9px] text-slate-500 uppercase font-bold block">Precio Ultra Competitivo</span>
+                  <span className="text-xl font-mono font-black text-emerald-300">{formatoMoneda(metricas.opt.precioCatalogo)}</span>
+                </div>
+              </div>
+              <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-emerald-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.opt.precioNeto)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
+                  <div className="flex justify-between text-emerald-400/80"><span>(-) Mermas (Piso 1%):</span><span>-{formatoMoneda(metricas.opt.costoMerma)}</span></div>
+                  <div className="flex justify-between text-emerald-400/80"><span>(-) Devolución (Piso 15%):</span><span>-{formatoMoneda(metricas.opt.costoDev)}</span></div>
+                </div>
+                <div className="flex justify-between text-emerald-400 font-bold border-t border-slate-800 pt-2 text-[11px] mt-2">
+                  <span>Utilidad Libre:</span><span>{formatoMoneda(metricas.opt.ganancia)} ({margenDeseado}%)</span>
+                </div>
+              </div>
+              <div className="text-[9px] text-emerald-400/80 leading-tight mt-1 text-center">
+                *A precio Favorable tu ganancia subiría a {formatoMoneda(metricas.gananciaOptRealEnFav)}.
+              </div>
+            </div>
+
+            {/* ESCENARIO 4: OBJETIVO (RECOMENDADO FINANCIERO) */}
+            <div 
+              onClick={() => setEscenarioSeleccionado('OBJETIVO')}
+              className={`relative bg-gradient-to-b from-[#0F2633] to-[#0A1A24] rounded-2xl p-5 overflow-hidden shadow-[0_10px_40px_rgba(13,237,192,0.15)] flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+                escenarioSeleccionado === 'OBJETIVO' ? 'border-[#0DEDC0] shadow-[0_0_30px_rgba(13,237,192,0.4)] ring-1 ring-[#0DEDC0]/50 scale-[1.02] z-10' : 'border-[#0DEDC0]/40 hover:border-[#0DEDC0]/80'
+              }`}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#0DEDC0]/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-[#0DEDC0] shadow-[0_0_15px_rgba(13,237,192,0.8)]" />
+              
+              <div className="space-y-2 border-b border-[#0DEDC0]/30 pb-3 relative z-10">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-black uppercase bg-[#0DEDC0]/10 text-[#0DEDC0] px-2 py-0.5 rounded border border-[#0DEDC0]/30">4. Objetivo B2B</span>
+                  {escenarioSeleccionado === 'OBJETIVO' && <span className="text-[9px] font-mono font-bold bg-[#0DEDC0] text-[#090D16] px-1.5 py-0.5 rounded">★ RECOMENDADO</span>}
+                </div>
+                <h3 className="text-sm font-black text-white m-0 leading-tight">Estructura Aterrizada</h3>
+                <p className="text-[10px] text-[#0DEDC0]/80 leading-relaxed m-0">Margen protegido +5% Buffer Caja Mínima.</p>
+                
+                <div className="pt-2">
+                  <span className="text-[9px] text-[#0DEDC0]/70 uppercase font-bold block">Precio Catálogo Ideal</span>
+                  <span className="text-2xl font-mono font-black text-[#0DEDC0] drop-shadow-md">{formatoMoneda(metricas.obj.precioCatalogo)}</span>
+                </div>
+              </div>
+
+              <div className="bg-[#090D16]/95 p-3.5 rounded-xl border border-[#0DEDC0]/30 font-mono text-[10px] relative z-10 flex-1 flex flex-col justify-between space-y-2">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.obj.precioNeto)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.obj.costoMerma)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.obj.costoDev)}</span></div>
+                </div>
+                <div className="flex justify-between items-center text-[#0DEDC0] font-black border-t border-slate-700 pt-2 text-[11px] mt-2">
+                  <span>Utilidad + Buffer:</span><span>{formatoMoneda(metricas.obj.ganancia)} ({metricas.pctMargenObjetivo}%)</span>
+                </div>
+              </div>
+              <div className="text-[9px] text-[#0DEDC0]/60 leading-tight mt-1 text-center font-medium">
+                Absorbe la iliquidez por demora de pagos Wallet.
+              </div>
+            </div>
+
           </div>
         </div>
 
-        {/* ========================================== */}
-        {/* MÓDULO: DISCRIMINACIÓN DETALLADA Y ANÁLISIS DE COMISIÓN */}
-        {/* ========================================== */}
-        <div className="bg-[#090D16] border-2 border-[#0DEDC0]/40 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
-            <div>
-              <Kicker className="!text-[#0DEDC0]">ANÁLISIS DE RENTABILIDAD Y COMISIÓN ({discriminacionMasiva.qty} UNIDADES)</Kicker>
-              <h3 className="text-xl font-black text-white font-mono">
-                Desglose Detallado de Rentabilidad: <span className="text-[#0DEDC0]">{discriminacionMasiva.escObj.etiqueta}</span>
+        {/* ========================================================= */}
+        {/* SECCIÓN 3: CREADOR DE PROPUESTA COMERCIAL B2B             */}
+        {/* ========================================================= */}
+        <div className="space-y-8 pt-10 relative">
+          
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 border border-amber-500/40 text-amber-400 font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(245,158,11,0.2)] shrink-0">
+              3
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full">
+              <h2 className="text-sm sm:text-base md:text-lg font-black text-white uppercase tracking-widest m-0">
+                Creador de Propuesta Comercial Oficial
+              </h2>
+              <span className="text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-md font-bold shrink-0 shadow-inner">
+                MODO: ESCENARIO {escenarioSeleccionado} ({formatoMoneda(metricas.activo.precioCatalogo)})
+              </span>
+            </div>
+            <div className="flex-1 h-px bg-gradient-to-r from-amber-500/40 via-slate-700 to-transparent hidden lg:block"></div>
+          </div>
+
+          <div className="bg-[#090D16] p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+            <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider block border-b border-slate-800 pb-2">
+              Configuración de la Oferta
+            </span>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 items-end">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">Empresa / Proveedor</label>
+                <input type="text" value={nombreProveedor} onChange={(e) => setNombreProveedor(e.target.value)} placeholder="Ej. Mi Bodega Drop" className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-amber-400 outline-none transition-colors" />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">Nombre del Producto</label>
+                <input type="text" value={nombreProducto} onChange={(e) => setNombreProducto(e.target.value)} className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-amber-400 outline-none transition-colors" />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">Código SKU</label>
+                <input type="text" value={skuProducto} onChange={(e) => setSkuProducto(e.target.value)} className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-amber-400 outline-none transition-colors" />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">Lote (Unidades)</label>
+                <input type="number" min="1" value={unidadesProyectadas} onChange={(e) => setUnidadesProyectadas(Number(e.target.value))} className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-amber-400 outline-none transition-colors" />
+              </div>
+
+              <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl">
+                <div className="flex justify-between text-[11px] font-semibold text-amber-300 mb-1.5">
+                  <span>Comisión Drop</span>
+                  <span className="font-mono text-amber-400 font-bold bg-amber-500/20 px-2 py-0.5 rounded">{comisionDropExtra}%</span>
+                </div>
+                <input type="range" min="0" max="30" value={comisionDropExtra} onChange={(e) => setComisionDropExtra(Number(e.target.value))} className="w-full accent-amber-500 cursor-pointer" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#090D16] p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-xl space-y-6">
+            
+            <div className="border-b border-slate-700 pb-5">
+              <span className="text-[10px] font-mono font-black uppercase text-amber-400 tracking-widest block mb-2">
+                Selecciona la Modalidad Comercial
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-white m-0">
+                Condiciones de Pago y Liquidación
               </h3>
             </div>
-            
-            {/* BLOQUE DE CONTROLES ASIMÉTRICO */}
-            <div className="bg-[#102935]/90 border border-slate-700/80 rounded-2xl p-2.5 sm:p-3 shadow-xl flex items-center divide-x divide-slate-700/80 gap-3 sm:gap-4 shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* COLUMNA 1: UNIDADES A VENDER */}
-              <div className="flex flex-col pr-1">
-                <label className="text-[10px] text-[#0DEDC0] font-mono font-black uppercase tracking-wider block mb-1">
-                  UNIDADES A VENDER
-                </label>
-                <div className="bg-[#090D16] border border-[#0DEDC0]/50 rounded-xl px-3 py-1 text-center font-mono text-white text-base font-black min-w-[90px]">
-                  <input
-                    type="number"
-                    min="1"
-                    value={unidadesVendidas}
-                    onChange={(e) => setUnidadesVendidas(Math.max(1, Number(e.target.value)))}
-                    className="w-full bg-transparent text-center text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
+              {/* OPCIÓN A */}
+              <div 
+                onClick={() => setOpcionPropuestaSeleccionada('OPCION1')}
+                className={`p-5 rounded-2xl transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                  opcionPropuestaSeleccionada === 'OPCION1' ? 'bg-[#1A160B] border-2 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.15)] ring-1 ring-amber-400/50' : 'bg-[#101D28]/40 border border-slate-800 hover:border-amber-500/40'
+                }`}
+              >
+                <div className={`absolute top-0 left-0 h-full w-1.5 transition-colors ${opcionPropuestaSeleccionada === 'OPCION1' ? 'bg-amber-400' : 'bg-transparent'}`} />
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start gap-2">
+                    <h4 className={`text-sm font-black uppercase m-0 leading-tight ${opcionPropuestaSeleccionada === 'OPCION1' ? 'text-amber-400' : 'text-slate-300'}`}>
+                      Opción A: Precio Base (Asumes Comisión)
+                    </h4>
+                    {opcionPropuestaSeleccionada === 'OPCION1' && <span className="text-[9px] font-mono font-bold bg-amber-400 text-[#090D16] px-2 py-0.5 rounded shadow-sm">✓ ELEGIDA</span>}
+                  </div>
+                  
+                  <div className="bg-[#090D16]/60 p-4 rounded-xl border border-amber-500/10 space-y-3 font-mono text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Precio Público (Con IVA):</span>
+                      <span className="text-white font-bold">{formatoMoneda(metricas.activo.precioCatalogo)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-slate-800 pt-2">
+                      <span className="text-amber-400 font-bold">Bono al Drop ({comisionDropExtra}%):</span>
+                      <span className="text-amber-400 font-black">+{formatoMoneda(metricas.comisionOp1)} /ud</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* COLUMNA 2: % COMISIÓN VENDEDOR (SOLO EN ECOM) */}
-              {canalSeleccionado === 'ECOM' && (
-                <div className="flex items-center gap-2 pl-3 sm:pl-4">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-amber-400 font-mono font-black uppercase tracking-wider leading-none">
-                      % COMISIÓN
-                    </span>
-                    <span className="text-[9px] text-slate-400 font-mono font-semibold tracking-wide">
-                      Vendedor
-                    </span>
+              {/* OPCIÓN B */}
+              <div 
+                onClick={() => setOpcionPropuestaSeleccionada('OPCION2')}
+                className={`p-5 rounded-2xl transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                  opcionPropuestaSeleccionada === 'OPCION2' ? 'bg-[#0F2633] border-2 border-[#0DEDC0] shadow-[0_0_25px_rgba(13,237,192,0.15)] ring-1 ring-[#0DEDC0]/50' : 'bg-[#101D28]/40 border border-slate-800 hover:border-[#0DEDC0]/40'
+                }`}
+              >
+                <div className={`absolute top-0 left-0 h-full w-1.5 transition-colors ${opcionPropuestaSeleccionada === 'OPCION2' ? 'bg-[#0DEDC0]' : 'bg-transparent'}`} />
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start gap-2">
+                    <h4 className={`text-sm font-black uppercase m-0 leading-tight ${opcionPropuestaSeleccionada === 'OPCION2' ? 'text-[#0DEDC0]' : 'text-slate-300'}`}>
+                      Opción B: Escalar Precio (Margen Intacto)
+                    </h4>
+                    {opcionPropuestaSeleccionada === 'OPCION2' && <span className="text-[9px] font-mono font-bold bg-[#0DEDC0] text-[#090D16] px-2 py-0.5 rounded shadow-sm">✓ ELEGIDA</span>}
                   </div>
-
-                  <div className="bg-[#090D16] border border-amber-500/60 rounded-xl px-3 py-1 flex items-center gap-1 font-mono text-amber-400 text-base font-black">
-                    <input
-                      type="number"
-                      min="0"
-                      max="50"
-                      step="0.5"
-                      value={simBonifVendedor}
-                      onChange={(e) => setSimBonifVendedor(Number(e.target.value))}
-                      className="w-10 bg-transparent text-center text-amber-400 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    <span className="text-amber-400 font-black text-xs">%</span>
-                  </div>
-                </div>
-              )}
-
-              {/* COLUMNA 2 (DROKO): % COMISIÓN PLATAFORMA DROKO */}
-              {canalSeleccionado === 'DROKO' && (
-                <div className="flex items-center gap-2 pl-3 sm:pl-4">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-amber-400 font-mono font-black uppercase tracking-wider leading-none">
-                      % COMISIÓN
-                    </span>
-                    <span className="text-[9px] text-slate-400 font-mono font-semibold tracking-wide">
-                      Droko
-                    </span>
-                  </div>
-
-                  <div className="bg-[#090D16] border border-amber-500/60 rounded-xl px-3 py-1 flex items-center gap-1 font-mono text-amber-400 text-base font-black">
-                    <input
-                      type="number"
-                      min="0"
-                      max="20"
-                      step="0.5"
-                      value={simPlatFee}
-                      onChange={(e) => setSimPlatFee(Number(e.target.value))}
-                      className="w-10 bg-transparent text-center text-amber-400 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    <span className="text-amber-400 font-black text-xs">%</span>
+                  
+                  <div className="bg-[#090D16]/60 p-4 rounded-xl border border-[#0DEDC0]/10 space-y-3 font-mono text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Nuevo Precio Público:</span>
+                      <span className="text-[#0DEDC0] font-bold">{formatoMoneda(metricas.precioCatalogoOp2)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-slate-800 pt-2">
+                      <span className="text-[#0DEDC0] font-bold">Bono al Drop ({comisionDropExtra}%):</span>
+                      <span className="text-[#0DEDC0] font-black">+{formatoMoneda(metricas.comisionOp2)} /ud</span>
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
+            </div>
 
+            {/* PANEL DE LIQUIDACIÓN TOTAL DEL LOTE PROYECTADO */}
+            <div className="bg-gradient-to-r from-[#0F2633] via-[#0A1A24] to-[#090D16] p-6 rounded-2xl border-2 border-[#0DEDC0]/40 shadow-2xl space-y-4 mt-6">
+              <div className="flex justify-between items-center border-b border-[#0DEDC0]/20 pb-3 flex-wrap gap-2">
+                <span className="text-xs font-mono font-black uppercase text-[#0DEDC0] tracking-wider">
+                  LIQUIDACIÓN TOTAL DE GANANCIA BODEGA ({metricas.qty} UNIDADES)
+                </span>
+                <span className="text-[10px] font-mono text-slate-400 bg-black/40 px-3 py-1 rounded-full border border-slate-700">
+                  MODALIDAD: {opcionPropuestaSeleccionada === 'OPCION1' ? 'Opción A (Asumida)' : 'Opción B (Escalada)'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 font-mono">
+                <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Ventas Brutas Lote</span>
+                  <span className="text-lg font-black text-white">
+                    {formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.totalVentasOp1 : metricas.totalVentasOp2)}
+                  </span>
+                </div>
+
+                <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Costo Operativo Absorbido</span>
+                  <span className="text-lg font-black text-slate-300">
+                    -{formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.totalCostosOp1 : metricas.totalCostosOp2)}
+                  </span>
+                </div>
+
+                <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-[10px] text-amber-400 uppercase font-bold block mb-1">Fondo Comisión Drop</span>
+                  <span className="text-lg font-black text-amber-400">
+                    -{formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.totalComisionOp1 : metricas.totalComisionOp2)}
+                  </span>
+                </div>
+
+                <div className="bg-[#0DEDC0]/10 p-3.5 rounded-xl border border-[#0DEDC0]/40">
+                  <span className="text-[10px] text-[#0DEDC0] uppercase font-bold block mb-1">UTILIDAD NETA BODEGA</span>
+                  <span className="text-xl font-black text-[#0DEDC0]">
+                    {formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.totalGananciaOp1 : metricas.totalGananciaOp2)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* TABLA DE DISCRIMINACIÓN DE COSTOS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
-            <div className="bg-[#102935]/60 p-4 rounded-xl border border-slate-800 space-y-1">
-              <span className="text-slate-400 uppercase text-[10px] block">Venta Bruta Total</span>
-              <span className="text-lg font-bold text-white block">{formatoMoneda(discriminacionMasiva.ingresoBrutoTotal)}</span>
-              <span className="text-[10px] text-slate-400 block">{discriminacionMasiva.qty} uds. × {formatoMoneda(discriminacionMasiva.escObj.precioBaseSinIva)}</span>
-            </div>
-
-            <div className="bg-[#102935]/60 p-4 rounded-xl border border-slate-800 space-y-1">
-              <span className="text-slate-400 uppercase text-[10px] block">Costo Producto (COGS)</span>
-              <span className="text-lg font-bold text-slate-200 block">{formatoMoneda(discriminacionMasiva.cogsTotal)}</span>
-              <span className="text-[10px] text-slate-400 block">{discriminacionMasiva.qty} uds. × {formatoMoneda(cogs)}</span>
-            </div>
-
-            {canalSeleccionado === 'ECOM' && (
-              <div className="bg-[#102935]/60 p-4 rounded-xl border border-slate-800 space-y-1">
-                <span className="text-slate-400 uppercase text-[10px] block">Flete & Empaque (Picking)</span>
-                <span className="text-lg font-bold text-slate-200 block">{formatoMoneda(discriminacionMasiva.fleteTotal)}</span>
-                <span className="text-[10px] text-slate-400 block">{discriminacionMasiva.qty} uds. × {formatoMoneda(fleteYEmpaque)}</span>
-              </div>
-            )}
-
-            <div className="bg-[#102935]/60 p-4 rounded-xl border border-slate-800 space-y-1">
-              <span className="text-slate-400 uppercase text-[10px] block">Gastos Directos Operativos</span>
-              <span className="text-lg font-bold text-slate-200 block">{formatoMoneda(discriminacionMasiva.gastosOpsTotal)}</span>
-              <span className="text-[10px] text-slate-400 block">{discriminacionMasiva.qty} uds. × {formatoMoneda(gastosOperativos)}</span>
-            </div>
-
-            {canalSeleccionado === 'ECOM' && (
-              <div className="bg-[#102935]/60 p-4 rounded-xl border border-red-900/40 space-y-1">
-                <span className="text-red-400 uppercase text-[10px] block font-bold">Provisión Retenida de Fuga</span>
-                <span className="text-lg font-bold text-red-400 block">{formatoMoneda(discriminacionMasiva.provisionFugaTotal)}</span>
-                <span className="text-[10px] text-slate-400 block">Devolución logistica ({simDevRate}%) + Mermas ({simLossRate}%)</span>
-              </div>
-            )}
-
-            {canalSeleccionado === 'ECOM' && (
-              <div className="bg-[#102935]/60 p-4 rounded-xl border border-amber-500/40 space-y-1">
-                <span className="text-amber-400 uppercase text-[10px] block font-bold">Comisión Total Vendedor ({simBonifVendedor}%)</span>
-                <span className="text-lg font-bold text-amber-400 block">{formatoMoneda(discriminacionMasiva.comisionOp1Total)}</span>
-                <span className="text-[10px] text-slate-400 block">{discriminacionMasiva.qty} uds. × {formatoMoneda(discriminacionMasiva.comisionOp1Unit)}</span>
-              </div>
-            )}
-
-            {canalSeleccionado === 'DROKO' && (
-              <div className="bg-[#102935]/60 p-4 rounded-xl border border-amber-500/40 space-y-1">
-                <span className="text-amber-400 uppercase text-[10px] block font-bold">Comisión Plataforma Droko ({simPlatFee}%)</span>
-                <span className="text-lg font-bold text-amber-400 block">{formatoMoneda(discriminacionMasiva.comisionOp1Total)}</span>
-                <span className="text-[10px] text-slate-400 block">{discriminacionMasiva.qty} uds. × {formatoMoneda(discriminacionMasiva.comisionOp1Unit)}</span>
-              </div>
-            )}
-          </div>
-
-          {/* DOS OPCIONES EXPLICADAS CON LIQUIDACIÓN DETALLADA */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800">
-            
-            {/* OPCIÓN 1: ASUMIR LA COMISIÓN CON LIQUIDACIÓN PASO A PASO */}
-            <div className="bg-[#102935]/40 p-5 rounded-xl border border-amber-500/40 space-y-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-xs font-mono font-bold text-amber-400 uppercase block">
-                    🔴 Opción 1: Asumir la {discriminacionMasiva.nombreComision}
-                  </span>
-                  <span className="text-[10px] text-slate-400">Mantienes el mismo precio de venta al público pero la comisión se descuenta de tu ganancia.</span>
-                </div>
-              </div>
-
-              {/* LIQUIDACIÓN PASO A PASO OPCIÓN 1 */}
-              <div className="bg-[#090D16] p-3.5 rounded-lg space-y-2 font-mono text-xs border border-amber-500/30">
-                <div className="flex justify-between items-center text-slate-300 pb-1 border-b border-slate-800">
-                  <span className="font-bold text-slate-200">PRECIO DE VENTA BASE AL PÚBLICO:</span>
-                  <span className="text-sm font-black text-white">{formatoMoneda(discriminacionMasiva.escObj.precioBaseSinIva)}</span>
-                </div>
-
-                <div className="flex justify-between text-slate-300">
-                  <span>(+) Venta Bruta Total Proyectada:</span>
-                  <span className="font-bold text-white">{formatoMoneda(discriminacionMasiva.ingresoBrutoTotal)}</span>
-                </div>
-
-                <div className="flex justify-between text-slate-400">
-                  <span>(-) COGS + Gastos Operativos:</span>
-                  <span className="text-slate-300">{formatoMoneda(discriminacionMasiva.cogsTotal + discriminacionMasiva.fleteTotal + discriminacionMasiva.gastosOpsTotal)}</span>
-                </div>
-
-                {canalSeleccionado === 'ECOM' && (
-                  <div className="flex justify-between text-red-400">
-                    <span>(-) Provisión Retenida por Fugas ({simDevRate + simLossRate}%):</span>
-                    <span>{formatoMoneda(discriminacionMasiva.provisionFugaTotal)}</span>
-                  </div>
-                )}
-
-                {/* CONDICIONAL: Solo mostrar comisiones si NO es venta al por mayor o si el porcentaje es mayor a 0 */}
-                {!discriminacionMasiva.esMayor && discriminacionMasiva.porcentajeComisionAplicada > 0 && (
-                  <div className="flex justify-between text-amber-400 font-bold">
-                    <span>(-) Pago de {discriminacionMasiva.nombreComision} ({discriminacionMasiva.porcentajeComisionAplicada}%):</span>
-                    <span>-{formatoMoneda(discriminacionMasiva.comisionOp1Total)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between text-amber-400 pt-1.5 border-t border-slate-800 font-bold">
-                  <span>(=) Tu Utilidad Neta Reducida ({discriminacionMasiva.porcentajeUtilidadOp1.toFixed(1)}%):</span>
-                  <span className="text-sm font-black">{formatoMoneda(discriminacionMasiva.gananciaReducidaOp1Total)}</span>
-                </div>
-              </div>
-
-              <div className="p-3 bg-amber-950/20 rounded-lg border border-amber-900/30 text-[11px] text-slate-300 leading-relaxed">
-                <strong className="text-amber-400 block mb-1">🏛️ Dictamen del Experto Financiero:</strong>
-                {!discriminacionMasiva.esMayor && discriminacionMasiva.porcentajeComisionAplicada > 0 ? (
-                  <>
-                    Si decides asumir el costo comercial sin subir el precio al público, estás pagando <span className="font-bold text-amber-400">{formatoMoneda(discriminacionMasiva.comisionOp1Unit)}</span> por unidad en concepto de {discriminacionMasiva.nombreComision.toLowerCase()}. Tu ganancia neta por producto disminuye de <span className="font-bold text-slate-200">{formatoMoneda(discriminacionMasiva.escObj.utilidadNetaUnit)}</span> a <span className="font-bold text-amber-400">{formatoMoneda(discriminacionMasiva.gananciaReducidaOp1Unit)}</span>. Es recomendable solo si tu margen de la tarjeta base es alto y buscas acelerar rotación.
-                  </>
-                ) : (
-                  <>
-                    En el canal de Venta Al Por Mayor no se aplican comisiones comerciales ni retenciones por fuga. Tu utilidad neta total se mantiene libre e intacta en <span className="font-bold text-[#0DEDC0]">{formatoMoneda(discriminacionMasiva.utilidadNetaTotal)}</span>.
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* OPCIÓN 2: SUBIR EL PRECIO DEL PRODUCTO CON LIQUIDACIÓN COMPLETA RECOMENDADA */}
-            <div className="bg-[#102935]/40 p-5 rounded-xl border border-[#0DEDC0]/40 space-y-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase block">
-                    🟢 Opción 2: Proteger tu Ganancia (Aumentar Precio de Venta)
-                  </span>
-                  <span className="text-[10px] text-slate-400">Sugerencia y liquidación completa ajustando el precio para cubrir la comisión al 100%.</span>
-                </div>
-              </div>
-
-              {/* LIQUIDACIÓN COMPLETA PASO A PASO OPCIÓN 2 */}
-              <div className="bg-[#090D16] p-3.5 rounded-lg space-y-2 font-mono text-xs border border-[#0DEDC0]/30">
-                <div className="flex justify-between items-center text-slate-300 pb-1 border-b border-slate-800">
-                  <span className="font-bold text-[#0DEDC0]">NUEVO PRECIO SUGERIDO / UNIDAD:</span>
-                  <span className="text-sm font-black text-[#0DEDC0]">{formatoMoneda(discriminacionMasiva.precioSugeridoConComision)}</span>
-                </div>
-
-                <div className="flex justify-between text-slate-300">
-                  <span>(+) Venta Bruta Total Proyectada:</span>
-                  <span className="font-bold text-white">{formatoMoneda(discriminacionMasiva.ventaBrutaAjustadaTotal)}</span>
-                </div>
-
-                <div className="flex justify-between text-slate-400">
-                  <span>(-) COGS + Gastos Operativos:</span>
-                  <span className="text-slate-300">{formatoMoneda(discriminacionMasiva.cogsTotal + discriminacionMasiva.fleteTotal + discriminacionMasiva.gastosOpsTotal)}</span>
-                </div>
-
-                {canalSeleccionado === 'ECOM' && (
-                  <div className="flex justify-between text-red-400">
-                    <span>(-) Provisión Retenida por Fugas ({simDevRate + simLossRate}%):</span>
-                    <span>{formatoMoneda(discriminacionMasiva.provisionFugaTotal)}</span>
-                  </div>
-                )}
-
-                {/* CONDICIONAL: Solo mostrar comisiones si NO es venta al por mayor o si el porcentaje es mayor a 0 */}
-                {!discriminacionMasiva.esMayor && discriminacionMasiva.porcentajeComisionAplicada > 0 && (
-                  <div className="flex justify-between text-amber-400 font-bold">
-                    <span>(-) Pago de {discriminacionMasiva.nombreComision} ({discriminacionMasiva.porcentajeComisionAplicada}%):</span>
-                    <span>{formatoMoneda(discriminacionMasiva.comisionAjustadaTotal)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between text-[#0DEDC0] pt-1.5 border-t border-slate-800 font-bold">
-                  <span>(=) Tu Utilidad Neta Intacta ({discriminacionMasiva.escObj.margenRealPct.toFixed(0)}%):</span>
-                  <span className="text-sm font-black">{formatoMoneda(discriminacionMasiva.utilidadNetaAjustadaTotal)}</span>
-                </div>
-              </div>
-
-              <div className="p-3 bg-[#0DEDC0]/5 rounded-lg border border-[#0DEDC0]/20 text-[11px] text-slate-300 leading-relaxed">
-                <strong className="text-[#0DEDC0] block mb-1">🏛️ Dictamen del Experto Financiero:</strong>
-                {!discriminacionMasiva.esMayor && discriminacionMasiva.porcentajeComisionAplicada > 0 ? (
-                  <>
-                    Con esta liquidación ajustada, incrementas tu precio por unidad de <span className="font-bold text-slate-200">{formatoMoneda(discriminacionMasiva.escObj.precioBaseSinIva)}</span> a <span className="font-bold text-[#0DEDC0]">{formatoMoneda(discriminacionMasiva.precioSugeridoConComision)}</span> (+{formatoMoneda(discriminacionMasiva.incrementoPrecioUnit)}/ud). Como puedes ver en la liquidación de arriba, esto te permite **cubrir {formatoMoneda(discriminacionMasiva.comisionAjustadaTotal)} en concepto de {discriminacionMasiva.nombreComision.toLowerCase()}** mientras tu utilidad neta libre se mantiene intacta en <span className="font-bold text-[#0DEDC0]">{formatoMoneda(discriminacionMasiva.utilidadNetaAjustadaTotal)}</span>. Las 3 tarjetas de escenarios de la sección superior permanecen en su valor base original.
-                  </>
-                ) : (
-                  <>
-                    Tu estructura de precios en Venta Al Por Mayor no requiere sobrecosto de comisiones. El precio sugerido por unidad es <span className="font-bold text-[#0DEDC0]">{formatoMoneda(discriminacionMasiva.escObj.precioBaseSinIva)}</span> y garantiza tu margen intacto.
-                  </>
-                )}
-              </div>
-
-            </div>
-
+          <div className="pt-2">
+            <button 
+              onClick={enviarPorWhatsapp} 
+              className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-6 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_5px_15px_rgba(22,163,74,0.3)] cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Enviar Propuesta por WhatsApp
+            </button>
           </div>
         </div>
 

@@ -10,29 +10,29 @@ interface Seccion6Props {
 
 export default function Seccion6({ variante = 'cyanSolidOnly' }: Seccion6Props) {
   return (
-    <section className="relative z-10 py-10 sm:py-16 lg:py-20 px-4 sm:px-6 overflow-hidden border-b border-[#091A23]/15 text-center w-full">
+    <section className="relative z-10 py-8 sm:py-12 lg:py-14 px-4 sm:px-6 overflow-hidden border-b border-[#091A23]/15 text-center w-full">
       
       {/* CAPA DE FONDO VERDE CIAN SÓLIDO */}
       <Fondos variante={variante} modo="absolute" />
 
-      <div className="relative z-10 max-w-5xl mx-auto flex flex-col items-center w-full">
+      <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center w-full">
         
         {/* ETIQUETA SUPERIOR */}
-        <Kicker className="!text-[#0F172A] !bg-transparent !border-transparent !p-0 text-[10px] sm:text-xs font-semibold tracking-widest uppercase mb-3 sm:mb-4">
+        <Kicker className="!text-[#0F172A] !bg-transparent !border-transparent !p-0 text-[10px] sm:text-xs font-semibold tracking-widest uppercase mb-2 sm:mb-2.5">
           AUDITORÍA FINANCIERA
         </Kicker>
 
-        {/* TÍTULO PRINCIPAL (Ajustado con salto responsivo para celular) */}
-        <h2 className="w-full max-w-xs sm:max-w-3xl mx-auto mb-4 sm:mb-6 text-[#020617] text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight sm:leading-snug tracking-tight whitespace-normal break-words text-center">
+        {/* TÍTULO PRINCIPAL (Interlineado compacto leading-[1.08]) */}
+        <h2 className="w-full max-w-xs sm:max-w-2xl lg:max-w-3xl mx-auto mb-3 sm:mb-4 text-[#020617] text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-[1.1] sm:leading-[1.08] tracking-tight whitespace-normal break-words text-center">
           ATOM no es un gasto, <br className="sm:hidden" />
           es tu máquina de ROI.
         </h2>
 
         {/* SUBTÍTULO */}
-        <Subtitulo className="w-full max-w-2xl mx-auto mb-8 sm:mb-10 text-xs sm:text-base md:text-lg !text-[#334155] leading-relaxed whitespace-normal break-words">
+        <Subtitulo className="w-full max-w-xl sm:max-w-2xl mx-auto mb-6 sm:mb-7 text-xs sm:text-base md:text-lg !text-[#334155] leading-relaxed whitespace-normal break-words">
           Nuestros proveedores recuperan en promedio un{' '}
           <strong className="font-extrabold text-[#020617]">
-            12% de ganancia real
+            15% de ganancia real
           </strong>{' '}
           que tenían perdida en la calle durante sus primeros 30 días.
         </Subtitulo>

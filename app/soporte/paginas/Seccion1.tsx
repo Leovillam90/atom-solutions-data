@@ -31,7 +31,7 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProp
         </H2>
 
         <Subtitulo className="max-w-3xl mx-auto mb-12">
-          Conecta directamente con nuestros estrategas para blindar tus márgenes, o accede a nuestra base táctica para destrabar cualquier fricción logística en segundos.
+          Conecta directamente con nuestro Equipo ATOM para blindar tu operación, o accede a nuestra base táctica para destrabar cualquier fricción logística en segundos.
         </Subtitulo>
 
         {/* GRID DE TARJETAS */}
@@ -60,7 +60,7 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProp
               </div>
 
               <span className="text-[11px] font-extrabold text-[#0DEDC0] uppercase tracking-wider block mb-1.5">
-                RENTABILIDAD & ESCALAMIENTO
+                ASESORIA EMPRESARIAL ATOM
               </span>
 
               <h3 className="text-xl font-black text-white mb-2 tracking-tight">
@@ -68,7 +68,7 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProp
               </h3>
 
               <p className="text-sm text-slate-400 leading-relaxed font-medium">
-                Frena el desangre operativo de inmediato. Agenda una sesión táctica para detectar dinero estancado, optimizar tu margen y blindar tu bodega.
+                Analizamos tu cuenta en vivo para detectar guías perdidas, devoluciones sin pagar y mucho más. Sal de la llamada con el plan exacto para recuperar tu dinero.
               </p>
             </div>
 
@@ -98,11 +98,11 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProp
               </span>
 
               <h3 className="text-lg font-black text-white mb-2 tracking-tight">
-                Soporte Técnico y Fricciones
+                Soporte Técnico y Operativo
               </h3>
 
               <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium">
-                Soluciones exactas, sin vueltas. Habla con un especialista para configurar Dropi sin errores y resolver tus inquietudes operativas.
+                ¿Tienes dudas con la integración o fallas en la sincronización? Conéctate en vivo por WhatsApp con un especialista para corregir errores en Dropi, ajustar tus credenciales API y mantener tu bodega operando a 100%.
               </p>
             </div>
 
@@ -131,11 +131,11 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProp
               </span>
 
               <h3 className="text-lg font-black text-white mb-2 tracking-tight">
-                ATOM School
+                ATOM Academy
               </h3>
 
               <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium">
-                Accede a tu arsenal estratégico. Domina la conexión con Dropi, automatiza tu ecosistema y audita tu rentabilidad con videotutoriales.
+                Pasa de resolver problemas manuales a dirigir una operación automatizada. Accede a videotutoriales paso a paso para dominar la API de Dropi, blindar tus márgenes y auditar tu rentabilidad en tiempo real.
               </p>
             </div>
 
