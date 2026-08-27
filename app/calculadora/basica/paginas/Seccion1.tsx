@@ -3,23 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H1, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
-
-interface PaisConfig {
-  codigo: string;
-  nombre: string;
-  moneda: string;
-  locale: string;
-  simbolo: string;
-}
-
-const PAISES_ATOM: PaisConfig[] = [
-  { codigo: 'CO', nombre: 'Colombia', moneda: 'COP', locale: 'es-CO', simbolo: '$' },
-  { codigo: 'MX', nombre: 'México', moneda: 'MXN', locale: 'es-MX', simbolo: '$' },
-  { codigo: 'CL', nombre: 'Chile', moneda: 'CLP', locale: 'es-CL', simbolo: '$' },
-  { codigo: 'PE', nombre: 'Perú', moneda: 'PEN', locale: 'es-PE', simbolo: 'S/' },
-  { codigo: 'EC', nombre: 'Ecuador', moneda: 'USD', locale: 'en-US', simbolo: '$' },
-  { codigo: 'GT', nombre: 'Guatemala', moneda: 'GTQ', locale: 'es-GT', simbolo: 'Q' },
-];
+import { MONEDAS, MonedaConfig, formatearMonedaGlobal } from '@/app/lib/moneda';
 
 type ModoCalculadora = 'PROVEEDOR' | 'DROPSHIPPER';
 
@@ -27,7 +11,7 @@ interface Seccion1Props {
   variante?: TipoFondo;
 }
 
-// COMPONENTE TOOLTIP REUTILIZABLE Y FACILMENTE EXTENSIBLE (FORZANDO SENTENCE CASE)
+// COMPONENTE TOOLTIP REUTILIZABLE (TEXTO EXPLICATIVO EN SENTENCE CASE)
 function Tooltip({ contenido }: { contenido: string }) {
   return (
     <div className="relative inline-flex items-center group ml-1.5 align-middle">
@@ -42,23 +26,8 @@ function Tooltip({ contenido }: { contenido: string }) {
   );
 }
 
-// HELPER DE FORMATEO GLOBAL (EVITA CREAR INSTANCIAS DE INTL EN CADA RENDER)
-const formatearMoneda = (monto: number, locale: string, moneda: string, simbolo: string) => {
-  const num = Number(monto) || 0;
-  try {
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: moneda,
-      minimumFractionDigits: ['CLP', 'COP'].includes(moneda) ? 0 : 2,
-      maximumFractionDigits: ['CLP', 'COP'].includes(moneda) ? 0 : 2,
-    }).format(num);
-  } catch {
-    return `${simbolo} ${num.toLocaleString()}`;
-  }
-};
-
 export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
-  const [paisSeleccionado, setPaisSeleccionado] = useState<PaisConfig>(PAISES_ATOM[0]);
+  const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
   const [modoSeleccionado, setModoSeleccionado] = useState<ModoCalculadora>('PROVEEDOR');
 
   // INPUTS MODO 1: PROVEEDOR
@@ -75,8 +44,9 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
   const [dropTasaDevolucion, setDropTasaDevolucion] = useState<number>(20);
   const [dropMargenDeseado, setDropMargenDeseado] = useState<number>(25);
 
+  // HELPER DE FORMATEO USANDO LA FUNCIÓN GLOBAL DE TU ARCHIVO MONEDA
   const formatoMoneda = (monto: number) => 
-    formatearMoneda(monto, paisSeleccionado.locale, paisSeleccionado.moneda, paisSeleccionado.simbolo);
+    formatearMonedaGlobal(monto, monedaSeleccionada.codigo);
 
   const metricasProveedor = useMemo(() => {
     const cFabricacion = Math.max(0, Number(provCostoFabricacion) || 0);
@@ -165,17 +135,18 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               Moneda de Cálculo
               <Tooltip contenido="Selecciona la divisa local en la que operas tus ventas y costos para formatear las cifras." />
             </label>
+            
             <select
-              value={paisSeleccionado.codigo}
+              value={monedaSeleccionada.codigo}
               onChange={(e) => {
-                const p = PAISES_ATOM.find((x) => x.codigo === e.target.value);
-                if (p) setPaisSeleccionado(p);
+                const m = MONEDAS.find((x) => x.codigo === e.target.value);
+                if (m) setMonedaSeleccionada(m);
               }}
               className="w-full bg-[#102935] border border-slate-700 text-white text-xs font-bold rounded-xl p-2.5 focus:border-[#0DEDC0] outline-none cursor-pointer"
             >
-              {PAISES_ATOM.map((p) => (
-                <option key={p.codigo} value={p.codigo}>
-                  {p.nombre} ({p.moneda})
+              {MONEDAS.map((m) => (
+                <option key={m.codigo} value={m.codigo}>
+                  {m.nombre}
                 </option>
               ))}
             </select>
@@ -194,7 +165,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
             }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-16 0H3m4 0h10M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-16 0H3m4 0h10M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 v5" />
             </svg>
             Soy Proveedor
           </button>
@@ -226,7 +197,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Costo Neto Fabricación/Compra ({paisSeleccionado.moneda})
+                  Costo Neto Fabricación/Compra ({monedaSeleccionada.codigo})
                   <Tooltip contenido="El precio directo por unidad física pagado a fábrica, laboratorio o importación." />
                 </label>
                 <input
@@ -240,7 +211,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Gastos Fulfillment / Empaque Unitario ({paisSeleccionado.moneda})
+                  Gastos Fulfillment / Empaque Unitario ({monedaSeleccionada.codigo})
                   <Tooltip contenido="Costo unitario de embalaje: caja, bolsa de seguridad, etiquetas, cinta y mano de obra de empaque." />
                 </label>
                 <input
@@ -256,7 +227,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 <div className="flex justify-between text-xs font-semibold text-slate-300 mb-2">
                   <span className="text-red-400">
                     Tasa Histórica de Devoluciones
-                    <Tooltip contenido="Porcentaje promedio de paquetes que rebotan sin entregar y regresan a bodega destruidos o abiertos." />
+                    <Tooltip contenido="Porcentaje promedio de paquetes no entregados al cliente final." />
                   </span>
                   <span className="font-mono text-red-400 font-bold">{provPorcentajeDevoluciones}%</span>
                 </div>
@@ -298,7 +269,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 <div className="bg-[#102935]/80 p-4 rounded-xl border border-slate-800">
                   <span className="text-[10px] text-slate-400 uppercase block font-bold mb-1">
                     Costo Total Absorbido
-                    <Tooltip contenido="Costo real por unidad: Fabricación + Empaque + Fondo de reserva por mercancía no devuelta." />
+                    <Tooltip contenido="Costo real por unidad: Fabricación + Empaque + Fondo de reserva por mercancía destruida o no recuperada." />
                   </span>
                   <span className="text-xl font-black text-slate-200 block">{formatoMoneda(metricasProveedor.costoTotalAbsorbido)}</span>
                   <span className="text-[10px] text-slate-500 block mt-1">Fab + Empaque + Fugas</span>
@@ -307,7 +278,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 <div className="bg-red-900/20 p-4 rounded-xl border border-red-900/40">
                   <span className="text-[10px] text-red-400 uppercase block font-bold mb-1">
                     Provisión por Fugas
-                    <Tooltip contenido="Monto precargado a cada venta para pagar las pérdidas de las unidades que no se llegaron a entregar." />
+                    <Tooltip contenido="Monto precargado a cada venta para absorber la pérdida directa de la mercancía destruida o no recuperada." />
                   </span>
                   <span className="text-xl font-black text-red-400 block">{formatoMoneda(metricasProveedor.provisionRiesgoFuga)}</span>
                   <span className="text-[10px] text-red-400/60 block mt-1">Costo de mercancía destruida o devuelta</span>
@@ -359,7 +330,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                   Unidades Objetivo a Vender
-                  <Tooltip contenido="Cantidad proyectada de ordenes. Sirve para calcular la ganancia acumulada y el fondo acumulado de fletes." />
+                  <Tooltip contenido="Cantidad proyectada de productos. Sirve para calcular la ganancia acumulada y el fondo acumulado de fletes." />
                 </label>
                 <input
                   type="number"
@@ -376,7 +347,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Costo del Producto en Bodega / Dropi ({paisSeleccionado.moneda})
+                  Costo del Producto en Bodega / Dropi ({monedaSeleccionada.codigo})
                   <Tooltip contenido="El precio del producto fijado por el proveedor dentro del catálogo de la plataforma." />
                 </label>
                 <input
@@ -390,7 +361,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Flete Promedio de Salida ({paisSeleccionado.moneda})
+                  Flete Promedio de Salida ({monedaSeleccionada.codigo})
                   <Tooltip contenido="Costo promedio que cobra la transportadora por enviar un paquete exitoso." />
                 </label>
                 <input
@@ -404,7 +375,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Costo Publicitario / CPA Ads ({paisSeleccionado.moneda})
+                  Costo Publicitario / CPA Ads ({monedaSeleccionada.codigo})
                   <Tooltip contenido="Costo Por Adquisición: El dinero aproximado que pagas en Facebook o TikTok Ads para lograr 1 venta." />
                 </label>
                 <input
@@ -462,7 +433,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 <div className="bg-red-900/20 p-4 rounded-xl border border-red-900/40">
                   <span className="text-[10px] text-red-400 uppercase block font-bold mb-1">
                     Fondo Fletes Devolución ({metricasDropshipper.qty} uds)
-                    <Tooltip contenido="Dinero total que debes apartar para pagar el costo del flete de ida y vuelta de las guías no entregadas." />
+                    <Tooltip contenido="Esta es la bolsa de dinero total que debes guardar de tus ventas exitosas para pagar los paquetes devueltos." />
                   </span>
                   <span className="text-xl font-black text-red-400 block">
                     {formatoMoneda(metricasDropshipper.fondoDevolucionTotal)}
@@ -489,7 +460,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-6 rounded-xl border-2 border-[#0DEDC0]/50 text-center space-y-2 shadow-[0_10px_30px_rgba(13,237,192,0.15)]">
                 <span className="text-xs font-mono text-slate-300 uppercase font-bold tracking-wider block">
                   VALOR SUGERIDO DE VENTA AL CLIENTE FINAL (POR UNIDAD)
-                  <Tooltip contenido="El precio mínimo en tu tienda Shopify/Dropi para garantizar tu ganancia deseada." />
+                  <Tooltip contenido="El precio mínimo en el que tu tienda debe vender el producto al cliente final ." />
                 </span>
                 <span className="text-3xl sm:text-4xl font-black font-mono text-[#0DEDC0] block my-2">
                   {formatoMoneda(metricasDropshipper.precioVentaSugeridoFinal)}

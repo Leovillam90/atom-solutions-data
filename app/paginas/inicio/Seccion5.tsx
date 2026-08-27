@@ -51,7 +51,7 @@ const PLANES: PlanPricing[] = [
       { texto: 'Hasta 1.500 guías auditadas/mes' },
       { texto: 'Radar de Detección de Fugas' },
       { texto: 'Auditoría en Tiempo Real' },
-      { texto: 'Alertas de Vendedores Tóxicos', ressaltado: true },
+      { texto: 'Control de Vendedores', ressaltado: true },
       { texto: 'Soporte Táctico Directo' },
     ],
     cta: 'Escalar mi Bodega →',
@@ -67,10 +67,10 @@ const PLANES: PlanPricing[] = [
     caracteristicas: [
       { texto: '1 Conexión Nativa a Dropi' },
       { texto: 'Guías auditadas Ilimitadas/mes', ressaltado: true },
-      { texto: 'Radar de Detección de Fugas'},
-      { texto: 'Herramientas y Aplicaciones '},
+      { texto: 'Radar de Detección de Fugas' },
+      { texto: 'Herramientas y Aplicaciones' },
       { texto: 'Detección de Devoluciones Fantasma', ressaltado: true },
-      { texto: 'Soporte Táctico Dedicado Prioritario'},
+      { texto: 'Soporte Táctico Dedicado Prioritario' },
     ],
     cta: 'Activar Operación Masiva →',
   },
@@ -83,8 +83,8 @@ const PLANES: PlanPricing[] = [
     precioUSD: '$97 USD',
     destacadoTipo: 'control',
     caracteristicas: [
-      { texto: 'Hasta 5 Cuentas / Bodegas Centralizadas'},
-      { texto: 'Guías auditadas Ilimitadas/mes'},
+      { texto: 'Hasta 5 Cuentas / Bodegas Centralizadas' },
+      { texto: 'Guías auditadas Ilimitadas/mes' },
       { texto: 'Suite Completa de Automatizaciones', ressaltado: true },
       { texto: 'Directorio de Proveedores Élite' },
       { texto: 'Aviso Automático de Novedades' },
@@ -159,14 +159,12 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
                     : 'bg-[#090D16]/60 border border-slate-800/80 opacity-90 hover:opacity-100 hover:border-slate-700 hover:-translate-y-1'
                 }`}
               >
-                {/* BADGE DESTACADO CON MÁSCARA SÓLIDA QUE TAPA EL BORDE */}
+                {/* BADGE DESTACADO CON MÁSCARA SÓLIDA */}
                 {plan.badge && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-                    {/* Resplandor Neón por detrás sin afectar la opacidad de la pastilla */}
                     {esExperto && (
                       <div className="absolute inset-0 rounded-full bg-[#0DEDC0] blur-md animate-pulse opacity-80" />
                     )}
-                    {/* Pastilla 100% OPACA que cubre por completo la línea del marco */}
                     <span
                       className={`relative z-10 block text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full whitespace-nowrap shadow-md ${
                         esExperto

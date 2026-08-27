@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Kicker, H1, Subtitulo, Highlight, ESTILOS_TEXTO } from '../../complementos/Tipografia';
-import Fondos, { TipoFondo } from '../../complementos/Fondos';
+import { Kicker, H1, Subtitulo, Highlight, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
+import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 
 interface Seccion1Props {
   variante?: TipoFondo;
@@ -25,7 +25,7 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1Props) {
       {/* CAPA DE FONDO DINÁMICO */}
       <Fondos variante={variante} modo="absolute" />
 
-      {/* BORDE SUPERIOR ANIMADO (Uso de CSS Global GPU) */}
+      {/* BORDE SUPERIOR ANIMADO */}
       <div className="absolute top-0 inset-x-0 h-[2px] z-20 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-8 items-center min-h-[75vh]">

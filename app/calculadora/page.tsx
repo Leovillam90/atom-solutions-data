@@ -16,7 +16,7 @@ export default function CalculadoraPage() {
     // Función de consulta directa a Firestore
     const verificarAccesoEnFirestore = async (uid?: string, identificador?: string) => {
       try {
-        // 1. Intento por ID directo de documento en usuarios
+        // 1. Consulta por ID directo en colección usuarios
         if (uid) {
           const userSnap = await getDoc(doc(db, 'usuarios', uid));
           if (userSnap.exists()) {
@@ -27,7 +27,7 @@ export default function CalculadoraPage() {
           }
         }
 
-        // 2. Si no encuentra por ID, busca por correo electrónico registrado
+        // 2. Consulta de respaldo por correo electrónico
         if (identificador && identificador.includes('@')) {
           const q = query(
             collection(db, 'usuarios'), 
@@ -50,14 +50,12 @@ export default function CalculadoraPage() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       let tieneAccesoValido = false;
 
-      // Leer sesión guardada en localStorage
       const sessionData = localStorage.getItem('atom_session');
       let sessionObj: { id?: string; identificador?: string; expiry?: string } | null = null;
 
       if (sessionData) {
         try {
           sessionObj = JSON.parse(sessionData);
-          // Verificar expiración (5 días)
           if (sessionObj?.expiry && new Date().getTime() > parseInt(sessionObj.expiry)) {
             localStorage.removeItem('atom_session');
             sessionObj = null;
@@ -71,7 +69,6 @@ export default function CalculadoraPage() {
       const targetIdentificador = user?.email || sessionObj?.identificador;
 
       if (targetUid || targetIdentificador) {
-        // Verificación asíncrona contra la base de datos de Firestore
         tieneAccesoValido = await verificarAccesoEnFirestore(targetUid, targetIdentificador);
       }
 
@@ -88,7 +85,6 @@ export default function CalculadoraPage() {
     return () => unsubscribe();
   }, []);
 
-  // Pantalla de carga mientras consulta Firestore
   if (cargando) {
     return (
       <div className="min-h-screen bg-[#070B14] flex flex-col items-center justify-center gap-3">
@@ -100,7 +96,6 @@ export default function CalculadoraPage() {
     );
   }
 
-  // Si no está registrado en Firestore, muestra el formulario de Registro/Login
   if (!autenticado) {
     return (
       <Registro 
@@ -110,7 +105,6 @@ export default function CalculadoraPage() {
     );
   }
 
-  // Si la cuenta existe en Firestore, abre la Calculadora Avanzada
   return (
     <div className="min-h-screen bg-[#0B171C] text-white relative">
       <Seccion1 variante="hexGrid" />

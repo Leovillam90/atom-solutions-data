@@ -19,6 +19,13 @@ interface RegistroProps {
   variante?: TipoFondo;
 }
 
+const ROLES_PROVEEDURIA = [
+  'Importador Directo',
+  'Fabricante / Laboratorio',
+  'Distribuidor Mayorista',
+  'Marca Propia',
+];
+
 export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: RegistroProps) {
   const [modo, setModo] = useState<'registro' | 'login'>('login');
 
@@ -26,7 +33,7 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
   const [correo, setCorreo] = useState('');
   const [indicativo, setIndicativo] = useState('+57');
   const [telefono, setTelefono] = useState('');
-  const [rol, setRol] = useState<'proveedor' | 'emprendedor'>('proveedor');
+  const [rol, setRol] = useState<string>('Importador Directo');
   const [loginIdentificador, setLoginIdentificador] = useState('');
 
   const [cargando, setCargando] = useState(false);
@@ -110,7 +117,7 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
         nombreEmpresa: nombreEmpresa.trim(),
         telefono: telefonoCompleto,
         indicativoPais: indicativo,
-        rol: rol,
+        rol: rol, // 'Importador Directo', 'Fabricante / Laboratorio', 'Distribuidor Mayorista', 'Marca Propia'
         esDropshipper: false,
         estadoCuenta: true,
         fechaCreacion: serverTimestamp(),
@@ -122,8 +129,12 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
 
     } catch (err: any) {
       setCargando(false);
-      console.error('Error en el registro:', err);
-      setError('Ocurrió un error al guardar los datos en Firestore. Intenta nuevamente.');
+      console.error('❌ Error en el registro:', err.code, err.message);
+      if (err.code === 'permission-denied') {
+        setError('Permiso denegado por reglas de Firestore. Revisa firestore.rules.');
+      } else {
+        setError('Ocurrió un error al guardar los datos en Firestore. Intenta nuevamente.');
+      }
     }
   };
 
@@ -172,14 +183,18 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
         return;
       }
 
-      guardarSesionLocal(usuarioDoc.uid, entrada);
+      guardarSesionLocal(usuarioDoc.uid || querySnapshot.docs[0].id, entrada);
       setCargando(false);
       onLoginSuccess();
 
     } catch (err: any) {
       setCargando(false);
-      console.error('Error al buscar cuenta:', err);
-      setError('Error al conectar con la base de datos. Intenta nuevamente.');
+      console.error('❌ Error al buscar cuenta en Firestore:', err.code, err.message);
+      if (err.code === 'permission-denied') {
+        setError('Permiso denegado por reglas de Firestore. Actualiza firestore.rules.');
+      } else {
+        setError('Error al conectar con la base de datos. Intenta nuevamente.');
+      }
     }
   };
 
@@ -327,15 +342,18 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Perfil Logístico <span className="text-[#0DEDC0]">*</span>
+                  Rol de Proveeduría <span className="text-[#0DEDC0]">*</span>
                 </label>
                 <select
                   value={rol}
-                  onChange={(e) => setRol(e.target.value as 'proveedor' | 'emprendedor')}
+                  onChange={(e) => setRol(e.target.value)}
                   className="w-full bg-[#101625] border border-slate-800 focus:border-[#0DEDC0] rounded-lg px-4 py-2.5 text-slate-200 text-sm outline-none"
                 >
-                  <option value="proveedor">Proveedor / Fabricante Directo</option>
-                  <option value="emprendedor">Emprendedor con Inventario Propio</option>
+                  {ROLES_PROVEEDURIA.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
                 </select>
               </div>
 

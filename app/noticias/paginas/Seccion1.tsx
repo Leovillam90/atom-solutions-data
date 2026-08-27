@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H1, Subtitulo, Highlight, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 
@@ -38,11 +38,10 @@ const ARTICULO_DEFAULT: Articulo = {
   ],
 };
 
-// URL LIMPIA Y CORREGIDA FUERA DEL COMPONENTE
 const LINK_WHATSAPP_EXPO = 'https://wa.me/573122521130?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20la%20estrategia%20Expo%20Winners';
 
-// FUNCIÓN AUXILIAR ESTÁTICA EN MEMORIA GLOBAL
 const esVideo = (url: string) => {
+  if (!url) return false;
   return url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm');
 };
 
@@ -52,11 +51,16 @@ export default function Seccion1({
 }: Seccion1Props) {
   const [indexHistoria, setIndexHistoria] = useState(0);
   const [pausado, setPausado] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const historias = articuloPrincipal.historias && articuloPrincipal.historias.length > 0 
     ? articuloPrincipal.historias 
     : ARTICULO_DEFAULT.historias;
 
+  const historiaActual = historias[indexHistoria];
+  const esVideoActual = esVideo(historiaActual);
+
+  // 1. CARROUSEL AUTOMÁTICO
   useEffect(() => {
     if (pausado) return;
     const timer = setInterval(() => {
@@ -64,6 +68,17 @@ export default function Seccion1({
     }, 4000);
     return () => clearInterval(timer);
   }, [historias.length, pausado]);
+
+  // 2. FORZAR REPRODUCCIÓN NATIVA DEL VIDEO AL CAMBIAR DE SLIDE
+  useEffect(() => {
+    if (esVideoActual && videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch((err) => {
+        console.warn('Autoplay prevenido por el navegador:', err);
+      });
+    }
+  }, [indexHistoria, esVideoActual]);
 
   const cambiarHistoria = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -98,7 +113,7 @@ export default function Seccion1({
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
-            {/* Contenido del Artículo */}
+            {/* CONTENIDO DEL ARTÍCULO */}
             <div className="lg:col-span-7 flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -154,20 +169,20 @@ export default function Seccion1({
               >
                 <div className="relative w-full h-full rounded-[24px] overflow-hidden bg-black flex items-center justify-center">
                   
-                  {!esVideo(historias[indexHistoria]) && (
+                  {!esVideoActual && (
                     <img 
-                      src={historias[indexHistoria]} 
+                      src={historiaActual} 
                       alt="Ambient Background"
                       loading="lazy"
-                      decoding="async"
                       className="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-125 pointer-events-none"
                     />
                   )}
 
-                  {esVideo(historias[indexHistoria]) ? (
+                  {esVideoActual ? (
                     <video 
-                      key={historias[indexHistoria]} 
-                      src={historias[indexHistoria]} 
+                      ref={videoRef}
+                      key={historiaActual} 
+                      src={historiaActual} 
                       className="relative z-10 w-full h-full object-cover transition-all duration-500"
                       autoPlay 
                       muted 
@@ -176,10 +191,9 @@ export default function Seccion1({
                     />
                   ) : (
                     <img 
-                      src={historias[indexHistoria]} 
+                      src={historiaActual} 
                       alt={`Historia destacada ${indexHistoria + 1}`}
                       loading="lazy"
-                      decoding="async"
                       className="relative z-10 w-full h-full object-contain transition-all duration-500"
                     />
                   )}
@@ -187,6 +201,7 @@ export default function Seccion1({
                   <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/20 to-transparent pointer-events-none z-20" />
                   <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none z-20" />
 
+                  {/* BARRAS DE PROGRESO */}
                   <div className="absolute top-3 inset-x-3 z-30 flex gap-1.5 pointer-events-none">
                     {historias.map((_, i) => (
                       <div key={i} className="h-1 flex-1 bg-white/30 rounded-full overflow-hidden backdrop-blur-md">
@@ -203,6 +218,7 @@ export default function Seccion1({
                     ))}
                   </div>
 
+                  {/* INDICADOR EN VIVO */}
                   <div className="absolute top-7 left-3 right-3 z-30 flex items-center justify-between pointer-events-none">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-[#0DEDC0] p-0.5 border border-white/50 shadow-[0_0_10px_rgba(13,237,192,0.6)]">
@@ -223,6 +239,7 @@ export default function Seccion1({
                     </span>
                   </div>
 
+                  {/* FLECHAS HOVER */}
                   <div className="absolute inset-y-0 left-0 w-12 z-30 flex items-center justify-start pl-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <div className="w-7 h-7 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center text-xs backdrop-blur-md">
                       ‹
@@ -234,6 +251,7 @@ export default function Seccion1({
                     </div>
                   </div>
 
+                  {/* PIE DE VISTA */}
                   <div className="absolute bottom-3 inset-x-3 z-30 flex items-center justify-between text-[10px] text-slate-300 font-mono pointer-events-none bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
                     <span className="text-[#0DEDC0] font-bold">Toca para cambiar</span>
                     <span className="bg-[#0DEDC0]/20 text-[#0DEDC0] px-1.5 py-0.5 rounded font-bold">

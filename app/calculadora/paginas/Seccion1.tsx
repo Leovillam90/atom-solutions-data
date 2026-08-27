@@ -1,26 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H1, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
-
-interface PaisConfig {
-  codigo: string;
-  nombre: string;
-  moneda: string;
-  locale: string;
-  simbolo: string;
-  impuestoDefault: number;
-}
-
-const PAISES_ATOM: PaisConfig[] = [
-  { codigo: 'CO', nombre: 'Colombia', moneda: 'COP', locale: 'es-CO', simbolo: '$', impuestoDefault: 19 },
-  { codigo: 'MX', nombre: 'México', moneda: 'MXN', locale: 'es-MX', simbolo: '$', impuestoDefault: 16 },
-  { codigo: 'CL', nombre: 'Chile', moneda: 'CLP', locale: 'es-CL', simbolo: '$', impuestoDefault: 19 },
-  { codigo: 'PE', nombre: 'Perú', moneda: 'PEN', locale: 'es-PE', simbolo: 'S/', impuestoDefault: 18 },
-  { codigo: 'EC', nombre: 'Ecuador', moneda: 'USD', locale: 'en-US', simbolo: '$', impuestoDefault: 15 },
-  { codigo: 'GT', nombre: 'Guatemala', moneda: 'GTQ', locale: 'es-GT', simbolo: 'Q', impuestoDefault: 12 },
-];
+import { MONEDAS, MonedaConfig, formatearMonedaGlobal, obtenerTarifasImpuesto } from '@/app/lib/moneda';
 
 type EscenarioTipo = 'PESIMO' | 'FAVORABLE' | 'OPTIMO' | 'OBJETIVO';
 type OpcionPropuestaTipo = 'OPCION1' | 'OPCION2';
@@ -29,47 +12,73 @@ interface Seccion1Props {
   variante?: TipoFondo;
 }
 
-// HELPER DE FORMATEO GLOBAL DESACOPLADO DEL RENDER
-const formatearMoneda = (monto: number, locale: string, moneda: string, simbolo: string) => {
-  const num = Number(monto) || 0;
-  try {
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: moneda,
-      minimumFractionDigits: ['CLP', 'COP'].includes(moneda) ? 0 : 2,
-      maximumFractionDigits: ['CLP', 'COP'].includes(moneda) ? 0 : 2,
-    }).format(num);
-  } catch {
-    return `${simbolo} ${num.toLocaleString()}`;
-  }
-};
+// Tooltip con posicionamiento fijo y z-index alto para evitar recortes
+function Tooltip({ contenido }: { contenido: string }) {
+  return (
+    <div className="relative inline-flex items-center group ml-1.5 align-middle z-30">
+      <span className="w-4 h-4 rounded-full bg-[#102935] border border-[#0DEDC0]/60 text-[#0DEDC0] text-[10px] font-mono font-bold flex items-center justify-center cursor-help transition-all duration-200 group-hover:bg-[#0DEDC0] group-hover:text-[#090D16] group-hover:scale-110 shrink-0 shadow-[0_0_8px_rgba(13,237,192,0.3)]">
+        ?
+      </span>
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 hidden group-hover:flex flex-col items-center w-64 p-3 bg-[#080C14] border border-[#0DEDC0]/50 rounded-xl text-[11px] font-sans text-slate-200 font-normal normal-case tracking-normal shadow-[0_15px_30px_rgba(0,0,0,0.9)] z-50 pointer-events-none leading-relaxed text-center">
+        {contenido}
+        <div className="w-2.5 h-2.5 bg-[#080C14] border-r border-b border-[#0DEDC0]/50 rotate-45 -mb-4 mt-1" />
+      </div>
+    </div>
+  );
+}
 
-export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
-  const [paisSeleccionado, setPaisSeleccionado] = useState<PaisConfig>(PAISES_ATOM[0]);
+export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
+  const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
 
-  // INPUTS PASO 1: COSTOS BODEGA Y FRICCIÓN
+  // INPUTS PASO 1
   const [costoFabricacion, setCostoFabricacion] = useState<number>(15000);
   const [costoEmpaque, setCostoEmpaque] = useState<number>(2000);
   const [costoLogisticaInversa, setCostoLogisticaInversa] = useState<number>(0); 
   
   const [porcentajeDevoluciones, setPorcentajeDevoluciones] = useState<number>(20); 
   const [porcentajeMermas, setPorcentajeMermas] = useState<number>(3); 
-  const [impactoFiscal, setImpactoFiscal] = useState<number>(PAISES_ATOM[0].impuestoDefault);
+  const [impactoFiscal, setImpactoFiscal] = useState<number>(19);
   const [margenDeseado, setMargenDeseado] = useState<number>(30);
 
-  // SELECCIÓN DE ESCENARIO PASO 2 -> PASO 3
+  // NOTIFICACIÓN EN CLIC DE MERMAS/DEVOLUCIÓN
+  const [mensajeAlertaMermas, setMensajeAlertaMermas] = useState<boolean>(false);
+
+  // SELECCIÓN DE ESCENARIO PASO 2
   const [escenarioSeleccionado, setEscenarioSeleccionado] = useState<EscenarioTipo>('OBJETIVO');
 
-  // INPUTS PASO 3: PROPUESTA COMERCIAL
-  const [nombreProveedor, setNombreProveedor] = useState<string>(''); 
-  const [nombreProducto, setNombreProducto] = useState<string>('Producto Estrella');
+  // INPUTS PASO 3
+  const [nombreProveedor, setNombreProveedor] = useState<string>('DEMO ATOM'); 
+  const [nombreProducto, setNombreProducto] = useState<string>('Lámpara Inteligente');
   const [skuProducto, setSkuProducto] = useState<string>('SKU-1001');
-  const [unidadesProyectadas, setUnidadesProyectadas] = useState<number>(100);
+  const [unidadesProyectadas, setUnidadesProyectadas] = useState<number>(170);
   const [comisionDropExtra, setComisionDropExtra] = useState<number>(5);
   const [opcionPropuestaSeleccionada, setOpcionPropuestaSeleccionada] = useState<OpcionPropuestaTipo>('OPCION2');
 
+  const [descargando, setDescargando] = useState<boolean>(false);
+
+  useEffect(() => {
+    const sessionData = localStorage.getItem('atom_session');
+    if (sessionData) {
+      try {
+        const parsed = JSON.parse(sessionData);
+        const nombreEncontrado = parsed.empresa || parsed.nombre || parsed.nombreCompleto || parsed.usuario || '';
+        if (nombreEncontrado) {
+          setNombreProveedor(nombreEncontrado);
+        }
+      } catch (e) {
+        // Ignorar
+      }
+    }
+  }, []);
+
+  const notificarCondicionesMermas = useCallback(() => {
+    setMensajeAlertaMermas(true);
+    const timer = setTimeout(() => setMensajeAlertaMermas(false), 4500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const formatoMoneda = (monto: number) => 
-    formatearMoneda(monto, paisSeleccionado.locale, paisSeleccionado.moneda, paisSeleccionado.simbolo);
+    formatearMonedaGlobal(monto, monedaSeleccionada.codigo);
 
   const metricas = useMemo(() => {
     const cFab = Math.max(0, Number(costoFabricacion));
@@ -93,12 +102,10 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
       const costoMerma = cBase * factorMerma;
 
       const costoAbsorbido = cBase + costoDev + costoMerma;
-
       const precioNeto = (1 - pMargen) > 0 ? (costoAbsorbido / (1 - pMargen)) : (costoAbsorbido * 2);
       
       const impuestoIVA = precioNeto * pctIVA;
       const precioCatalogo = precioNeto + impuestoIVA;
-      
       const ganancia = precioNeto * pMargen;
 
       return { costoDev, costoMerma, costoAbsorbido, precioNeto, impuestoIVA, precioCatalogo, ganancia };
@@ -164,35 +171,287 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
     porcentajeDevoluciones, porcentajeMermas, unidadesProyectadas, comisionDropExtra, escenarioSeleccionado
   ]);
 
-  const enviarPorWhatsapp = () => {
+  const wrapText = (
+    ctx: CanvasRenderingContext2D, 
+    text: string, 
+    x: number, 
+    y: number, 
+    maxWidth: number, 
+    lineHeight: number
+  ) => {
+    const words = text.split(' ');
+    let line = '';
+    let currentY = y;
+
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + ' ';
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        ctx.fillText(line, x, currentY);
+        line = words[n] + ' ';
+        currentY += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, x, currentY);
+  };
+
+  // DIBUJAR PATRÓN HEXAGONAL EN CANVAS (hexGrid 2D)
+  const dibujarHexGridCanvas = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    ctx.strokeStyle = 'rgba(13, 237, 192, 0.07)';
+    ctx.lineWidth = 1;
+    const size = 35;
+    const h = size * Math.sqrt(3);
+    for (let y = 0; y < height + h; y += h) {
+      for (let x = 0; x < width + size * 3; x += size * 3) {
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI / 3) * i;
+          const hx = x + size * Math.cos(angle);
+          const hy = y + size * Math.sin(angle);
+          if (i === 0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI / 3) * i;
+          const hx = (x + size * 1.5) + size * Math.cos(angle);
+          const hy = (y + h / 2) + size * Math.sin(angle);
+          if (i === 0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+  };
+
+  const descargarImagenPropuesta = async () => {
+    setDescargando(true);
     const esOp1 = opcionPropuestaSeleccionada === 'OPCION1';
     const precioElegido = esOp1 ? metricas.activo.precioCatalogo : metricas.precioCatalogoOp2;
     const bonoElegido = esOp1 ? metricas.comisionOp1 : metricas.comisionOp2;
     const bonoTotalLote = esOp1 ? metricas.totalComisionOp1 : metricas.totalComisionOp2;
 
-    const textoMensaje = `*PROPUESTA DE META LOGÍSTICA & BONIFICACIÓN B2B* 📦🏆🚀
+    const width = 1080;
+    const height = 1600;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      setDescargando(false);
+      return;
+    }
 
-*Proveedor:* 🏢 ${nombreProveedor || 'Bodega Autorizada'}
-*Producto:* 🏷️ ${nombreProducto} (${skuProducto})
-*Lote Proyectado:* 📦 ${metricas.qty} Unidades
+    // FONDO CIBERNÉTICO
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, '#040812');
+    grad.addColorStop(0.5, '#07151E');
+    grad.addColorStop(1, '#050A11');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
 
-*Estructura de la Oferta:* 💰
-• Precio Público Sugerido (PVP): 💲${formatoMoneda(precioElegido)} / ud
-• Bono x Cumplimiento Logístico (${(metricas.pctComisionExtra * 100).toFixed(0)}%): 🎁 ${formatoMoneda(bonoElegido)} / unidad entregada
-• Fondo Total de Incentivos (${metricas.qty} uds): 🏦 ${formatoMoneda(bonoTotalLote)}
+    // PATRÓN HEXAGONAL 2D
+    dibujarHexGridCanvas(ctx, width, height);
 
-*KPIs de Meta Logística Exigidos:* 📊
-• Devoluciones Máximas Permitidas: 📉 ${(metricas.devActivo * 100).toFixed(0)}%
-• Efectividad de Entrega Mínima: ✅ ${(100 - (metricas.devActivo * 100)).toFixed(0)}%
+    // MARCO EXTERIOR NEÓN 2D
+    ctx.strokeStyle = '#0DEDC0';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(30, 30, width - 60, height - 60);
 
-📌 _Condición:_ El incentivo logístico se desembolsará el 25 de cada mes despues de confirmar y cerrar la operacion logistica del mes anterior, y se tomara como referencia las órdenes efectivamente entregadas en plataforma bajo los parámetros de efectividad acordados. 🤝`;
+    ctx.strokeStyle = 'rgba(104, 132, 197, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(45, 45, width - 90, height - 90);
 
-    window.open(`https://wa.me/?text=${encodeURIComponent(textoMensaje)}`, '_blank');
+    // CABECERA OFICIAL
+    ctx.fillStyle = '#0DEDC0';
+    ctx.font = 'bold 22px monospace';
+    ctx.fillText('PROPUESTA DE META LOGÍSTICA & BONIFICACIÓN B2B', 80, 110);
+
+    ctx.strokeStyle = '#0DEDC0';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(80, 135);
+    ctx.lineTo(width - 80, 135);
+    ctx.stroke();
+
+    // DATOS DE BODEGA Y PRODUCTO
+    ctx.fillStyle = 'rgba(16, 41, 53, 0.9)';
+    ctx.fillRect(80, 165, width - 160, 210);
+    ctx.strokeStyle = '#0DEDC0';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(80, 165, width - 160, 210);
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.fillText(`Proveedor: ${nombreProveedor || 'DEMO ATOM'}`, 110, 220);
+
+    const textoSku = skuProducto ? ` (${skuProducto})` : '';
+    ctx.fillText(`Producto: ${nombreProducto}${textoSku}`, 110, 280);
+    
+    ctx.fillStyle = '#0DEDC0';
+    ctx.fillText(`Lote Proyectado: ${metricas.qty} Unidades`, 110, 340);
+
+    // ESTRUCTURA DE LA OFERTA
+    ctx.fillStyle = 'rgba(9, 13, 22, 0.95)';
+    ctx.fillRect(80, 410, width - 160, 380);
+    ctx.strokeStyle = '#0DEDC0';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(80, 410, width - 160, 380);
+
+    ctx.fillStyle = '#0DEDC0';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.fillText('Estructura Financiera de la Oferta', 110, 465);
+
+    ctx.fillStyle = '#E2E8F0';
+    ctx.font = '22px sans-serif';
+    ctx.fillText('• Precio Público Sugerido (PVP):', 110, 530);
+    ctx.fillStyle = '#0DEDC0';
+    ctx.font = 'bold 26px monospace';
+    ctx.fillText(`${formatoMoneda(precioElegido)} / ud`, 550, 530);
+
+    ctx.fillStyle = '#E2E8F0';
+    ctx.font = '22px sans-serif';
+    ctx.fillText(`• Bono x Cumplimiento Logístico (${(metricas.pctComisionExtra * 100).toFixed(0)}%):`, 110, 610);
+    ctx.fillStyle = '#F59E0B';
+    ctx.font = 'bold 26px monospace';
+    ctx.fillText(`${formatoMoneda(bonoElegido)} / unidad entregada`, 110, 655);
+
+    ctx.fillStyle = '#E2E8F0';
+    ctx.font = '22px sans-serif';
+    ctx.fillText(`• Fondo Total de Incentivos (${metricas.qty} uds):`, 110, 730);
+    ctx.fillStyle = '#0DEDC0';
+    ctx.font = 'bold 28px monospace';
+    ctx.fillText(`${formatoMoneda(bonoTotalLote)}`, 620, 730);
+
+    // METAS Y KPIS
+    ctx.fillStyle = 'rgba(16, 41, 53, 0.9)';
+    ctx.fillRect(80, 830, width - 160, 250);
+    ctx.strokeStyle = '#6884C5';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(80, 830, width - 160, 250);
+
+    ctx.fillStyle = '#6884C5';
+    ctx.font = 'bold 24px sans-serif';
+    ctx.fillText('KPIs de Meta Logística Exigidos:', 110, 880);
+
+    // CAJA DEVOLUCIÓN MÁX
+    ctx.fillStyle = 'rgba(31, 18, 27, 0.9)';
+    ctx.fillRect(110, 915, 420, 130);
+    ctx.strokeStyle = '#EF4444';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(110, 915, 420, 130);
+
+    ctx.fillStyle = '#FCA5A5';
+    ctx.font = '18px sans-serif';
+    ctx.fillText('• Devolución Máxima Tolerada:', 130, 955);
+    ctx.fillStyle = '#EF4444';
+    ctx.font = 'bold 36px monospace';
+    ctx.fillText(`${(metricas.devActivo * 100).toFixed(0)}%`, 130, 1010);
+
+    // CAJA EFECTIVIDAD MÍN
+    ctx.fillStyle = 'rgba(11, 30, 25, 0.9)';
+    ctx.fillRect(550, 915, 420, 130);
+    ctx.strokeStyle = '#10B981';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(550, 915, 420, 130);
+
+    ctx.fillStyle = '#A7F3D0';
+    ctx.font = '18px sans-serif';
+    ctx.fillText('• Efectividad Mínima Requerida:', 570, 955);
+    ctx.fillStyle = '#10B981';
+    ctx.font = 'bold 36px monospace';
+    ctx.fillText(`${(100 - (metricas.devActivo * 100)).toFixed(0)}%`, 570, 1010);
+
+    // CONDICIONES COMERCIALES
+    ctx.fillStyle = 'rgba(9, 13, 22, 0.95)';
+    ctx.fillRect(80, 1110, width - 160, 260);
+    ctx.strokeStyle = '#F59E0B';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(80, 1110, width - 160, 260);
+
+    ctx.fillStyle = '#FBBF24';
+    ctx.font = '19px sans-serif';
+    const textoCondicion = 'Condición: El incentivo logístico se desembolsará el 25 de cada mes después de confirmar y cerrar la operación logística del mes anterior, tomando como referencia las órdenes efectivamente entregadas en plataforma bajo los parámetros de efectividad acordados.';
+    wrapText(ctx, textoCondicion, 110, 1160, width - 220, 36);
+
+    ctx.strokeStyle = '#0DEDC0';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(80, 1410);
+    ctx.lineTo(width - 80, 1410);
+    ctx.stroke();
+
+    // PIE DE PÁGINA CON LOGO ATOM DESDE PUBLIC (/logo-color.png)
+    const cargarLogoYFinalizar = () => {
+      const imgLogo = new Image();
+      imgLogo.src = '/logo-color.png';
+      imgLogo.onload = () => {
+        const logoWidth = 180;
+        const logoHeight = (imgLogo.height / imgLogo.width) * logoWidth;
+        const logoX = (width - logoWidth) / 2;
+        const logoY = 1440;
+        ctx.drawImage(imgLogo, logoX, logoY, logoWidth, logoHeight);
+
+        ctx.fillStyle = '#0DEDC0';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('CENTRO LOGÍSTICO ATOM', width / 2, logoY + logoHeight + 35);
+        ctx.textAlign = 'left';
+
+        const link = document.createElement('a');
+        link.download = `Propuesta_B2B_${(nombreProveedor || 'ATOM').replace(/\s+/g, '_')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        setDescargando(false);
+      };
+      imgLogo.onerror = () => {
+        // Fallback si la imagen no carga
+        ctx.fillStyle = '#0DEDC0';
+        ctx.font = 'bold 28px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('CENTRO LOGÍSTICO ATOM', width / 2, 1480);
+        ctx.textAlign = 'left';
+
+        const link = document.createElement('a');
+        link.download = `Propuesta_B2B_${(nombreProveedor || 'ATOM').replace(/\s+/g, '_')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        setDescargando(false);
+      };
+    };
+
+    cargarLogoYFinalizar();
   };
 
   return (
-    <section className="relative z-10 py-12 px-4 sm:px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10 text-white">
+    <section className="relative z-10 py-12 px-4 sm:px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10 text-white font-sans">
       <Fondos variante={variante} modo="absolute" />
+
+      {/* FLOATING TOAST ADVERTENCIA EN CLIC DE MERMAS / DEVOLUCIÓN */}
+      {mensajeAlertaMermas && (
+        <div className="fixed top-6 right-6 z-50 max-w-md bg-[#090D16]/95 border-2 border-amber-400 p-4 rounded-2xl shadow-[0_10px_40px_rgba(245,158,11,0.4)] text-white animate-bounce">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
+              i
+            </div>
+            <div>
+              <span className="text-xs font-mono font-bold text-amber-400 uppercase block mb-1">
+                Condición de Entrega Operativa
+              </span>
+              <p className="text-xs text-slate-200 leading-relaxed font-sans">
+                Nota: Este valor solo se puede entregar si se cumple estrictamente con las condiciones especificadas en la tarjeta de propuesta.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="relative z-10 max-w-7xl mx-auto space-y-12">
         
@@ -208,24 +467,28 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
             </Subtitulo>
           </div>
 
-          <div className="bg-[#090D16] p-3.5 rounded-2xl border border-slate-800 shrink-0 w-full md:w-auto">
+          <div className="bg-[#090D16]/90 p-3.5 rounded-2xl border border-slate-800 shrink-0 w-full md:w-auto z-20">
             <label className="block text-[10px] font-mono font-bold text-[#0DEDC0] uppercase mb-1">
-              Moneda de Operación / País
+              Moneda de Operación
+              <Tooltip contenido="Selecciona la divisa oficial para formatear valores y cargar impuestos por defecto de la región." />
             </label>
             <select
-              value={paisSeleccionado.codigo}
+              value={monedaSeleccionada.codigo}
               onChange={(e) => {
-                const p = PAISES_ATOM.find((x) => x.codigo === e.target.value);
-                if (p) {
-                  setPaisSeleccionado(p);
-                  setImpactoFiscal(p.impuestoDefault);
+                const m = MONEDAS.find((x) => x.codigo === e.target.value);
+                if (m) {
+                  setMonedaSeleccionada(m);
+                  const tarifas = obtenerTarifasImpuesto(m.codigo);
+                  if (tarifas && tarifas.length > 0) {
+                    setImpactoFiscal(tarifas[0].valor);
+                  }
                 }
               }}
               className="w-full bg-[#102935] border border-slate-700 text-white text-xs font-bold rounded-xl p-2.5 focus:border-[#0DEDC0] outline-none cursor-pointer"
             >
-              {PAISES_ATOM.map((p) => (
-                <option key={p.codigo} value={p.codigo}>
-                  {p.nombre} ({p.moneda}) - IVA base {p.impuestoDefault}%
+              {MONEDAS.map((m) => (
+                <option key={m.codigo} value={m.codigo}>
+                  {m.nombre} ({m.simbolo})
                 </option>
               ))}
             </select>
@@ -245,19 +508,25 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            <div className="bg-[#090D16] p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full transition-transform hover:-translate-y-1">
+            <div className="bg-[#090D16]/90 p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full">
               <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-2">
                 Costos de Producción
               </span>
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Costo CIF / Fabricación</label>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                  Costo CIF / Fabricación
+                  <Tooltip contenido="Costo del producto puesto en bodega, incluyendo compra, flete marítimo/terrestre y aranceles de importación." />
+                </label>
                 <input
                   type="number" min="0" value={costoFabricacion} onChange={(e) => setCostoFabricacion(Number(e.target.value))}
                   className="w-full bg-[#102935] border border-slate-700 rounded-xl p-2.5 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] outline-none"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Alistamiento / WaaS / Empaque</label>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                  Alistamiento / Empaque
+                  <Tooltip contenido="Gasto unitario por alistamiento, picking, packing, insumos de embalaje, etiquetas y días promedio de almacenamiento en bodega." />
+                </label>
                 <input
                   type="number" min="0" value={costoEmpaque} onChange={(e) => setCostoEmpaque(Number(e.target.value))}
                   className="w-full bg-[#102935] border border-slate-700 rounded-xl p-2.5 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] outline-none"
@@ -265,13 +534,17 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               </div>
             </div>
 
-            <div className="bg-[#090D16] p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full transition-transform hover:-translate-y-1">
+            <div className="bg-[#090D16]/90 p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full">
               <span className="text-xs font-mono font-bold text-red-400 uppercase tracking-wider block border-b border-slate-800 pb-2">
                 Provisión Fricción Logística COD
+                <Tooltip contenido="Reserva financiera calculada para absorber las devoluciones y los productos no recuperados." />
               </span>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1 text-amber-300">Costo Logística Inversa (Flete Retorno)</label>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1 text-amber-300">
+                  Costo Logística Inversa (Retorno)
+                  <Tooltip contenido="Costos adicionales cuando el paquete es rechazado y regresa a la bodega de origen." />
+                </label>
                 <input
                   type="number" min="0" value={costoLogisticaInversa} onChange={(e) => setCostoLogisticaInversa(Number(e.target.value))} placeholder="0"
                   className="w-full bg-[#1A160B] border border-amber-900/50 rounded-xl p-2.5 font-mono text-amber-100 text-sm font-bold focus:border-amber-500 outline-none"
@@ -279,56 +552,92 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-red-900/10 border border-red-900/30 p-2.5 rounded-xl">
+                <div 
+                  onClick={notificarCondicionesMermas}
+                  className="bg-red-900/10 border border-red-900/30 p-2.5 rounded-xl cursor-pointer hover:border-red-500/50 transition-colors"
+                >
                   <div className="flex justify-between text-[10px] font-semibold text-red-300 mb-1.5">
-                    <span>Devolución</span>
+                    <span className="flex items-center">
+                      Devolución
+                      <Tooltip contenido="Porcentaje estimado de guías que no logran entregarse y deben ser retornadas." />
+                    </span>
                     <span className="font-mono text-red-400 font-bold">{porcentajeDevoluciones}%</span>
                   </div>
-                  <input type="range" min="15" max="50" value={porcentajeDevoluciones} onChange={(e) => setPorcentajeDevoluciones(Number(e.target.value))} className="w-full accent-red-500" />
+                  <input 
+                    type="range" min="15" max="50" 
+                    value={porcentajeDevoluciones} 
+                    onChange={(e) => {
+                      setPorcentajeDevoluciones(Number(e.target.value));
+                      notificarCondicionesMermas();
+                    }} 
+                    className="w-full accent-red-500 cursor-pointer" 
+                  />
                   <span className="text-[9px] text-slate-500 block mt-1">Piso Técnico 15%</span>
                 </div>
-                <div className="bg-red-950/10 border border-red-900/30 p-2.5 rounded-xl">
+
+                <div 
+                  onClick={notificarCondicionesMermas}
+                  className="bg-red-950/10 border border-red-900/30 p-2.5 rounded-xl cursor-pointer hover:border-red-500/50 transition-colors"
+                >
                   <div className="flex justify-between text-[10px] font-semibold text-red-300 mb-1.5">
-                    <span>Mermas (Pérdida)</span>
+                    <span className="flex items-center">
+                      Mermas (Pérdida)
+                      <Tooltip contenido="Porcentaje de inventario que no llega a bodega o es devuelto pero llega destruido, averiado o saqueado en el trayecto." />
+                    </span>
                     <span className="font-mono text-red-400 font-bold">{porcentajeMermas}%</span>
                   </div>
-                  <input type="range" min="1" max="30" value={porcentajeMermas} onChange={(e) => setPorcentajeMermas(Number(e.target.value))} className="w-full accent-red-400" />
+                  <input 
+                    type="range" min="1" max="30" 
+                    value={porcentajeMermas} 
+                    onChange={(e) => {
+                      setPorcentajeMermas(Number(e.target.value));
+                      notificarCondicionesMermas();
+                    }} 
+                    className="w-full accent-red-400 cursor-pointer" 
+                  />
                   <span className="text-[9px] text-slate-500 block mt-1">Piso Técnico 1%</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-[#090D16] p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full transition-transform hover:-translate-y-1">
+            <div className="bg-[#090D16]/90 p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full">
               <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-2">
                 Objetivo de Rentabilidad & Fiscal
               </span>
               <div className="bg-[#102935]/40 border border-[#0DEDC0]/20 p-3 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-[#0DEDC0] mb-2">
-                  <span>Margen Neto Libre</span>
+                  <span>
+                    Margen Neto Libre
+                    <Tooltip contenido="Porcentaje de utilidad limpia objetivo para la bodega tras saldar costos y provisiones." />
+                  </span>
                   <span className="font-mono font-bold text-white">{margenDeseado}%</span>
                 </div>
-                <input type="range" min="1" max="70" value={margenDeseado} onChange={(e) => setMargenDeseado(Number(e.target.value))} className="w-full accent-[#0DEDC0]" />
+                <input type="range" min="1" max="70" value={margenDeseado} onChange={(e) => setMargenDeseado(Number(e.target.value))} className="w-full accent-[#0DEDC0] cursor-pointer" />
               </div>
               <div className="bg-slate-800/30 border border-slate-700/50 p-3 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-slate-300 mb-2">
-                  <span>Impuestos (IVA / Retenciones)</span>
+                  <span>
+                    Impuestos (IVA / Retenciones)
+                    <Tooltip contenido="Impuesto al valor agregado e impacto tributario aplicable que debe reservarse para declaración." />
+                  </span>
                   <span className="font-mono text-white">{impactoFiscal}%</span>
                 </div>
-                <input type="range" min="0" max="30" value={impactoFiscal} onChange={(e) => setImpactoFiscal(Number(e.target.value))} className="w-full accent-slate-400" />
+                <input type="range" min="0" max="30" value={impactoFiscal} onChange={(e) => setImpactoFiscal(Number(e.target.value))} className="w-full accent-slate-400 cursor-pointer" />
               </div>
             </div>
           </div>
         </div>
 
         {/* SECCIÓN 2: ANÁLISIS DE SENSIBILIDAD B2B */}
-        <div className="space-y-6 pt-6 relative">
+        <div className="space-y-6 pt-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0DEDC0]/20 to-[#0DEDC0]/5 border border-[#0DEDC0]/40 text-[#0DEDC0] font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(13,237,192,0.2)] shrink-0">
               2
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-sm sm:text-base md:text-lg font-black text-white uppercase tracking-widest m-0">
-                Análisis de Sensibilidad B2B
+              <h2 className="text-sm sm:text-base md:text-lg font-black text-white uppercase tracking-widest m-0 flex items-center">
+                Análisis de Sensibilidad
+                <Tooltip contenido="Proyección matemática de 4 escenarios para analizar la salud financiera según la efectividad logística." />
               </h2>
               <span className="text-[10px] sm:text-[11px] font-mono font-normal text-slate-400">
                 (Haz clic en un escenario para trasladar su precio a la propuesta comercial)
@@ -339,9 +648,10 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
             
+            {/* ESCENARIO 1 */}
             <div 
               onClick={() => setEscenarioSeleccionado('PESIMO')}
-              className={`relative bg-[#1A0B12] rounded-2xl p-5 overflow-hidden shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+              className={`relative bg-[#1A0B12]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
                 escenarioSeleccionado === 'PESIMO' ? 'border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.3)] ring-1 ring-red-500/50 scale-[1.02]' : 'border-red-900/40 hover:border-red-500/40'
               }`}
             >
@@ -351,14 +661,17 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                   <span className="text-[10px] font-mono font-black uppercase bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/30">1. Pésimo</span>
                   {escenarioSeleccionado === 'PESIMO' && <span className="text-[9px] font-mono font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">✓ Activo</span>}
                 </div>
-                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight">Estrés Logístico Máximo</h3>
+                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight flex items-center justify-between">
+                  Estrés Logístico Máximo
+                  <Tooltip contenido="Simula un rebote crítico de guías (+50%) y mermas dobles para calcular el precio blindado de supervivencia." />
+                </h3>
                 <p className="text-[10px] text-slate-400 leading-relaxed m-0">Devolución {metricas.pctDevPes}% | Mermas {metricas.pctMermasPes}%</p>
                 <div className="pt-2">
                   <span className="text-[9px] text-slate-500 uppercase font-bold block">Precio de Resguardo Requerido</span>
                   <span className="text-xl font-mono font-black text-slate-200">{formatoMoneda(metricas.pes.precioCatalogo)}</span>
                 </div>
               </div>
-              <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-red-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-red-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.pes.precioNeto)}</span></div>
                   <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
@@ -369,14 +682,12 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                   <span>Utilidad:</span><span>{formatoMoneda(metricas.pes.ganancia)} ({margenDeseado}%)</span>
                 </div>
               </div>
-              <div className="text-[9px] text-red-400/80 leading-tight mt-1 text-center">
-                *Si vendes al precio Favorable bajo este estrés, tu ganancia se desploma a {formatoMoneda(metricas.gananciaPesRealEnFav)}.
-              </div>
             </div>
 
+            {/* ESCENARIO 2 */}
             <div 
               onClick={() => setEscenarioSeleccionado('FAVORABLE')}
-              className={`relative bg-[#0F2330] rounded-2xl p-5 overflow-hidden shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+              className={`relative bg-[#0F2330]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
                 escenarioSeleccionado === 'FAVORABLE' ? 'border-blue-400 shadow-[0_0_25px_rgba(96,165,250,0.3)] ring-1 ring-blue-400/50 scale-[1.02]' : 'border-blue-900/40 hover:border-blue-400/40'
               }`}
             >
@@ -386,14 +697,17 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                   <span className="text-[10px] font-mono font-black uppercase bg-blue-500/10 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">2. Favorable</span>
                   {escenarioSeleccionado === 'FAVORABLE' && <span className="text-[9px] font-mono font-bold bg-blue-400 text-[#090D16] px-1.5 py-0.5 rounded">✓ Activo</span>}
                 </div>
-                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight">Proyección Base Real</h3>
+                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight flex items-center justify-between">
+                  Proyección Base Real
+                  <Tooltip contenido="Punto de equilibrio estándar basado en tus porcentajes reales ingresados en la sección anterior." />
+                </h3>
                 <p className="text-[10px] text-slate-400 leading-relaxed m-0">Devolución {porcentajeDevoluciones}% | Mermas {porcentajeMermas}%</p>
                 <div className="pt-2">
                   <span className="text-[9px] text-slate-500 uppercase font-bold block">Precio Catálogo Base</span>
                   <span className="text-xl font-mono font-black text-white">{formatoMoneda(metricas.fav.precioCatalogo)}</span>
                 </div>
               </div>
-              <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-blue-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-blue-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.fav.precioNeto)}</span></div>
                   <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
@@ -404,14 +718,12 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                   <span>Utilidad Libre:</span><span>{formatoMoneda(metricas.fav.ganancia)} ({margenDeseado}%)</span>
                 </div>
               </div>
-              <div className="text-[9px] text-blue-300/60 leading-tight mt-1 text-center">
-                El IVA {impactoFiscal}% es facturado al cliente y reservado intacto para declaración.
-              </div>
             </div>
 
+            {/* ESCENARIO 3 */}
             <div 
               onClick={() => setEscenarioSeleccionado('OPTIMO')}
-              className={`relative bg-[#0B1A14] rounded-2xl p-5 overflow-hidden shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+              className={`relative bg-[#0B1A14]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
                 escenarioSeleccionado === 'OPTIMO' ? 'border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400/50 scale-[1.02]' : 'border-emerald-500/30 hover:border-emerald-400/40'
               }`}
             >
@@ -421,14 +733,17 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                   <span className="text-[10px] font-mono font-black uppercase bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">3. Óptimo</span>
                   {escenarioSeleccionado === 'OPTIMO' && <span className="text-[9px] font-mono font-bold bg-emerald-400 text-[#090D16] px-1.5 py-0.5 rounded">✓ Activo</span>}
                 </div>
-                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight">Piso Eficiencia (Control Total)</h3>
+                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight flex items-center justify-between">
+                  Piso Eficiencia (Control Total)
+                  <Tooltip contenido="Representa la máxima eficiencia con entregas sobre el 85% y cero merma física." />
+                </h3>
                 <p className="text-[10px] text-slate-400 leading-relaxed m-0">Devolución 15% | Mermas 1%</p>
                 <div className="pt-2">
                   <span className="text-[9px] text-slate-500 uppercase font-bold block">Precio Ultra Competitivo</span>
                   <span className="text-xl font-mono font-black text-emerald-300">{formatoMoneda(metricas.opt.precioCatalogo)}</span>
                 </div>
               </div>
-              <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-emerald-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-emerald-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.opt.precioNeto)}</span></div>
                   <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
@@ -439,18 +754,15 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                   <span>Utilidad Libre:</span><span>{formatoMoneda(metricas.opt.ganancia)} ({margenDeseado}%)</span>
                 </div>
               </div>
-              <div className="text-[9px] text-emerald-400/80 leading-tight mt-1 text-center">
-                *A precio Favorable tu ganancia subiría a {formatoMoneda(metricas.gananciaOptRealEnFav)}.
-              </div>
             </div>
 
+            {/* ESCENARIO 4 */}
             <div 
               onClick={() => setEscenarioSeleccionado('OBJETIVO')}
-              className={`relative bg-gradient-to-b from-[#0F2633] to-[#0A1A24] rounded-2xl p-5 overflow-hidden shadow-[0_10px_40px_rgba(13,237,192,0.15)] flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+              className={`relative bg-gradient-to-b from-[#0F2633] to-[#0A1A24] rounded-2xl p-5 shadow-[0_10px_40px_rgba(13,237,192,0.15)] flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
                 escenarioSeleccionado === 'OBJETIVO' ? 'border-[#0DEDC0] shadow-[0_0_30px_rgba(13,237,192,0.4)] ring-1 ring-[#0DEDC0]/50 scale-[1.02] z-10' : 'border-[#0DEDC0]/40 hover:border-[#0DEDC0]/80'
               }`}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#0DEDC0]/10 rounded-full blur-2xl pointer-events-none" />
               <div className="absolute top-0 left-0 w-full h-1.5 bg-[#0DEDC0] shadow-[0_0_15px_rgba(13,237,192,0.8)]" />
               
               <div className="space-y-2 border-b border-[#0DEDC0]/30 pb-3 relative z-10">
@@ -458,9 +770,11 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                   <span className="text-[10px] font-mono font-black uppercase bg-[#0DEDC0]/10 text-[#0DEDC0] px-2 py-0.5 rounded border border-[#0DEDC0]/30">4. Objetivo B2B</span>
                   {escenarioSeleccionado === 'OBJETIVO' && <span className="text-[9px] font-mono font-bold bg-[#0DEDC0] text-[#090D16] px-1.5 py-0.5 rounded">★ RECOMENDADO</span>}
                 </div>
-                <h3 className="text-sm font-black text-white m-0 leading-tight">Estructura Aterrizada</h3>
+                <h3 className="text-sm font-black text-white m-0 leading-tight flex items-center justify-between">
+                  Estructura Aterrizada
+                  <Tooltip contenido="Añade un buffer (+5%) al margen libre para amortiguar el tiempo de espera hasta que la plataforma libere la billetera." />
+                </h3>
                 <p className="text-[10px] text-[#0DEDC0]/80 leading-relaxed m-0">Margen protegido +5% Buffer Caja Mínima.</p>
-                
                 <div className="pt-2">
                   <span className="text-[9px] text-[#0DEDC0]/70 uppercase font-bold block">Precio Catálogo Ideal</span>
                   <span className="text-2xl font-mono font-black text-[#0DEDC0] drop-shadow-md">{formatoMoneda(metricas.obj.precioCatalogo)}</span>
@@ -478,9 +792,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                   <span>Utilidad + Buffer:</span><span>{formatoMoneda(metricas.obj.ganancia)} ({metricas.pctMargenObjetivo}%)</span>
                 </div>
               </div>
-              <div className="text-[9px] text-[#0DEDC0]/60 leading-tight mt-1 text-center font-medium">
-                Absorbe la iliquidez por demora de pagos Wallet.
-              </div>
             </div>
 
           </div>
@@ -488,7 +799,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
         {/* SECCIÓN 3: CREADOR DE PROPUESTA COMERCIAL B2B */}
         <div className="space-y-8 pt-10 relative">
-          
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 border border-amber-500/40 text-amber-400 font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(245,158,11,0.2)] shrink-0">
               3
@@ -504,7 +814,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
             <div className="flex-1 h-px bg-gradient-to-r from-amber-500/40 via-slate-700 to-transparent hidden lg:block"></div>
           </div>
 
-          <div className="bg-[#090D16] p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+          <div className="bg-[#090D16]/90 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
             <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider block border-b border-slate-800 pb-2">
               Configuración de la Oferta
             </span>
@@ -512,7 +822,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 items-end">
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">Empresa / Proveedor</label>
-                <input type="text" value={nombreProveedor} onChange={(e) => setNombreProveedor(e.target.value)} placeholder="Ej. Mi Bodega Drop" className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-amber-400 outline-none transition-colors" />
+                <input type="text" value={nombreProveedor} onChange={(e) => setNombreProveedor(e.target.value)} placeholder="DEMO ATOM" className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 text-white text-sm font-bold focus:border-amber-400 outline-none transition-colors" />
               </div>
 
               <div>
@@ -522,7 +832,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">Código SKU</label>
-                <input type="text" value={skuProducto} onChange={(e) => setSkuProducto(e.target.value)} className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 text-white text-sm focus:border-amber-400 outline-none transition-colors" />
+                <input type="text" value={skuProducto} onChange={(e) => setSkuProducto(e.target.value)} placeholder="SKU-1001" className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-amber-400 outline-none transition-colors" />
               </div>
 
               <div>
@@ -540,8 +850,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
             </div>
           </div>
 
-          <div className="bg-[#090D16] p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-xl space-y-6">
-            
+          <div className="bg-[#090D16]/90 p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-xl space-y-6">
             <div className="border-b border-slate-700 pb-5">
               <span className="text-[10px] font-mono font-black uppercase text-amber-400 tracking-widest block mb-2">
                 Selecciona la Modalidad Comercial
@@ -552,31 +861,17 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
               <div 
                 onClick={() => setOpcionPropuestaSeleccionada('OPCION1')}
                 className={`p-5 rounded-2xl transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
-                  opcionPropuestaSeleccionada === 'OPCION1' ? 'bg-[#1A160B] border-2 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.15)] ring-1 ring-amber-400/50' : 'bg-[#101D28]/40 border border-slate-800 hover:border-amber-500/40'
+                  opcionPropuestaSeleccionada === 'OPCION1' ? 'bg-[#1A160B] border-2 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.15)]' : 'bg-[#101D28]/40 border border-slate-800'
                 }`}
               >
-                <div className={`absolute top-0 left-0 h-full w-1.5 transition-colors ${opcionPropuestaSeleccionada === 'OPCION1' ? 'bg-amber-400' : 'bg-transparent'}`} />
                 <div className="space-y-4">
-                  <div className="flex justify-between items-start gap-2">
-                    <h4 className={`text-sm font-black uppercase m-0 leading-tight ${opcionPropuestaSeleccionada === 'OPCION1' ? 'text-amber-400' : 'text-slate-300'}`}>
-                      Opción A: Precio Base (Asumes Comisión)
-                    </h4>
-                    {opcionPropuestaSeleccionada === 'OPCION1' && <span className="text-[9px] font-mono font-bold bg-amber-400 text-[#090D16] px-2 py-0.5 rounded shadow-sm">✓ ELEGIDA</span>}
-                  </div>
-                  
-                  <div className="bg-[#090D16]/60 p-4 rounded-xl border border-amber-500/10 space-y-3 font-mono text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Precio Público (Con IVA):</span>
-                      <span className="text-white font-bold">{formatoMoneda(metricas.activo.precioCatalogo)}</span>
-                    </div>
-                    <div className="flex justify-between border-t border-slate-800 pt-2">
-                      <span className="text-amber-400 font-bold">Bono al Drop ({comisionDropExtra}%):</span>
-                      <span className="text-amber-400 font-black">+{formatoMoneda(metricas.comisionOp1)} /ud</span>
-                    </div>
+                  <h4 className="text-sm font-black uppercase text-amber-400 m-0">Opción A: Precio Base (Asumes Comisión)</h4>
+                  <div className="bg-[#090D16]/60 p-4 rounded-xl border border-amber-500/10 space-y-2 font-mono text-xs">
+                    <div className="flex justify-between"><span>PVP:</span><span className="text-white font-bold">{formatoMoneda(metricas.activo.precioCatalogo)}</span></div>
+                    <div className="flex justify-between text-amber-400 font-bold"><span>Bono ({comisionDropExtra}%):</span><span>+{formatoMoneda(metricas.comisionOp1)} /ud</span></div>
                   </div>
                 </div>
               </div>
@@ -584,81 +879,129 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               <div 
                 onClick={() => setOpcionPropuestaSeleccionada('OPCION2')}
                 className={`p-5 rounded-2xl transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
-                  opcionPropuestaSeleccionada === 'OPCION2' ? 'bg-[#0F2633] border-2 border-[#0DEDC0] shadow-[0_0_25px_rgba(13,237,192,0.15)] ring-1 ring-[#0DEDC0]/50' : 'bg-[#101D28]/40 border border-slate-800 hover:border-[#0DEDC0]/40'
+                  opcionPropuestaSeleccionada === 'OPCION2' ? 'bg-[#0F2633] border-2 border-[#0DEDC0] shadow-[0_0_25px_rgba(13,237,192,0.15)]' : 'bg-[#101D28]/40 border border-slate-800'
                 }`}
               >
-                <div className={`absolute top-0 left-0 h-full w-1.5 transition-colors ${opcionPropuestaSeleccionada === 'OPCION2' ? 'bg-[#0DEDC0]' : 'bg-transparent'}`} />
                 <div className="space-y-4">
-                  <div className="flex justify-between items-start gap-2">
-                    <h4 className={`text-sm font-black uppercase m-0 leading-tight ${opcionPropuestaSeleccionada === 'OPCION2' ? 'text-[#0DEDC0]' : 'text-slate-300'}`}>
-                      Opción B: Escalar Precio (Margen Intacto)
-                    </h4>
-                    {opcionPropuestaSeleccionada === 'OPCION2' && <span className="text-[9px] font-mono font-bold bg-[#0DEDC0] text-[#090D16] px-2 py-0.5 rounded shadow-sm">✓ ELEGIDA</span>}
-                  </div>
-                  
-                  <div className="bg-[#090D16]/60 p-4 rounded-xl border border-[#0DEDC0]/10 space-y-3 font-mono text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Nuevo Precio Público:</span>
-                      <span className="text-[#0DEDC0] font-bold">{formatoMoneda(metricas.precioCatalogoOp2)}</span>
-                    </div>
-                    <div className="flex justify-between border-t border-slate-800 pt-2">
-                      <span className="text-[#0DEDC0] font-bold">Bono al Drop ({comisionDropExtra}%):</span>
-                      <span className="text-[#0DEDC0] font-black">+{formatoMoneda(metricas.comisionOp2)} /ud</span>
-                    </div>
+                  <h4 className="text-sm font-black uppercase text-[#0DEDC0] m-0">Opción B: Escalar Precio (Margen Intacto)</h4>
+                  <div className="bg-[#090D16]/60 p-4 rounded-xl border border-[#0DEDC0]/10 space-y-2 font-mono text-xs">
+                    <div className="flex justify-between"><span>Nuevo PVP:</span><span className="text-[#0DEDC0] font-bold">{formatoMoneda(metricas.precioCatalogoOp2)}</span></div>
+                    <div className="flex justify-between text-[#0DEDC0] font-bold"><span>Bono ({comisionDropExtra}%):</span><span>+{formatoMoneda(metricas.comisionOp2)} /ud</span></div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-[#0F2633] via-[#0A1A24] to-[#090D16] p-6 rounded-2xl border-2 border-[#0DEDC0]/40 shadow-2xl space-y-4 mt-6">
-              <div className="flex justify-between items-center border-b border-[#0DEDC0]/20 pb-3 flex-wrap gap-2">
-                <span className="text-xs font-mono font-black uppercase text-[#0DEDC0] tracking-wider">
-                  LIQUIDACIÓN TOTAL DE GANANCIA BODEGA ({metricas.qty} UNIDADES)
-                </span>
-                <span className="text-[10px] font-mono text-slate-400 bg-black/40 px-3 py-1 rounded-full border border-slate-700">
-                  MODALIDAD: {opcionPropuestaSeleccionada === 'OPCION1' ? 'Opción A (Asumida)' : 'Opción B (Escalada)'}
+            {/* VISTA PREVIA TARJETA VERTICAL OFICIAL 2D + hexGrid + LOGO ATOM */}
+            <div className="bg-[#090D16]/95 p-6 sm:p-8 rounded-3xl border-2 border-[#0DEDC0] shadow-[0_0_30px_rgba(13,237,192,0.2)] space-y-6 mt-6">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-4 flex-wrap gap-2">
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-[#0DEDC0] uppercase tracking-widest block">
+                    VISTA PREVIA TARJETA EJECUTIVA B2B
+                  </span>
+                  <h4 className="text-lg font-black text-white m-0">
+                    Diseño Oficial Formato Vertical 2D
+                  </h4>
+                </div>
+                <span className="text-xs font-mono text-[#0DEDC0] bg-[#0DEDC0]/10 px-3 py-1 rounded-full border border-[#0DEDC0]/30 font-bold">
+                  ● 1080 x 1600 PX PNG
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 font-mono">
-                <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Ventas Brutas Lote</span>
-                  <span className="text-lg font-black text-white">
-                    {formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.totalVentasOp1 : metricas.totalVentasOp2)}
+              {/* CONTENEDOR VERTICAL PREVIEW */}
+              <div className="max-w-md mx-auto bg-[#050A11] p-6 sm:p-8 rounded-3xl border-4 border-[#0DEDC0] shadow-[0_0_40px_rgba(13,237,192,0.25)] space-y-6 text-white font-sans relative overflow-hidden bg-grid-pattern">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#0DEDC0]/10 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="border-b-2 border-[#0DEDC0] pb-3 text-center sm:text-left">
+                  <span className="text-xs sm:text-sm font-mono font-bold text-[#0DEDC0] uppercase block leading-tight tracking-wider">
+                    PROPUESTA DE META LOGÍSTICA & BONIFICACIÓN B2B
                   </span>
                 </div>
 
-                <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Costo Operativo Absorbido</span>
-                  <span className="text-lg font-black text-slate-300">
-                    -{formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.totalCostosOp1 : metricas.totalCostosOp2)}
+                <div className="bg-[#102935]/90 p-4 rounded-2xl border border-[#0DEDC0]/40 space-y-2 text-sm">
+                  <div className="text-white font-semibold">
+                    <span className="text-slate-400">Proveedor:</span> <strong className="text-[#0DEDC0]">{nombreProveedor || 'DEMO ATOM'}</strong>
+                  </div>
+                  <div className="text-white font-semibold">
+                    <span className="text-slate-400">Producto:</span> {nombreProducto} {skuProducto ? `(${skuProducto})` : ''}
+                  </div>
+                  <div className="text-[#0DEDC0] font-bold">
+                    <span className="text-slate-400">Lote Proyectado:</span> {metricas.qty} Unidades
+                  </div>
+                </div>
+
+                <div className="bg-[#090D16]/95 p-5 rounded-2xl border-2 border-[#0DEDC0] space-y-3">
+                  <h4 className="text-base font-bold text-[#0DEDC0] m-0 border-b border-slate-800 pb-2 font-mono">
+                    Estructura Financiera de la Oferta
+                  </h4>
+                  <div className="space-y-2 text-xs sm:text-sm font-mono">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-300">• Precio Público Sugerido (PVP):</span>
+                      <span className="text-[#0DEDC0] font-black">
+                        {formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.activo.precioCatalogo : metricas.precioCatalogoOp2)} / ud
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-amber-400">
+                      <span className="text-slate-300">• Bono Logístico ({comisionDropExtra}%):</span>
+                      <span className="font-black">
+                        {formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.comisionOp1 : metricas.comisionOp2)} / ud
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-800">
+                      <span className="text-slate-300">• Fondo Total Incentivos ({metricas.qty} uds):</span>
+                      <span className="text-[#0DEDC0] font-black text-base">
+                        {formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.totalComisionOp1 : metricas.totalComisionOp2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#102935]/90 p-4 rounded-2xl border border-[#6884C5]/50 space-y-3">
+                  <h4 className="text-xs sm:text-sm font-bold text-[#6884C5] m-0 font-mono">
+                    KPIs de Meta Logística Exigidos:
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3 font-mono text-center">
+                    <div className="bg-[#1F121B] p-2.5 rounded-xl border border-red-500/50">
+                      <span className="text-[10px] text-red-300 block">Devolución Máx:</span>
+                      <span className="text-lg font-black text-red-400">{(metricas.devActivo * 100).toFixed(0)}%</span>
+                    </div>
+                    <div className="bg-[#0B1E19] p-2.5 rounded-xl border border-emerald-500/50">
+                      <span className="text-[10px] text-emerald-300 block">Efectividad Mín:</span>
+                      <span className="text-lg font-black text-emerald-400">{(100 - (metricas.devActivo * 100)).toFixed(0)}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#090D16]/95 p-4 rounded-2xl border border-amber-500/40 text-[11px] text-amber-300 leading-relaxed font-sans">
+                  <strong>Condición:</strong> El incentivo logístico se desembolsará el 25 de cada mes después de confirmar y cerrar la operación logística del mes anterior, tomando como referencia las órdenes efectivamente entregadas en plataforma bajo los parámetros de efectividad acordados.
+                </div>
+
+                {/* CENTRO LOGÍSTICO ATOM CON LOGO DE PUBLIC */}
+                <div className="pt-4 border-t-2 border-[#0DEDC0] text-center space-y-2">
+                  <img 
+                    src="/logo-color.png" 
+                    alt="ATOM Logo" 
+                    className="h-9 w-auto mx-auto object-contain drop-shadow-[0_0_12px_rgba(13,237,192,0.4)]"
+                  />
+                  <span className="text-xs sm:text-sm font-mono font-black text-[#0DEDC0] uppercase tracking-widest block">
+                    Centro logístico ATOM
                   </span>
                 </div>
 
-                <div className="bg-[#090D16]/80 p-3.5 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-amber-400 uppercase font-bold block mb-1">Fondo Comisión Drop</span>
-                  <span className="text-lg font-black text-amber-400">
-                    -{formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.totalComisionOp1 : metricas.totalComisionOp2)}
-                  </span>
-                </div>
-
-                <div className="bg-[#0DEDC0]/10 p-3.5 rounded-xl border border-[#0DEDC0]/40">
-                  <span className="text-[10px] text-[#0DEDC0] uppercase font-bold block mb-1">UTILIDAD NETA BODEGA</span>
-                  <span className="text-xl font-black text-[#0DEDC0]">
-                    {formatoMoneda(opcionPropuestaSeleccionada === 'OPCION1' ? metricas.totalGananciaOp1 : metricas.totalGananciaOp2)}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
 
           <div className="pt-2">
             <button 
-              onClick={enviarPorWhatsapp} 
-              className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-6 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_5px_15px_rgba(22,163,74,0.3)] cursor-pointer"
+              disabled={descargando}
+              onClick={descargarImagenPropuesta} 
+              className="w-full bg-[#0DEDC0] hover:bg-[#20fbd0] text-[#090D18] font-black py-5 px-6 rounded-2xl text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(13,237,192,0.4)] hover:-translate-y-0.5 cursor-pointer disabled:opacity-50"
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-              Enviar Propuesta por WhatsApp
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>{descargando ? 'Generando PNG Oficial 2D...' : 'DESCARGAR TARJETA B2B OFICIAL (PNG VERTICAL)'}</span>
             </button>
           </div>
         </div>

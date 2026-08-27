@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Seccion1 from './paginas/Seccion1';
 

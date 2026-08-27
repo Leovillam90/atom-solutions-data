@@ -1,6 +1,6 @@
 import React from 'react';
-import { Kicker, H2, Subtitulo, ESTILOS_TEXTO } from '../../complementos/Tipografia';
-import Fondos, { TipoFondo } from '../../complementos/Fondos';
+import { Kicker, H2, Subtitulo, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
+import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 
 interface Seccion6Props {
   variante?: TipoFondo;
@@ -18,7 +18,7 @@ export default function Seccion6({
   return (
     <section className="relative z-10 py-20 px-6 w-full overflow-hidden">
       
-      {/* 1. FONDO EXTERIOR DE LA SECCIÓN (HEXGRID - ESTRUCTURA SECCIÓN 3) */}
+      {/* 1. FONDO EXTERIOR DE LA SECCIÓN (HEXGRID) */}
       <Fondos variante="hexGrid" modo="absolute" />
 
       {/* 2. CAJÓN PRINCIPAL CON ANCHO MAX-W-7XL */}

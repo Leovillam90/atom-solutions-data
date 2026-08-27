@@ -34,4 +34,4 @@ export default function Seccion2({ variante = 'darkNoise' }: Seccion2Props) {
       </div>
     </section>
   );
-}
+} 
