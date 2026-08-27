@@ -111,3 +111,33 @@ body {
 }
 
 
+/* Animación de crecimiento vertical para barras financieras */
+@keyframes barRise {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.animate-bar-rise {
+  animation: barRise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: bottom;
+  will-change: transform, opacity;
+}
+
+/* Ocultar flechas de inputs numéricos en Chrome, Safari, Edge y Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Ocultar flechas en Firefox y navegadores estándar */
+input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

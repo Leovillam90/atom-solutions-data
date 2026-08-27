@@ -27,6 +27,21 @@ interface Seccion1Props {
   variante?: TipoFondo;
 }
 
+// COMPONENTE TOOLTIP REUTILIZABLE Y FACILMENTE EXTENSIBLE (FORZANDO SENTENCE CASE)
+function Tooltip({ contenido }: { contenido: string }) {
+  return (
+    <div className="relative inline-flex items-center group ml-1.5 align-middle">
+      <span className="w-4 h-4 rounded-full bg-[#102935] border border-[#0DEDC0]/50 text-[#0DEDC0] text-[10px] font-mono font-bold flex items-center justify-center cursor-help transition-all duration-200 group-hover:bg-[#0DEDC0] group-hover:text-[#090D16] group-hover:scale-110 shrink-0">
+        ?
+      </span>
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 hidden group-hover:flex flex-col items-center w-60 p-3 bg-[#090D16] border border-[#0DEDC0]/40 rounded-xl text-[11px] font-sans text-slate-200 font-normal normal-case tracking-normal shadow-[0_10px_25px_rgba(0,0,0,0.7)] z-50 pointer-events-none leading-relaxed text-center">
+        {contenido}
+        <div className="w-2 h-2 bg-[#090D16] border-r border-b border-[#0DEDC0]/40 rotate-45 -mb-4 mt-1" />
+      </div>
+    </div>
+  );
+}
+
 // HELPER DE FORMATEO GLOBAL (EVITA CREAR INSTANCIAS DE INTL EN CADA RENDER)
 const formatearMoneda = (monto: number, locale: string, moneda: string, simbolo: string) => {
   const num = Number(monto) || 0;
@@ -148,6 +163,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
           <div className="bg-[#090D16] p-3.5 rounded-2xl border border-slate-800 shrink-0 w-full md:w-auto">
             <label className="block text-[10px] font-mono font-bold text-[#0DEDC0] uppercase mb-1">
               Moneda de Cálculo
+              <Tooltip contenido="Selecciona la divisa local en la que operas tus ventas y costos para formatear las cifras." />
             </label>
             <select
               value={paisSeleccionado.codigo}
@@ -210,7 +226,8 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Costo Neto de Fabricación/Compra ({paisSeleccionado.moneda})
+                  Costo Neto Fabricación/Compra ({paisSeleccionado.moneda})
+                  <Tooltip contenido="El precio directo por unidad física pagado a fábrica, laboratorio o importación." />
                 </label>
                 <input
                   type="number"
@@ -224,6 +241,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Gastos Fulfillment / Empaque Unitario ({paisSeleccionado.moneda})
+                  <Tooltip contenido="Costo unitario de embalaje: caja, bolsa de seguridad, etiquetas, cinta y mano de obra de empaque." />
                 </label>
                 <input
                   type="number"
@@ -236,7 +254,10 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div className="bg-red-900/20 border border-red-900/40 p-3.5 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-slate-300 mb-2">
-                  <span className="text-red-400">Tasa Histórica de Devoluciones</span>
+                  <span className="text-red-400">
+                    Tasa Histórica de Devoluciones
+                    <Tooltip contenido="Porcentaje promedio de paquetes que rebotan sin entregar y regresan a bodega destruidos o abiertos." />
+                  </span>
                   <span className="font-mono text-red-400 font-bold">{provPorcentajeDevoluciones}%</span>
                 </div>
                 <input
@@ -251,7 +272,10 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div className="bg-[#102935]/60 border border-[#0DEDC0]/30 p-3.5 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-[#0DEDC0] mb-2">
-                  <span>Margen de Ganancia Neta Deseada</span>
+                  <span>
+                    Margen de Ganancia Neta Deseada
+                    <Tooltip contenido="Porcentaje de utilidad libre limpia que deseas conservar después de absorber todos los costos." />
+                  </span>
                   <span className="font-mono text-white font-bold">{provMargenDeseado}%</span>
                 </div>
                 <input
@@ -272,13 +296,19 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono">
                 <div className="bg-[#102935]/80 p-4 rounded-xl border border-slate-800">
-                  <span className="text-[10px] text-slate-400 uppercase block font-bold mb-1">Costo Total Absorbido</span>
+                  <span className="text-[10px] text-slate-400 uppercase block font-bold mb-1">
+                    Costo Total Absorbido
+                    <Tooltip contenido="Costo real por unidad: Fabricación + Empaque + Fondo de reserva por mercancía no devuelta." />
+                  </span>
                   <span className="text-xl font-black text-slate-200 block">{formatoMoneda(metricasProveedor.costoTotalAbsorbido)}</span>
                   <span className="text-[10px] text-slate-500 block mt-1">Fab + Empaque + Fugas</span>
                 </div>
 
                 <div className="bg-red-900/20 p-4 rounded-xl border border-red-900/40">
-                  <span className="text-[10px] text-red-400 uppercase block font-bold mb-1">Provisión por Fugas</span>
+                  <span className="text-[10px] text-red-400 uppercase block font-bold mb-1">
+                    Provisión por Fugas
+                    <Tooltip contenido="Monto precargado a cada venta para pagar las pérdidas de las unidades que no se llegaron a entregar." />
+                  </span>
                   <span className="text-xl font-black text-red-400 block">{formatoMoneda(metricasProveedor.provisionRiesgoFuga)}</span>
                   <span className="text-[10px] text-red-400/60 block mt-1">Costo de mercancía destruida o devuelta</span>
                 </div>
@@ -287,6 +317,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-5 rounded-xl border-2 border-[#0DEDC0]/40 text-center space-y-1 shadow-[0_10px_30px_rgba(13,237,192,0.15)]">
                 <span className="text-xs font-mono text-slate-400 uppercase font-bold block">
                   Precio de Venta Sugerido en Plataforma
+                  <Tooltip contenido="El precio oficial al que debes publicar este producto en Dropi para no perder dinero." />
                 </span>
                 <span className="text-3xl font-black font-mono text-white block my-2">
                   {formatoMoneda(metricasProveedor.precioSugeridoAlDrop)}
@@ -328,6 +359,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                   Unidades Objetivo a Vender
+                  <Tooltip contenido="Cantidad proyectada de ordenes. Sirve para calcular la ganancia acumulada y el fondo acumulado de fletes." />
                 </label>
                 <input
                   type="number"
@@ -345,6 +377,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Costo del Producto en Bodega / Dropi ({paisSeleccionado.moneda})
+                  <Tooltip contenido="El precio del producto fijado por el proveedor dentro del catálogo de la plataforma." />
                 </label>
                 <input
                   type="number"
@@ -358,6 +391,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Flete Promedio de Salida ({paisSeleccionado.moneda})
+                  <Tooltip contenido="Costo promedio que cobra la transportadora por enviar un paquete exitoso." />
                 </label>
                 <input
                   type="number"
@@ -370,7 +404,8 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Costo Publicitario / CPA Pauta ({paisSeleccionado.moneda})
+                  Costo Publicitario / CPA Ads ({paisSeleccionado.moneda})
+                  <Tooltip contenido="Costo Por Adquisición: El dinero aproximado que pagas en Facebook o TikTok Ads para lograr 1 venta." />
                 </label>
                 <input
                   type="number"
@@ -383,7 +418,10 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div className="bg-red-900/20 border border-red-900/40 p-3.5 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-slate-300 mb-2">
-                  <span className="text-red-400">% Devolución Estimada (Contra Entrega)</span>
+                  <span className="text-red-400">
+                    % Devolución Estimada (Contra Entrega)
+                    <Tooltip contenido="Porcentaje estimado de clientes que rechazarán el paquete al momento de la entrega." />
+                  </span>
                   <span className="font-mono text-red-400 font-bold">{dropTasaDevolucion}%</span>
                 </div>
                 <input
@@ -398,7 +436,10 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
               <div className="bg-[#102935]/60 border border-[#0DEDC0]/30 p-3.5 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-[#0DEDC0] mb-2">
-                  <span>% Ganancia Neta Libre Deseada</span>
+                  <span>
+                    % Ganancia Neta Libre Deseada
+                    <Tooltip contenido="Tu utilidad real libre en el bolsillo después de descontar producto, fletes, anuncios y fletes devueltos." />
+                  </span>
                   <span className="font-mono text-white font-bold">{dropMargenDeseado}%</span>
                 </div>
                 <input
@@ -421,6 +462,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 <div className="bg-red-900/20 p-4 rounded-xl border border-red-900/40">
                   <span className="text-[10px] text-red-400 uppercase block font-bold mb-1">
                     Fondo Fletes Devolución ({metricasDropshipper.qty} uds)
+                    <Tooltip contenido="Dinero total que debes apartar para pagar el costo del flete de ida y vuelta de las guías no entregadas." />
                   </span>
                   <span className="text-xl font-black text-red-400 block">
                     {formatoMoneda(metricasDropshipper.fondoDevolucionTotal)}
@@ -433,6 +475,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                 <div className="bg-[#102935]/80 p-4 rounded-xl border border-slate-800">
                   <span className="text-[10px] text-slate-400 uppercase block font-bold mb-1">
                     ROAS Mínimo Objetivo
+                    <Tooltip contenido="Retorno Mínimo en Publicidad (Ventas ÷ Inversión Ads). Si tu ROAS en Meta/TikTok cae de este número, estarás perdiendo dinero." />
                   </span>
                   <span className="text-xl font-black text-amber-400 block">
                     {metricasDropshipper.roasObjetivoReal.toFixed(2)}x
@@ -446,6 +489,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-6 rounded-xl border-2 border-[#0DEDC0]/50 text-center space-y-2 shadow-[0_10px_30px_rgba(13,237,192,0.15)]">
                 <span className="text-xs font-mono text-slate-300 uppercase font-bold tracking-wider block">
                   VALOR SUGERIDO DE VENTA AL CLIENTE FINAL (POR UNIDAD)
+                  <Tooltip contenido="El precio mínimo en tu tienda Shopify/Dropi para garantizar tu ganancia deseada." />
                 </span>
                 <span className="text-3xl sm:text-4xl font-black font-mono text-[#0DEDC0] block my-2">
                   {formatoMoneda(metricasDropshipper.precioVentaSugeridoFinal)}

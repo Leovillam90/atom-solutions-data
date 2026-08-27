@@ -65,7 +65,7 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
 
             <div className="h-10 flex items-center justify-center">
               <Link href="/calculadora/basica" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap flex items-center gap-1.5 group">
-                <span>Calculadora</span>
+                <span>Simuladores</span>
               </Link>
             </div>
 
