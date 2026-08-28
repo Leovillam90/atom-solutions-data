@@ -56,7 +56,7 @@ export default function Seccion6({
               rel="noopener noreferrer"
               className={`w-full sm:w-auto inline-flex items-center justify-center bg-[#091A23] hover:bg-slate-800 text-white font-black px-8 py-4 rounded-xl shadow-[0_10px_25px_rgba(9,26,35,0.4)] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer text-center gap-2 ${ESTILOS_TEXTO.boton}`}
             >
-              INICIAR MI AUDITORÍA GRATUITA →
+              VER CUÁNTO DINERO PUEDO RECUPERAR →
             </a>
 
           </div>

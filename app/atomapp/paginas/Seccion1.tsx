@@ -79,7 +79,7 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
           title="Abrir en ventana completa"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#102935]/60 border border-slate-700 hover:border-[#0DEDC0] text-slate-300 hover:text-white text-xs font-mono font-semibold transition-all cursor-pointer"
         >
-          <span className="hidden sm:inline">Pestaña Nueva</span>
+          <span className="hidden sm:inline">Expandir portal</span>
           <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
           </svg>

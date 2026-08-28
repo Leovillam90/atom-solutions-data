@@ -78,7 +78,7 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1Props) {
             rel="noopener noreferrer"
             className={`inline-flex items-center justify-center px-10 py-4 bg-[#0DEDC0] text-[#102935] font-extrabold rounded-lg shadow-[0_0_25px_rgba(13,237,192,0.35)] hover:bg-[#25ffd3] hover:-translate-y-0.5 transition-all ${ESTILOS_TEXTO.boton}`}
           >
-            Iniciar Auditoría Gratuita →
+            DESCUBRIR MI CAPITAL ESTANCADO →
           </a>
         </div>
 
