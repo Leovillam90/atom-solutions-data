@@ -5,7 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '@/app/lib/firebase';
 import Registro from '@/app/complementos/Registro';
-import Seccion1 from './paginas/Seccion1';
+import Seccion1 from './paginas/Pagina1';
 
 export default function CalculadoraPage() {
   const [autenticado, setAutenticado] = useState<boolean>(false);
@@ -99,7 +99,7 @@ export default function CalculadoraPage() {
     return (
       <Registro 
         onLoginSuccess={() => setAutenticado(true)} 
-        variante="gridCyber" 
+        variante="hexGrid" 
       />
     );
   }

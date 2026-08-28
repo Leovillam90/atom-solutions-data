@@ -1,24 +1,25 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H1, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
 import { MONEDAS, MonedaConfig, formatearMonedaGlobal, obtenerTarifasImpuesto } from '@/app/lib/moneda';
-import Seccion2 from './Seccion2';
+import Pagina2 from './Pagina2';
 
 export type EscenarioTipo = 'PESIMO' | 'FAVORABLE' | 'OPTIMO' | 'OBJETIVO';
 
-interface Seccion1Props {
+interface Pagina1Props {
   variante?: TipoFondo;
 }
 
+// TOOLTIP CON REGLA ESTRICTA DE CAPA Z
 export function Tooltip({ contenido }: { contenido: string }) {
   return (
-    <div className="relative inline-flex items-center group ml-1.5 align-middle z-30">
+    <div className="relative inline-flex items-center group ml-1.5 align-middle z-0 hover:z-50">
       <span className="w-4 h-4 rounded-full bg-[#102935] border border-[#0DEDC0]/60 text-[#0DEDC0] text-[10px] font-mono font-bold flex items-center justify-center cursor-help transition-all duration-200 group-hover:bg-[#0DEDC0] group-hover:text-[#090D16] group-hover:scale-110 shrink-0 shadow-[0_0_8px_rgba(13,237,192,0.3)]">
         ?
       </span>
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 hidden group-hover:flex flex-col items-center w-64 p-3 bg-[#080C14] border border-[#0DEDC0]/50 rounded-xl text-[11px] font-sans text-slate-200 font-normal normal-case tracking-normal shadow-[0_15px_30px_rgba(0,0,0,0.9)] z-50 pointer-events-none leading-relaxed text-center">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center w-64 p-3 bg-[#080C14] border border-[#0DEDC0]/50 rounded-xl text-[11px] font-sans text-slate-200 font-normal leading-relaxed text-center shadow-[0_15px_30px_rgba(0,0,0,0.9)] z-0 group-hover:z-[9999]">
         {contenido}
         <div className="w-2.5 h-2.5 bg-[#080C14] border-r border-b border-[#0DEDC0]/50 rotate-45 -mb-4 mt-1" />
       </div>
@@ -26,7 +27,96 @@ export function Tooltip({ contenido }: { contenido: string }) {
   );
 }
 
-export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
+// SELECTOR DE MONEDA DESPLEGABLE PERSONALIZADO
+function SelectorMonedaCustom({
+  monedaSeleccionada,
+  onSeleccionarMoneda,
+}: {
+  monedaSeleccionada: MonedaConfig;
+  onSeleccionarMoneda: (m: MonedaConfig) => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const contenedorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) {
+        setAbierto(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative z-20" ref={contenedorRef}>
+      <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+        Moneda de Operación
+        <Tooltip contenido="Selecciona la divisa oficial para formatear valores y cargar impuestos por defecto de la región." />
+      </label>
+
+      <button
+        type="button"
+        onClick={() => setAbierto(!abierto)}
+        className={`w-full bg-[#102935] border text-white text-xs font-bold rounded-xl p-3 flex items-center justify-between cursor-pointer outline-none transition-all duration-200 ${
+          abierto
+            ? 'border-[#0DEDC0] shadow-[0_0_20px_rgba(13,237,192,0.3)] ring-1 ring-[#0DEDC0]/50'
+            : 'border-slate-700 hover:border-[#0DEDC0]/60'
+        }`}
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-[#0DEDC0] shadow-[0_0_8px_#0DEDC0]" />
+          <span className="font-mono text-[10px] bg-[#0DEDC0]/15 text-[#0DEDC0] px-1.5 py-0.5 rounded border border-[#0DEDC0]/30 font-bold">
+            {monedaSeleccionada.codigo}
+          </span>
+          <span className="truncate">{monedaSeleccionada.nombre} ({monedaSeleccionada.simbolo})</span>
+        </div>
+
+        <svg
+          className={`w-4 h-4 text-[#0DEDC0] transition-transform duration-300 ${abierto ? 'rotate-180' : ''}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {abierto && (
+        <div className="absolute top-full left-0 w-full mt-2 bg-[#090D16]/95 backdrop-blur-xl border border-[#0DEDC0]/40 rounded-xl shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-50 overflow-hidden">
+          <div className="max-h-56 overflow-y-auto py-1 divide-y divide-slate-800/60 custom-scrollbar">
+            {MONEDAS.map((m) => {
+              const esSeleccionada = m.codigo === monedaSeleccionada.codigo;
+              return (
+                <button
+                  key={m.codigo}
+                  type="button"
+                  onClick={() => {
+                    onSeleccionarMoneda(m);
+                    setAbierto(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2.5 text-xs font-bold transition-all duration-150 flex items-center justify-between cursor-pointer ${
+                    esSeleccionada ? 'bg-[#102935] text-[#0DEDC0]' : 'text-slate-300 hover:bg-[#102935]/60 hover:text-[#0DEDC0]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                      esSeleccionada ? 'bg-[#0DEDC0]/20 text-[#0DEDC0] border border-[#0DEDC0]/40' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {m.codigo}
+                    </span>
+                    <span>{m.nombre}</span>
+                  </div>
+                  {esSeleccionada && <span className="text-[#0DEDC0] font-black text-sm">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
 
   // INPUTS PASO 1
@@ -45,7 +135,7 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
   // SELECCIÓN DE ESCENARIO PASO 2
   const [escenarioSeleccionado, setEscenarioSeleccionado] = useState<EscenarioTipo>('OBJETIVO');
 
-  // INPUTS PASO 3 (Sincronizados con Seccion2)
+  // INPUTS PASO 3
   const [unidadesProyectadas, setUnidadesProyectadas] = useState<number>(170);
   const [comisionDropExtra, setComisionDropExtra] = useState<number>(5);
 
@@ -59,6 +149,14 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
     (monto: number) => formatearMonedaGlobal(monto, monedaSeleccionada.codigo),
     [monedaSeleccionada.codigo]
   );
+
+  const cambiarMoneda = (m: MonedaConfig) => {
+    setMonedaSeleccionada(m);
+    const tarifas = obtenerTarifasImpuesto(m.codigo);
+    if (tarifas && tarifas.length > 0) {
+      setImpactoFiscal(tarifas[0].valor);
+    }
+  };
 
   const metricas = useMemo(() => {
     const cFab = Math.max(0, Number(costoFabricacion));
@@ -174,46 +272,25 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
         </div>
       )}
 
-      <div className="relative z-10 max-w-7xl mx-auto space-y-12">
+      <div className="relative z-10 max-w-7xl mx-auto space-y-10">
         
         {/* CABECERA */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-800 pb-6">
-          <div>
-            <Kicker className="!text-[#0DEDC0]">HERRAMIENTA PARA GERENCIA B2B</Kicker>
-            <H1 className="text-balance mb-2">
-              Arquitectura de <Highlight>Precios & Sensibilidad.</Highlight>
-            </H1>
-            <Subtitulo className="max-w-2xl">
-              Audita matemáticamente tus costos logísticos inversos. Analiza los 4 escenarios de sensibilidad operativa y emite la propuesta comercial definitiva.
-            </Subtitulo>
-          </div>
+        <div className="border-b border-slate-800 pb-6">
+          <Kicker className="!text-[#0DEDC0]">HERRAMIENTA PARA GERENCIA B2B</Kicker>
+          <H1 className="text-balance mb-2">
+            Arquitectura de <Highlight>Precios & Sensibilidad.</Highlight>
+          </H1>
+          <Subtitulo className="max-w-2xl">
+            Audita matemáticamente tus costos logísticos inversos. Analiza los 4 escenarios de sensibilidad operativa y emite la propuesta comercial definitiva.
+          </Subtitulo>
+        </div>
 
-          <div className="bg-[#090D16]/90 p-3.5 rounded-2xl border border-slate-800 shrink-0 w-full md:w-auto z-20">
-            <label className="block text-[10px] font-mono font-bold text-[#0DEDC0] uppercase mb-1">
-              Moneda de Operación
-              <Tooltip contenido="Selecciona la divisa oficial para formatear valores y cargar impuestos por defecto de la región." />
-            </label>
-            <select
-              value={monedaSeleccionada.codigo}
-              onChange={(e) => {
-                const m = MONEDAS.find((x) => x.codigo === e.target.value);
-                if (m) {
-                  setMonedaSeleccionada(m);
-                  const tarifas = obtenerTarifasImpuesto(m.codigo);
-                  if (tarifas && tarifas.length > 0) {
-                    setImpactoFiscal(tarifas[0].valor);
-                  }
-                }
-              }}
-              className="w-full bg-[#102935] border border-slate-700 text-white text-xs font-bold rounded-xl p-2.5 focus:border-[#0DEDC0] outline-none cursor-pointer"
-            >
-              {MONEDAS.map((m) => (
-                <option key={m.codigo} value={m.codigo}>
-                  {m.nombre} ({m.simbolo})
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* SELECTOR DE MONEDA DE OPERACIÓN (UBICADO ARRIBA DE COSTO OPERATIVO) */}
+        <div className="bg-[#090D16]/90 p-4 sm:p-5 rounded-2xl border border-slate-800 max-w-md">
+          <SelectorMonedaCustom
+            monedaSeleccionada={monedaSeleccionada}
+            onSeleccionarMoneda={cambiarMoneda}
+          />
         </div>
 
         {/* SECCIÓN 1: ESTRUCTURA FINANCIERA BASE */}
@@ -229,6 +306,8 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            
+            {/* BLOQUE 1.1 */}
             <div className="bg-[#090D16]/90 p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full">
               <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-2">
                 Costos de Producción
@@ -255,6 +334,7 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
               </div>
             </div>
 
+            {/* BLOQUE 1.2: CONTROLES DÚO SLIDER + INPUT DERECHO */}
             <div className="bg-[#090D16]/90 p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full">
               <span className="text-xs font-mono font-bold text-red-400 uppercase tracking-wider block border-b border-slate-800 pb-2">
                 Provisión Fricción Logística COD
@@ -272,17 +352,33 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                
+                {/* DEVOLUCIÓN: SLIDER + INPUT */}
                 <div 
                   onClick={notificarCondicionesMermas}
-                  className="bg-red-900/10 border border-red-900/30 p-2.5 rounded-xl cursor-pointer hover:border-red-500/50 transition-colors"
+                  className="bg-red-900/10 border border-red-900/30 p-2.5 rounded-xl hover:border-red-500/50 transition-colors"
                 >
-                  <div className="flex justify-between text-[10px] font-semibold text-red-300 mb-1.5">
+                  <div className="flex justify-between items-center text-[10px] font-semibold text-red-300 mb-1.5">
                     <span className="flex items-center">
                       Devolución
                       <Tooltip contenido="Porcentaje estimado de guías que no logran entregarse y deben ser retornadas." />
                     </span>
-                    <span className="font-mono text-red-400 font-bold">{porcentajeDevoluciones}%</span>
+                    <div className="flex items-center gap-1 bg-red-950/80 border border-red-800/60 rounded px-1.5 py-0.5">
+                      <input
+                        type="number"
+                        min="15"
+                        max="50"
+                        value={porcentajeDevoluciones}
+                        onChange={(e) => {
+                          const val = Math.min(50, Math.max(15, Number(e.target.value)));
+                          setPorcentajeDevoluciones(val);
+                          notificarCondicionesMermas();
+                        }}
+                        className="w-8 bg-transparent text-right font-mono text-red-400 font-bold outline-none text-[11px]"
+                      />
+                      <span className="text-red-400 font-mono text-[10px]">%</span>
+                    </div>
                   </div>
                   <input 
                     type="range" min="15" max="50" 
@@ -296,16 +392,31 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
                   <span className="text-[9px] text-slate-500 block mt-1">Piso Técnico 15%</span>
                 </div>
 
+                {/* MERMAS: SLIDER + INPUT */}
                 <div 
                   onClick={notificarCondicionesMermas}
-                  className="bg-red-950/10 border border-red-900/30 p-2.5 rounded-xl cursor-pointer hover:border-red-500/50 transition-colors"
+                  className="bg-red-950/10 border border-red-900/30 p-2.5 rounded-xl hover:border-red-500/50 transition-colors"
                 >
-                  <div className="flex justify-between text-[10px] font-semibold text-red-300 mb-1.5">
+                  <div className="flex justify-between items-center text-[10px] font-semibold text-red-300 mb-1.5">
                     <span className="flex items-center">
-                      Mermas (Pérdida)
-                      <Tooltip contenido="Porcentaje de inventario que no llega a bodega o es devuelto pero llega destruido, averiado o saqueado en el trayecto." />
+                      Mermas
+                      <Tooltip contenido="Porcentaje de inventario que no llega a bodega o es devuelto pero llega destruido o robado." />
                     </span>
-                    <span className="font-mono text-red-400 font-bold">{porcentajeMermas}%</span>
+                    <div className="flex items-center gap-1 bg-red-950/80 border border-red-800/60 rounded px-1.5 py-0.5">
+                      <input
+                        type="number"
+                        min="1"
+                        max="30"
+                        value={porcentajeMermas}
+                        onChange={(e) => {
+                          const val = Math.min(30, Math.max(1, Number(e.target.value)));
+                          setPorcentajeMermas(val);
+                          notificarCondicionesMermas();
+                        }}
+                        className="w-8 bg-transparent text-right font-mono text-red-400 font-bold outline-none text-[11px]"
+                      />
+                      <span className="text-red-400 font-mono text-[10px]">%</span>
+                    </div>
                   </div>
                   <input 
                     type="range" min="1" max="30" 
@@ -318,38 +429,65 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
                   />
                   <span className="text-[9px] text-slate-500 block mt-1">Piso Técnico 1%</span>
                 </div>
+
               </div>
             </div>
 
+            {/* BLOQUE 1.3: CONTROLES DÚO MARGEN E IMPUESTOS */}
             <div className="bg-[#090D16]/90 p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full">
               <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-2">
                 Objetivo de Rentabilidad & Fiscal
               </span>
+
+              {/* MARGEN NETO: SLIDER + INPUT */}
               <div className="bg-[#102935]/40 border border-[#0DEDC0]/20 p-3 rounded-xl">
-                <div className="flex justify-between text-xs font-semibold text-[#0DEDC0] mb-2">
+                <div className="flex justify-between items-center text-xs font-semibold text-[#0DEDC0] mb-2">
                   <span>
                     Margen Neto Libre
                     <Tooltip contenido="Porcentaje de utilidad limpia objetivo para la bodega tras saldar costos y provisiones." />
                   </span>
-                  <span className="font-mono font-bold text-white">{margenDeseado}%</span>
+                  <div className="flex items-center gap-1 bg-[#090D16] border border-[#0DEDC0]/40 rounded px-2 py-0.5">
+                    <input
+                      type="number"
+                      min="1"
+                      max="70"
+                      value={margenDeseado}
+                      onChange={(e) => setMargenDeseado(Math.min(70, Math.max(1, Number(e.target.value))))}
+                      className="w-9 bg-transparent text-right font-mono text-white font-bold outline-none text-xs"
+                    />
+                    <span className="text-[#0DEDC0] font-mono text-xs">%</span>
+                  </div>
                 </div>
                 <input type="range" min="1" max="70" value={margenDeseado} onChange={(e) => setMargenDeseado(Number(e.target.value))} className="w-full accent-[#0DEDC0] cursor-pointer" />
               </div>
+
+              {/* IMPUESTOS: SLIDER + INPUT */}
               <div className="bg-slate-800/30 border border-slate-700/50 p-3 rounded-xl">
-                <div className="flex justify-between text-xs font-semibold text-slate-300 mb-2">
+                <div className="flex justify-between items-center text-xs font-semibold text-slate-300 mb-2">
                   <span>
                     Impuestos (IVA / Retenciones)
                     <Tooltip contenido="Impuesto al valor agregado e impacto tributario aplicable que debe reservarse para declaración." />
                   </span>
-                  <span className="font-mono text-white">{impactoFiscal}%</span>
+                  <div className="flex items-center gap-1 bg-[#090D16] border border-slate-600 rounded px-2 py-0.5">
+                    <input
+                      type="number"
+                      min="0"
+                      max="30"
+                      value={impactoFiscal}
+                      onChange={(e) => setImpactoFiscal(Math.min(30, Math.max(0, Number(e.target.value))))}
+                      className="w-9 bg-transparent text-right font-mono text-white font-bold outline-none text-xs"
+                    />
+                    <span className="text-slate-400 font-mono text-xs">%</span>
+                  </div>
                 </div>
                 <input type="range" min="0" max="30" value={impactoFiscal} onChange={(e) => setImpactoFiscal(Number(e.target.value))} className="w-full accent-slate-400 cursor-pointer" />
               </div>
             </div>
+
           </div>
         </div>
 
-        {/* SECCIÓN 2: ANÁLISIS DE SENSIBILIDAD B2B */}
+        {/* SECCIÓN 2: ANÁLISIS DE SENSIBILIDAD B2B (CON TARJETA PÉSIMO ACCESIBLE) */}
         <div className="space-y-6 pt-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0DEDC0]/20 to-[#0DEDC0]/5 border border-[#0DEDC0]/40 text-[#0DEDC0] font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(13,237,192,0.2)] shrink-0">
@@ -369,37 +507,45 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
             
-            {/* ESCENARIO 1 */}
+            {/* ESCENARIO 1: PÉSIMO (CORREGIDO PARA ACCESIBILIDAD ALTA CON #FF6B6B) */}
             <div 
               onClick={() => setEscenarioSeleccionado('PESIMO')}
-              className={`relative bg-[#1A0B12]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
-                escenarioSeleccionado === 'PESIMO' ? 'border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.3)] ring-1 ring-red-500/50 scale-[1.02]' : 'border-red-900/40 hover:border-red-500/40'
+              className={`relative bg-[#1E1118]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+                escenarioSeleccionado === 'PESIMO' 
+                  ? 'border-[#FF6B6B] shadow-[0_0_25px_rgba(255,107,107,0.35)] ring-1 ring-[#FF6B6B]/60 scale-[1.02]' 
+                  : 'border-[#FF6B6B]/30 hover:border-[#FF6B6B]/60'
               }`}
             >
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-red-500" />
-              <div className="space-y-2 border-b border-red-900/30 pb-3">
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-[#FF6B6B]" />
+              <div className="space-y-2 border-b border-[#FF6B6B]/30 pb-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-black uppercase bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/30">1. Pésimo</span>
-                  {escenarioSeleccionado === 'PESIMO' && <span className="text-[9px] font-mono font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">✓ Activo</span>}
+                  <span className="text-[10px] font-mono font-black uppercase bg-[#FF6B6B]/20 text-[#FF6B6B] px-2 py-0.5 rounded border border-[#FF6B6B]/40">
+                    1. Pésimo
+                  </span>
+                  {escenarioSeleccionado === 'PESIMO' && (
+                    <span className="text-[9px] font-mono font-bold bg-[#FF6B6B] text-[#090D16] px-1.5 py-0.5 rounded">
+                      ✓ Activo
+                    </span>
+                  )}
                 </div>
-                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight flex items-center justify-between">
+                <h3 className="text-sm font-bold text-white m-0 leading-tight flex items-center justify-between">
                   Estrés Logístico Máximo
                   <Tooltip contenido="Simula un rebote crítico de guías (+50%) y mermas dobles para calcular el precio blindado de supervivencia." />
                 </h3>
-                <p className="text-[10px] text-slate-400 leading-relaxed m-0">Devolución {metricas.pctDevPes}% | Mermas {metricas.pctMermasPes}%</p>
+                <p className="text-[10px] text-slate-300 leading-relaxed m-0">Devolución {metricas.pctDevPes}% | Mermas {metricas.pctMermasPes}%</p>
                 <div className="pt-2">
-                  <span className="text-[9px] text-slate-500 uppercase font-bold block">Precio de Resguardo Requerido</span>
-                  <span className="text-xl font-mono font-black text-slate-200">{formatoMoneda(metricas.pes.precioCatalogo)}</span>
+                  <span className="text-[9px] text-slate-400 uppercase font-bold block">Precio de Resguardo Requerido</span>
+                  <span className="text-xl font-mono font-black text-[#FF6B6B] drop-shadow-sm">{formatoMoneda(metricas.pes.precioCatalogo)}</span>
                 </div>
               </div>
-              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-red-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-[#FF6B6B]/30 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
                 <div className="space-y-1.5">
-                  <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.pes.precioNeto)}</span></div>
+                  <div className="flex justify-between text-slate-200"><span className="opacity-80">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.pes.precioNeto)}</span></div>
                   <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
-                  <div className="flex justify-between text-red-400"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.pes.costoMerma)}</span></div>
-                  <div className="flex justify-between text-red-400"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.pes.costoDev)}</span></div>
+                  <div className="flex justify-between text-[#FF6B6B]"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.pes.costoMerma)}</span></div>
+                  <div className="flex justify-between text-[#FF6B6B]"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.pes.costoDev)}</span></div>
                 </div>
-                <div className="flex justify-between text-red-400 font-bold border-t border-slate-800 pt-2 text-[11px] mt-2">
+                <div className="flex justify-between text-[#FF6B6B] font-bold border-t border-slate-800 pt-2 text-[11px] mt-2">
                   <span>Utilidad:</span><span>{formatoMoneda(metricas.pes.ganancia)} ({margenDeseado}%)</span>
                 </div>
               </div>
@@ -518,8 +664,8 @@ export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
           </div>
         </div>
 
-        {/* COMPONENTE DE LA SECCIÓN 2 (CREADOR DE PROPUESTAS & DOSSIER PDF 2 PÁGINAS A4 LANDSCAPE) */}
-        <Seccion2 
+        {/* PASO 3: CREADOR DE PROPUESTAS */}
+        <Pagina2 
           metricas={metricas}
           monedaSeleccionada={monedaSeleccionada}
           escenarioSeleccionado={escenarioSeleccionado}
