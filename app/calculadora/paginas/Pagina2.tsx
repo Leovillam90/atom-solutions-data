@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { MonedaConfig } from '@/app/lib/moneda';
 import { EscenarioTipo } from './Pagina1';
-import html2canvas from 'html2canvas';
 
 type OpcionPropuestaTipo = 'OPCION1' | 'OPCION2';
 
@@ -63,28 +62,37 @@ export default function Pagina2({
   const pctDevMaxTolerada = Math.min(100, pctProvisionDev + 5); // Provisión + 5% máximo
   const pctEfectividadMin = Math.max(0, 100 - pctDevMaxTolerada);
 
-  // FUNCIÓN PARA DESCARGAR LA VISTA PREVIA COMO IMAGEN
+  // FUNCIÓN PARA DESCARGAR LA VISTA PREVIA COMO IMAGEN (Ultra-segura y Optimizada)
   const descargarImagen = async () => {
     setDescargando(true);
     try {
-      const html2canvas = (await import('html2canvas')).default;
-      const elemento = document.getElementById('documento-oficial');
-      
-      if (!elemento) return;
+      // 1. Importación dinámica robusta (Lazy Loading para no afectar el performance)
+      const module = await import('html2canvas');
+      const html2canvas = module.default || module;
 
+      // 2. Captura del elemento
+      const elemento = document.getElementById('documento-oficial');
+      if (!elemento) {
+        throw new Error("No se encontró el elemento a capturar");
+      }
+
+      // 3. Generación del Canvas con configuración de compatibilidad máxima
       const canvas = await html2canvas(elemento, {
         scale: 2, // Alta resolución
         backgroundColor: '#F8FAFC',
         useCORS: true,
+        allowTaint: true, // Permite dibujar imágenes aunque haya temas de CORS local
+        logging: false, // Evita spam en la consola
       });
 
+      // 4. Descarga automática
       const enlace = document.createElement('a');
       enlace.download = `Acuerdo_B2B_${(nombreProveedor || 'ATOM').replace(/\s+/g, '_')}.png`;
       enlace.href = canvas.toDataURL('image/png');
       enlace.click();
     } catch (error) {
-      console.error('Error al generar la imagen:', error);
-      alert('Hubo un error al descargar la imagen. Asegúrate de haber instalado html2canvas (npm install html2canvas).');
+      console.error('Detalle técnico del error:', error);
+      alert('Hubo un error al generar la imagen. Verifica la consola para más detalles.');
     } finally {
       setDescargando(false);
     }
@@ -428,14 +436,14 @@ export default function Pagina2({
 
                 {/* CENTRO: LOGO ATOM */}
                 <div className="flex flex-col items-center justify-center flex-1">
-                  <img src="/LOGO_ATOM.png" alt="ATOM Logo" className="h-6 w-auto object-contain opacity-100 mb-1" />
+                  <img src="/LOGO_ATOM.png" alt="ATOM Logo" crossOrigin="anonymous" className="h-6 w-auto object-contain opacity-100 mb-1" />
                   <span className="text-[8px] font-mono text-gray-500 uppercase tracking-wide">
                     Certificado y emitido por Atom Solutions Data
                   </span>
                 </div>
 
-                {/* LADO DERECHO: BOTÓN DE DESCARGA */}
-                <div className="flex-shrink-0">
+                {/* LADO DERECHO: BOTÓN DE DESCARGA (data-html2canvas-ignore evita que salga en la foto) */}
+                <div className="flex-shrink-0" data-html2canvas-ignore="true">
                   <button 
                     onClick={descargarImagen}
                     disabled={descargando}
