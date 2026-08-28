@@ -2,15 +2,15 @@ import React from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H2, Subtitulo, Highlight, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 
-interface Seccion3Props {
+interface Pagina3Props {
   whatsappGroupUrl?: string;
   variante?: TipoFondo;
 }
 
-export default function Seccion3({
+export default function Pagina3({
   whatsappGroupUrl = 'https://chat.whatsapp.com/LseNRlRrS4zFpRKst3lPTp',
   variante = 'cyanDotsOnly',
-}: Seccion3Props) {
+}: Pagina3Props) {
   return (
     <section className="relative z-10 py-16 lg:py-24 px-6 overflow-hidden w-full border-t border-[#0DEDC0]/10">
       <Fondos variante={variante} modo="absolute" />

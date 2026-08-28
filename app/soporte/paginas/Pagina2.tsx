@@ -5,7 +5,7 @@ import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H2, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
 import { FAQS_OFICIALES, FAQItem } from '@/app/complementos/Preguntas';
 
-interface Seccion2Props {
+interface Pagina2Props {
   variante?: TipoFondo;
 }
 
@@ -19,7 +19,7 @@ const CATEGORIAS = [
   'Planes y Facturación',
 ];
 
-export default function Seccion2({ variante = 'gridCyber' }: Seccion2Props) {
+export default function Pagina2({ variante = 'gridCyber' }: Pagina2Props) {
   const [categoriaActiva, setCategoriaActiva] = useState<string>('Todas');
   const [busqueda, setBusqueda] = useState<string>('');
   const [openFaq, setOpenFaq] = useState<string | null>(null);

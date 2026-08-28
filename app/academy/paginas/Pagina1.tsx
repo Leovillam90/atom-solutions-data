@@ -143,11 +143,11 @@ const renderBadgeIcon = (badge: BadgeTipo) => {
   );
 };
 
-interface Seccion1Props {
+interface Pagina1Props {
   variante?: TipoFondo;
 }
 
-export default function Seccion1({ variante = 'auroraBoreal' }: Seccion1Props) {
+export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
   const [categoriaActiva, setCategoriaActiva] = useState<string>('Todas');
   const [selectedVideo, setSelectedVideo] = useState<VideoLesson | null>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);

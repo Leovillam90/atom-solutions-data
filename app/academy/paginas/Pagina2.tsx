@@ -112,11 +112,11 @@ const renderIconoTipo = (tipo: Material['tipo']) => {
   }
 };
 
-interface Seccion2Props {
+interface Pagina2Props {
   variante?: TipoFondo;
 }
 
-export default function Seccion2({ variante = 'cyanSolidDots' }: Seccion2Props) {
+export default function Pagina2({ variante = 'cyanSolidDots' }: Pagina2Props) {
   return (
     <section className="relative z-10 py-16 lg:py-24 px-6 overflow-hidden w-full border-t border-[#091A23]/20">
       <Fondos variante={variante} modo="absolute" />

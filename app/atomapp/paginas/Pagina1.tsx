@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-interface Seccion1Props {
+interface Pagina1Props {
   variante?: 'gridCyber' | 'spotlightCyan' | 'hexGrid' | 'default';
 }
 
@@ -16,7 +16,7 @@ const FONDOS_MAP: Record<string, string> = {
 
 const ATOM_APP_URL = 'https://atomapp.com.co/login';
 
-export default function Seccion1({ variante = 'hexGrid' }: Seccion1Props) {
+export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   const [cargando, setCargando] = useState<boolean>(true);
   const [mostrarBotonExterno, setMostrarBotonExterno] = useState<boolean>(false);
 

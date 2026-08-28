@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import Fondos, { TipoFondo } from '../../complementos/Fondos';
-import { Kicker } from '../../complementos/Tipografia';
+import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
+import { Kicker } from '@/app/complementos/Tipografia';
 
 interface Seccion4Props {
   variante?: TipoFondo;

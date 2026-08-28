@@ -17,7 +17,7 @@ interface Articulo {
   historias: string[];
 }
 
-interface Seccion1Props {
+interface Pagina1Props {
   articuloPrincipal?: Articulo;
   variante?: TipoFondo;
 }
@@ -45,10 +45,10 @@ const esVideo = (url: string) => {
   return url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm');
 };
 
-export default function Seccion1({
+export default function Pagina1({
   articuloPrincipal = ARTICULO_DEFAULT,
   variante = 'gridCyber',
-}: Seccion1Props) {
+}: Pagina1Props) {
   const [indexHistoria, setIndexHistoria] = useState(0);
   const [pausado, setPausado] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);

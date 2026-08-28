@@ -1,42 +1,146 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H1, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
 import { MONEDAS, MonedaConfig, formatearMonedaGlobal } from '@/app/lib/moneda';
 
 type ModoCalculadora = 'PROVEEDOR' | 'DROPSHIPPER';
 
-interface Seccion1Props {
+interface Pagina1Props {
   variante?: TipoFondo;
 }
 
-// COMPONENTE TOOLTIP REUTILIZABLE (TEXTO EXPLICATIVO EN SENTENCE CASE)
+// COMPONENTE TOOLTIP OPTIMIZADO
+// Regla: z-0 normal (no estorba ni bloquea clics), z-50 y z-[9999] solo al hacer hover
 function Tooltip({ contenido }: { contenido: string }) {
   return (
-    <div className="relative inline-flex items-center group ml-1.5 align-middle">
-      <span className="w-4 h-4 rounded-full bg-[#102935] border border-[#0DEDC0]/50 text-[#0DEDC0] text-[10px] font-mono font-bold flex items-center justify-center cursor-help transition-all duration-200 group-hover:bg-[#0DEDC0] group-hover:text-[#090D16] group-hover:scale-110 shrink-0">
+    <div className="relative inline-flex items-center group ml-1.5 align-middle z-0 hover:z-50">
+      <span className="w-4 h-4 rounded-full bg-[#102935] border border-[#0DEDC0]/50 text-[#0DEDC0] text-[10px] font-mono font-bold flex items-center justify-center cursor-help transition-all duration-200 group-hover:bg-[#0DEDC0] group-hover:text-[#090D16] group-hover:scale-110 shrink-0 shadow-[0_0_8px_rgba(13,237,192,0.2)]">
         ?
       </span>
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 hidden group-hover:flex flex-col items-center w-60 p-3 bg-[#090D16] border border-[#0DEDC0]/40 rounded-xl text-[11px] font-sans text-slate-200 font-normal normal-case tracking-normal shadow-[0_10px_25px_rgba(0,0,0,0.7)] z-50 pointer-events-none leading-relaxed text-center">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center w-60 p-3 bg-[#090D16] border border-[#0DEDC0]/50 rounded-xl text-[11px] font-sans text-slate-200 font-normal normal-case tracking-normal shadow-[0_15px_30px_rgba(0,0,0,0.9)] z-0 group-hover:z-[9999] leading-relaxed text-center">
         {contenido}
-        <div className="w-2 h-2 bg-[#090D16] border-r border-b border-[#0DEDC0]/40 rotate-45 -mb-4 mt-1" />
+        <div className="w-2 h-2 bg-[#090D16] border-r border-b border-[#0DEDC0]/50 rotate-45 -mb-4 mt-1" />
       </div>
     </div>
   );
 }
 
-export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
+// COMPONENTE DESPLEGABLE MODERNO PARA MONEDA
+function SelectorMonedaCustom({
+  monedaSeleccionada,
+  setMonedaSeleccionada,
+}: {
+  monedaSeleccionada: MonedaConfig;
+  setMonedaSeleccionada: (m: MonedaConfig) => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const contenedorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) {
+        setAbierto(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative z-20" ref={contenedorRef}>
+      <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+        Moneda de Cálculo
+        <Tooltip contenido="Selecciona la divisa local en la que operas tus ventas y costos para formatear las cifras." />
+      </label>
+
+      {/* Botón Gatillo */}
+      <button
+        type="button"
+        onClick={() => setAbierto(!abierto)}
+        className={`w-full bg-[#102935] border text-white text-xs font-bold rounded-xl p-3 flex items-center justify-between cursor-pointer outline-none transition-all duration-200 ${
+          abierto
+            ? 'border-[#0DEDC0] shadow-[0_0_20px_rgba(13,237,192,0.3)] ring-1 ring-[#0DEDC0]/50'
+            : 'border-slate-700 hover:border-[#0DEDC0]/60'
+        }`}
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-[#0DEDC0] shadow-[0_0_8px_#0DEDC0]" />
+          <span className="font-mono text-[10px] bg-[#0DEDC0]/15 text-[#0DEDC0] px-1.5 py-0.5 rounded border border-[#0DEDC0]/30 font-bold">
+            {monedaSeleccionada.codigo}
+          </span>
+          <span className="truncate">{monedaSeleccionada.nombre}</span>
+        </div>
+
+        <svg
+          className={`w-4 h-4 text-[#0DEDC0] transition-transform duration-300 ${
+            abierto ? 'rotate-180' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* Lista Desplegable Flotante */}
+      {abierto && (
+        <div className="absolute top-full left-0 w-full mt-2 bg-[#090D16]/95 backdrop-blur-xl border border-[#0DEDC0]/40 rounded-xl shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-50 overflow-hidden animate-in fade-in duration-200">
+          <div className="max-h-56 overflow-y-auto py-1 divide-y divide-slate-800/60 custom-scrollbar">
+            {MONEDAS.map((m) => {
+              const esSeleccionada = m.codigo === monedaSeleccionada.codigo;
+              return (
+                <button
+                  key={m.codigo}
+                  type="button"
+                  onClick={() => {
+                    setMonedaSeleccionada(m);
+                    setAbierto(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2.5 text-xs font-bold transition-all duration-150 flex items-center justify-between cursor-pointer ${
+                    esSeleccionada
+                      ? 'bg-[#102935] text-[#0DEDC0]'
+                      : 'text-slate-300 hover:bg-[#102935]/60 hover:text-[#0DEDC0]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                        esSeleccionada
+                          ? 'bg-[#0DEDC0]/20 text-[#0DEDC0] border border-[#0DEDC0]/40'
+                          : 'bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {m.codigo}
+                    </span>
+                    <span>{m.nombre}</span>
+                  </div>
+                  {esSeleccionada && (
+                    <span className="text-[#0DEDC0] font-black text-sm">✓</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
   const [modoSeleccionado, setModoSeleccionado] = useState<ModoCalculadora>('PROVEEDOR');
 
-  // INPUTS MODO 1: PROVEEDOR
+  // INPUTS PROVEEDOR
   const [provCostoFabricacion, setProvCostoFabricacion] = useState<number>(12000);
   const [provGastosOperativos, setProvGastosOperativos] = useState<number>(3000);
   const [provPorcentajeDevoluciones, setProvPorcentajeDevoluciones] = useState<number>(15);
   const [provMargenDeseado, setProvMargenDeseado] = useState<number>(30);
 
-  // INPUTS MODO 2: DROPSHIPPER
+  // INPUTS DROPSHIPPER
   const [dropUnidades, setDropUnidades] = useState<number>(1);
   const [dropCostoProducto, setDropCostoProducto] = useState<number>(25000);
   const [dropFletePromedio, setDropFletePromedio] = useState<number>(16000);
@@ -44,7 +148,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
   const [dropTasaDevolucion, setDropTasaDevolucion] = useState<number>(20);
   const [dropMargenDeseado, setDropMargenDeseado] = useState<number>(25);
 
-  // HELPER DE FORMATEO USANDO LA FUNCIÓN GLOBAL DE TU ARCHIVO MONEDA
   const formatoMoneda = (monto: number) => 
     formatearMonedaGlobal(monto, monedaSeleccionada.codigo);
 
@@ -113,44 +216,20 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
   }, [dropUnidades, dropCostoProducto, dropFletePromedio, dropCpaAds, dropTasaDevolucion, dropMargenDeseado]);
 
   return (
-    <section className="relative z-10 py-12 px-4 sm:px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10 text-white">
+    <section className="relative z-10 py-12 px-4 sm:px-6 overflow-hidden w-full text-white font-sans">
       <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-6xl mx-auto space-y-10">
         
         {/* CABECERA */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-800 pb-6">
-          <div>
-            <Kicker className="!text-[#0DEDC0]">HERRAMIENTA DE DIAGNÓSTICO</Kicker>
-            <H1 className="text-balance mb-2">
-              Simulador de <Highlight>Rentabilidad Real.</Highlight>
-            </H1>
-            <Subtitulo className="max-w-2xl">
-              Calcula tus márgenes y precios de venta exactos contemplando el castigo de fletes por devoluciones y mermas del contra entrega.
-            </Subtitulo>
-          </div>
-
-          <div className="bg-[#090D16] p-3.5 rounded-2xl border border-slate-800 shrink-0 w-full md:w-auto">
-            <label className="block text-[10px] font-mono font-bold text-[#0DEDC0] uppercase mb-1">
-              Moneda de Cálculo
-              <Tooltip contenido="Selecciona la divisa local en la que operas tus ventas y costos para formatear las cifras." />
-            </label>
-            
-            <select
-              value={monedaSeleccionada.codigo}
-              onChange={(e) => {
-                const m = MONEDAS.find((x) => x.codigo === e.target.value);
-                if (m) setMonedaSeleccionada(m);
-              }}
-              className="w-full bg-[#102935] border border-slate-700 text-white text-xs font-bold rounded-xl p-2.5 focus:border-[#0DEDC0] outline-none cursor-pointer"
-            >
-              {MONEDAS.map((m) => (
-                <option key={m.codigo} value={m.codigo}>
-                  {m.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="border-b border-slate-800 pb-6">
+          <Kicker className="!text-[#0DEDC0]">HERRAMIENTA DE DIAGNÓSTICO</Kicker>
+          <H1 className="text-balance mb-2">
+            Simulador de <Highlight>Rentabilidad Real.</Highlight>
+          </H1>
+          <Subtitulo className="max-w-2xl">
+            Calcula tus márgenes y precios de venta exactos contemplando el castigo de fletes por devoluciones y mermas del contra entrega.
+          </Subtitulo>
         </div>
 
         {/* SELECCIÓN DE MODO */}
@@ -188,12 +267,18 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
         {/* VISTA 1: PROVEEDOR */}
         {modoSeleccionado === 'PROVEEDOR' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in-up">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             <div className="lg:col-span-5 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
               <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-3">
                 1. Costos de Fabricación y Riesgo
               </span>
+
+              {/* SELECTOR MODERNO DE MONEDA DE CÁLCULO */}
+              <SelectorMonedaCustom
+                monedaSeleccionada={monedaSeleccionada}
+                setMonedaSeleccionada={setMonedaSeleccionada}
+              />
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
@@ -317,12 +402,18 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
 
         {/* VISTA 2: DROPSHIPPER */}
         {modoSeleccionado === 'DROPSHIPPER' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in-up">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             <div className="lg:col-span-5 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
               <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-3">
                 1. Costos Directos y Volumen
               </span>
+
+              {/* SELECTOR MODERNO DE MONEDA DE CÁLCULO */}
+              <SelectorMonedaCustom
+                monedaSeleccionada={monedaSeleccionada}
+                setMonedaSeleccionada={setMonedaSeleccionada}
+              />
 
               <div className="bg-[#102935]/80 border border-[#0DEDC0]/40 p-3.5 rounded-xl">
                 <label className="block text-xs font-mono font-bold text-[#0DEDC0] uppercase mb-1 flex items-center">
@@ -340,9 +431,6 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
                   placeholder="1"
                   className="w-full bg-[#090D16] border border-[#0DEDC0]/50 rounded-lg p-2.5 font-mono text-white text-base font-black text-center focus:border-[#0DEDC0] outline-none"
                 />
-                <span className="text-[10px] text-slate-400 block mt-1 text-center">
-                  (Si no ingresas nada, el cálculo se realiza por 1 unidad)
-                </span>
               </div>
 
               <div>
@@ -460,7 +548,7 @@ export default function Seccion1({ variante = 'darkNoise' }: Seccion1Props) {
               <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-6 rounded-xl border-2 border-[#0DEDC0]/50 text-center space-y-2 shadow-[0_10px_30px_rgba(13,237,192,0.15)]">
                 <span className="text-xs font-mono text-slate-300 uppercase font-bold tracking-wider block">
                   VALOR SUGERIDO DE VENTA AL CLIENTE FINAL (POR UNIDAD)
-                  <Tooltip contenido="El precio mínimo en el que tu tienda debe vender el producto al cliente final ." />
+                  <Tooltip contenido="El precio mínimo en el que tu tienda debe vender el producto al cliente final." />
                 </span>
                 <span className="text-3xl sm:text-4xl font-black font-mono text-[#0DEDC0] block my-2">
                   {formatoMoneda(metricasDropshipper.precioVentaSugeridoFinal)}

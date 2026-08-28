@@ -3,14 +3,13 @@ import Link from 'next/link';
 import { ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 
-interface Seccion2Props {
+interface Pagina2Props {
   variante?: TipoFondo;
 }
 
-export default function Seccion2({ variante = 'hexGrid' }: Seccion2Props) {
+export default function Pagina2({ variante = 'hexGrid' }: Pagina2Props) {
   return (
     <section className="relative z-10 py-12 px-4 sm:px-6 lg:px-8 overflow-hidden w-full border-b border-[#0DEDC0]/10 text-white">
-      {/* EL FONDO SE RENDERIZA LOCALMENTE SEGÚN LA VARIANTE RECIBIDA */}
       <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-6xl mx-auto space-y-10">
@@ -26,7 +25,7 @@ export default function Seccion2({ variante = 'hexGrid' }: Seccion2Props) {
               <span className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-400/50 flex items-center justify-center text-red-400 shrink-0 font-bold">
                 ✕
               </span>
-              <span>Impacto Fiscal y Retenciones <strong className="text-white block font-bold">(IVA, ICA, 4x1000)</strong></span>
+              <span>Impacto Fiscal <strong className="text-white block font-bold">(IVA, ICA, 4x1000)</strong></span>
             </li>
 
             <li className="flex items-center gap-3 bg-[#0C1824]/90 p-4 rounded-xl border border-red-500/40 shadow-lg hover:border-red-400 transition-colors backdrop-blur-md">
@@ -40,7 +39,7 @@ export default function Seccion2({ variante = 'hexGrid' }: Seccion2Props) {
               <span className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-400/50 flex items-center justify-center text-red-400 shrink-0 font-bold">
                 ✕
               </span>
-              <span>Costos Ocultos WaaS <strong className="text-white block font-bold">(Almacenaje y Picking)</strong></span>
+              <span>Costos Ocultos <strong className="text-white block font-bold">(Almacenaje y Picking)</strong></span>
             </li>
 
             <li className="flex items-center gap-3 bg-[#0C1824]/90 p-4 rounded-xl border border-red-500/40 shadow-lg hover:border-red-400 transition-colors backdrop-blur-md">
@@ -62,7 +61,7 @@ export default function Seccion2({ variante = 'hexGrid' }: Seccion2Props) {
                 </span>
 
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-800 text-slate-200 border border-slate-600 px-3 py-1 rounded-md">
-                  🔒 Sin Tarjeta de Crédito
+                  🔒 Exclusivo para Proveedores
                 </span>
               </div>
 
@@ -71,7 +70,7 @@ export default function Seccion2({ variante = 'hexGrid' }: Seccion2Props) {
               </h3>
 
               <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed m-0">
-                Desbloquea el Simulador Avanzado ATOM para proyectar tu flujo de caja real, calcular retenciones fiscales y auditar el verdadero costo de tu operación B2B.
+                Desbloquea el Simulador Avanzado ATOM para proyectar tu flujo de caja real, calcular retenciones fiscales y auditar el verdadero costo de tu operación.
               </p>
             </div>
 
@@ -96,7 +95,7 @@ export default function Seccion2({ variante = 'hexGrid' }: Seccion2Props) {
               </Link>
 
               <span className="block text-center lg:text-right text-[10px] font-mono text-slate-400 font-medium">
-                Activación en 2 clics · Cero instalación
+                Activación en 2 clics
               </span>
             </div>
           </div>

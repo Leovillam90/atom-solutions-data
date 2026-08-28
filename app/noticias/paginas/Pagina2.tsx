@@ -17,7 +17,7 @@ interface Articulo {
   esInstagram?: boolean;
 }
 
-interface Seccion2Props {
+interface Pagina2Props {
   articulosSecundarios?: Articulo[];
   variante?: TipoFondo;
 }
@@ -66,10 +66,10 @@ const ARTICULOS_DEFAULT: Articulo[] = [
   },
 ];
 
-export default function Seccion2({
+export default function Pagina2({
   articulosSecundarios = ARTICULOS_DEFAULT,
   variante = 'cyanDotsOnly',
-}: Seccion2Props) {
+}: Pagina2Props) {
   return (
     <section className="relative z-10 py-16 lg:py-24 px-6 overflow-hidden w-full border-t border-[#0DEDC0]/10">
       <Fondos variante={variante} modo="absolute" />

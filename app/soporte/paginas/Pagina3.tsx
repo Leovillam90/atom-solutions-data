@@ -4,15 +4,15 @@ import React from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H2, Subtitulo, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 
-interface Seccion3Props {
+interface Pagina3Props {
   variante?: TipoFondo;
   onAbrirCancelacion?: () => void;
 }
 
-export default function Seccion3({
+export default function Pagina3({
   variante = 'darkNoise',
   onAbrirCancelacion
-}: Seccion3Props) {
+}: Pagina3Props) {
   return (
     <section className="relative z-10 py-16 px-6 text-white w-full overflow-hidden">
       <Fondos variante={variante} modo="absolute" />

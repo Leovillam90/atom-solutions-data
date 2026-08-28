@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Kicker, H2, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 
-interface Seccion1SoporteProps {
+interface Pagina1SoporteProps {
   variante?: TipoFondo;
 }
 
@@ -13,7 +13,7 @@ const WA_NUMERO_OPERATIVO = '573122521130';
 const MSG_OPERATIVO = encodeURIComponent('Hola, necesito soporte operativo para mi bodega');
 const WA_URL_OPERATIVO = `https://wa.me/${WA_NUMERO_OPERATIVO}?text=${MSG_OPERATIVO}`;
 
-export default function Seccion1({ variante = 'gridCyber' }: Seccion1SoporteProps) {
+export default function Pagina1({ variante = 'gridCyber' }: Pagina1SoporteProps) {
   return (
     <section className="relative z-10 py-16 lg:py-20 px-6 overflow-hidden border-b border-[#0DEDC0]/10">
       <Fondos variante={variante} modo="absolute" />
