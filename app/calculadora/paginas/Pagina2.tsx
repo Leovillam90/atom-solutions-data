@@ -62,30 +62,33 @@ export default function Pagina2({
   const pctDevMaxTolerada = Math.min(100, pctProvisionDev + 5); // Provisión + 5% máximo
   const pctEfectividadMin = Math.max(0, 100 - pctDevMaxTolerada);
 
-  // FUNCIÓN PARA DESCARGAR LA VISTA PREVIA COMO IMAGEN (Ultra-segura y Optimizada)
+  // FUNCIÓN PARA DESCARGAR LA VISTA PREVIA COMO IMAGEN (Usando html2canvas-pro)
   const descargarImagen = async () => {
     setDescargando(true);
+    
+    // PAUSA ESTRATÉGICA: Damos 150ms para que React renderice el "spinner" 
+    // y el DOM se quede quieto antes de tomar la foto.
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
     try {
-      // 1. Importación dinámica robusta (Lazy Loading para no afectar el performance)
-      const module = await import('html2canvas');
+      // Importación dinámica robusta de la versión PRO
+      const module = await import('html2canvas-pro');
       const html2canvas = module.default || module;
 
-      // 2. Captura del elemento
       const elemento = document.getElementById('documento-oficial');
       if (!elemento) {
         throw new Error("No se encontró el elemento a capturar");
       }
 
-      // 3. Generación del Canvas con configuración de compatibilidad máxima
+      // Generación del Canvas con configuración de compatibilidad máxima
       const canvas = await html2canvas(elemento, {
         scale: 2, // Alta resolución
         backgroundColor: '#F8FAFC',
-        useCORS: true,
-        allowTaint: true, // Permite dibujar imágenes aunque haya temas de CORS local
+        useCORS: true, // Esto permite el logo sin bloquear la descarga
         logging: false, // Evita spam en la consola
       });
 
-      // 4. Descarga automática
+      // Descarga automática
       const enlace = document.createElement('a');
       enlace.download = `Acuerdo_B2B_${(nombreProveedor || 'ATOM').replace(/\s+/g, '_')}.png`;
       enlace.href = canvas.toDataURL('image/png');
@@ -325,19 +328,34 @@ export default function Pagina2({
           <div className="lg:col-span-7">
             <div id="documento-oficial" className="w-full bg-[#F8FAFC] p-6 sm:p-7 rounded-2xl border border-slate-300 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] space-y-4 text-slate-900 font-sans relative overflow-hidden">
               
-              {/* ENCABEZADO DE PAPEL */}
+              {/* ENCABEZADO DE PAPEL Y BOTÓN DE DESCARGA */}
               <div className="border-b-2 border-slate-900 pb-3 flex justify-between items-end">
                 <div>
-                  <span className="text-[11px] sm:text-[12px] font-black text-gray-950 bg-[#0DEDC0] px-2 py-0.5 uppercase tracking-wider block shadow-[0_0_10px_rgba(13,237,192,0.3)]">
+                  <span className="text-[11px] sm:text-[12px] font-black text-slate-900 px-0 py-0.5 uppercase tracking-wider block">
                     ACUERDO COMERCIAL B2B & LIQUIDACIÓN
                   </span>
                   <span className="text-[9px] font-mono text-slate-500 block uppercase mt-1.5">
                     DOCUMENTO TÉCNICO OFICIAL
                   </span>
                 </div>
-                <span className="text-[9px] font-mono font-bold bg-slate-200 text-slate-800 px-2 py-1 rounded border border-slate-300 whitespace-nowrap">
-                  PÁG 1/1
-                </span>
+                
+                {/* LADO DERECHO: BOTÓN DE DESCARGA (data-html2canvas-ignore evita que salga en la foto) */}
+                <div className="flex-shrink-0" data-html2canvas-ignore="true">
+                  <button 
+                    onClick={descargarImagen}
+                    disabled={descargando}
+                    title="Descargar Documento como Imagen"
+                    className="p-1.5 bg-slate-800 hover:bg-slate-700 text-[#0DEDC0] border border-slate-600 rounded-lg shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center cursor-pointer group"
+                  >
+                    {descargando ? (
+                      <div className="w-4 h-4 border-2 border-[#0DEDC0] border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {/* SECCIÓN 1: DATOS DE OPERACIÓN */}
@@ -398,22 +416,17 @@ export default function Pagina2({
                   <span className="font-mono font-bold text-slate-900">{pctProvisionDev}%</span>
                 </div>
 
-                {/* DEVOLUCIÓN MÁXIMA TOLERADA (NEÓN ALERTA MEJORADO CON LED PULSANTE) */}
+                {/* DEVOLUCIÓN MÁXIMA TOLERADA (SIN EFECTO CAJÓN, COLOR ROSA/ROJO) */}
                 <div className="flex justify-between items-center pt-2 border-t border-slate-200 mt-1">
                   <span className="font-bold text-gray-800">Devolución Máxima Tolerada:</span>
-                  <div className="relative group">
-                    {/* Resplandor neón exterior */}
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 to-amber-500 rounded border blur opacity-40 animate-pulse"></div>
-                    {/* Contenedor principal */}
-                    <div className="relative flex items-center gap-1.5 bg-white px-2 py-1 rounded border border-red-300 leading-none">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600 shadow-[0_0_5px_#dc2626]"></span>
-                      </span>
-                      <span className="font-mono text-red-600 font-black text-[11px]">
-                        {pctDevMaxTolerada}% <span className="font-sans text-[9px] font-bold text-red-400 ml-0.5">(+5% LÍMITE)</span>
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600"></span>
+                    </span>
+                    <span className="font-mono text-rose-600 font-black text-[12px]">
+                      {pctDevMaxTolerada}% <span className="font-sans text-[10px] font-bold text-rose-500 ml-0.5">(+5% LÍMITE)</span>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -428,38 +441,15 @@ export default function Pagina2({
                 </p>
               </div>
 
-              {/* PIE DE PÁGINA CON LOGO CENTRADO Y BOTÓN DE DESCARGA A LA DERECHA */}
-              <div className="pt-4 border-t border-slate-300 flex items-center justify-between">
-                
-                {/* LADO IZQUIERDO: ESPACIADOR INVISIBLE PARA CENTRAR LOGO */}
-                <div className="flex-shrink-0 w-10"></div>
-
+              {/* PIE DE PÁGINA CON LOGO CENTRADO */}
+              <div className="pt-4 border-t border-slate-300 flex items-center justify-center">
                 {/* CENTRO: LOGO ATOM */}
-                <div className="flex flex-col items-center justify-center flex-1">
+                <div className="flex flex-col items-center justify-center">
                   <img src="/LOGO_ATOM.png" alt="ATOM Logo" crossOrigin="anonymous" className="h-6 w-auto object-contain opacity-100 mb-1" />
                   <span className="text-[8px] font-mono text-gray-500 uppercase tracking-wide">
                     Certificado y emitido por Atom Solutions Data
                   </span>
                 </div>
-
-                {/* LADO DERECHO: BOTÓN DE DESCARGA (data-html2canvas-ignore evita que salga en la foto) */}
-                <div className="flex-shrink-0" data-html2canvas-ignore="true">
-                  <button 
-                    onClick={descargarImagen}
-                    disabled={descargando}
-                    title="Descargar Documento como Imagen"
-                    className="p-2 bg-slate-800 hover:bg-slate-700 text-[#0DEDC0] border border-slate-600 rounded-lg shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center cursor-pointer group"
-                  >
-                    {descargando ? (
-                      <div className="w-4 h-4 border-2 border-[#0DEDC0] border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-
               </div>
 
             </div>

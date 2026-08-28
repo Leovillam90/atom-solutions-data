@@ -126,7 +126,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   
   const [porcentajeDevoluciones, setPorcentajeDevoluciones] = useState<number>(20); 
   const [porcentajeMermas, setPorcentajeMermas] = useState<number>(3); 
-  const [impactoFiscal, setImpactoFiscal] = useState<number>(19);
+  const [impactoFiscal, setImpactoFiscal] = useState<number>(0); // PREDETERMINADO EN 0
   const [margenDeseado, setMargenDeseado] = useState<number>(30);
 
   // NOTIFICACIÓN EN CLIC DE MERMAS/DEVOLUCIÓN
@@ -487,7 +487,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
           </div>
         </div>
 
-        {/* SECCIÓN 2: ANÁLISIS DE SENSIBILIDAD B2B (CON TARJETA PÉSIMO ACCESIBLE) */}
+        {/* SECCIÓN 2: ANÁLISIS DE SENSIBILIDAD B2B */}
         <div className="space-y-6 pt-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0DEDC0]/20 to-[#0DEDC0]/5 border border-[#0DEDC0]/40 text-[#0DEDC0] font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(13,237,192,0.2)] shrink-0">
@@ -507,12 +507,12 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
             
-            {/* ESCENARIO 1: PÉSIMO (CORREGIDO PARA ACCESIBILIDAD ALTA CON #FF6B6B) */}
+            {/* ESCENARIO 1: PÉSIMO */}
             <div 
               onClick={() => setEscenarioSeleccionado('PESIMO')}
-              className={`relative bg-[#1E1118]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+              className={`relative hover:z-50 bg-[#1E1118]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
                 escenarioSeleccionado === 'PESIMO' 
-                  ? 'border-[#FF6B6B] shadow-[0_0_25px_rgba(255,107,107,0.35)] ring-1 ring-[#FF6B6B]/60 scale-[1.02]' 
+                  ? 'border-[#FF6B6B] shadow-[0_0_25px_rgba(255,107,107,0.35)] ring-1 ring-[#FF6B6B]/60 scale-[1.02] z-10' 
                   : 'border-[#FF6B6B]/30 hover:border-[#FF6B6B]/60'
               }`}
             >
@@ -554,8 +554,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
             {/* ESCENARIO 2 */}
             <div 
               onClick={() => setEscenarioSeleccionado('FAVORABLE')}
-              className={`relative bg-[#0F2330]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
-                escenarioSeleccionado === 'FAVORABLE' ? 'border-blue-400 shadow-[0_0_25px_rgba(96,165,250,0.3)] ring-1 ring-blue-400/50 scale-[1.02]' : 'border-blue-900/40 hover:border-blue-400/40'
+              className={`relative hover:z-50 bg-[#0F2330]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+                escenarioSeleccionado === 'FAVORABLE' ? 'border-blue-400 shadow-[0_0_25px_rgba(96,165,250,0.3)] ring-1 ring-blue-400/50 scale-[1.02] z-10' : 'border-blue-900/40 hover:border-blue-400/40'
               }`}
             >
               <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-400" />
@@ -590,8 +590,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
             {/* ESCENARIO 3 */}
             <div 
               onClick={() => setEscenarioSeleccionado('OPTIMO')}
-              className={`relative bg-[#0B1A14]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
-                escenarioSeleccionado === 'OPTIMO' ? 'border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400/50 scale-[1.02]' : 'border-emerald-500/30 hover:border-emerald-400/40'
+              className={`relative hover:z-50 bg-[#0B1A14]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+                escenarioSeleccionado === 'OPTIMO' ? 'border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400/50 scale-[1.02] z-10' : 'border-emerald-500/30 hover:border-emerald-400/40'
               }`}
             >
               <div className="absolute top-0 left-0 w-full h-1.5 bg-emerald-400" />
@@ -626,7 +626,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
             {/* ESCENARIO 4 */}
             <div 
               onClick={() => setEscenarioSeleccionado('OBJETIVO')}
-              className={`relative bg-gradient-to-b from-[#0F2633] to-[#0A1A24] rounded-2xl p-5 shadow-[0_10px_40px_rgba(13,237,192,0.15)] flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+              className={`relative hover:z-50 bg-gradient-to-b from-[#0F2633] to-[#0A1A24] rounded-2xl p-5 shadow-[0_10px_40px_rgba(13,237,192,0.15)] flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
                 escenarioSeleccionado === 'OBJETIVO' ? 'border-[#0DEDC0] shadow-[0_0_30px_rgba(13,237,192,0.4)] ring-1 ring-[#0DEDC0]/50 scale-[1.02] z-10' : 'border-[#0DEDC0]/40 hover:border-[#0DEDC0]/80'
               }`}
             >

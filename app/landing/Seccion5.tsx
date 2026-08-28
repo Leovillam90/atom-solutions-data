@@ -98,8 +98,8 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
   const [moneda, setMoneda] = useState<'COP' | 'USD'>('COP');
 
   return (
-    <section className="relative z-20 py-16 w-full overflow-hidden">
-      <Fondos variante={variante} modo="absolute" />
+    <section id="precios" className="relative z-20 py-16 w-full overflow-hidden">       
+   <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-5">
         

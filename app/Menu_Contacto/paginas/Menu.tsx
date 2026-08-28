@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation'; // <-- Importamos usePathname
 import Fondos, { TipoFondo } from '../../complementos/Fondos';
 import { ESTILOS_TEXTO } from '../../complementos/Tipografia';
 
@@ -10,11 +11,19 @@ interface MenuProps {
 }
 
 export default function Menu({ variante = 'gridCyber' }: MenuProps) {
+  const pathname = usePathname(); // <-- Obtenemos la ruta actual
+
   const [herramientasOpen, setHerramientasOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [herramientasMobileOpen, setHerramientasMobileOpen] = useState(false);
   const [proveedoresMobileOpen, setProveedoresMobileOpen] = useState(true);
   const [dropshippersMobileOpen, setDropshippersMobileOpen] = useState(false);
+
+  // LÓGICA PARA OCULTAR EL MENÚ EN EL PORTAL
+  // Si la URL es /atomapp, el menú no se renderiza (devuelve null)
+  if (pathname === '/atomapp') {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-[1000] overflow-visible relative bg-[#091A23]">
@@ -176,6 +185,12 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
               </Link>
             </div>
 
+              <div className="h-10 flex items-center justify-center">
+                <a href="/#precios" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap">
+               Precios
+              </a>
+            </div>
+
             <div className="h-10 flex items-center justify-center">
               <Link href="/noticias" className="hover:text-[#0DEDC0] transition-colors whitespace-nowrap flex items-center gap-1.5 group">
                 <span>Noticias</span>
@@ -308,6 +323,7 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
           </div>
 
           <Link href="/academy" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0]">ATOM Academy</Link>
+          <Link href="#precios" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0]">Precios</Link>
           <Link href="/noticias" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between">
             <span>Noticias</span>
             <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23] shadow-[0_0_10px_rgba(13,237,192,0.6)] animate-pulse">NUEVO</span>

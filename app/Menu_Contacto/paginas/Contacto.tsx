@@ -152,8 +152,23 @@ export default function Contacto({ variante = 'spotlightCyan' }: ContactoProps) 
         <div className="mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center text-slate-400 text-[11px] gap-2 sm:gap-0">
           <p>© 2026 ATOM SOLUTIONS DATA. Todos los derechos reservados.</p>
           <div className="flex gap-4">
-            <Link href="/terminos" className="text-slate-400 hover:text-white transition-colors">Términos y Condiciones</Link>
-            <Link href="/privacidad" className="text-slate-400 hover:text-white transition-colors">Políticas de Privacidad</Link>
+            <a 
+  href="/complementos/Terminos&Condiciones.pdf" 
+  target="_blank" 
+  rel="noopener noreferrer" 
+  className="text-slate-400 hover:text-white transition-colors"
+>
+  Términos y Condiciones
+</a>
+
+<a 
+  href="/complementos/Terminos&Condiciones.pdf" 
+  target="_blank" 
+  rel="noopener noreferrer" 
+  className="text-slate-400 hover:text-white transition-colors"
+>
+  Políticas de Privacidad
+</a>
           </div>
         </div>
       </div>
