@@ -131,9 +131,9 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
       setCargando(false);
       console.error('❌ Error en el registro:', err.code, err.message);
       if (err.code === 'permission-denied') {
-        setError('Permiso denegado por reglas de Firestore. Revisa firestore.rules.');
+        setError('Permiso denegado por reglas del Administrador. Revisa Administrador.rules.');
       } else {
-        setError('Ocurrió un error al guardar los datos en Firestore. Intenta nuevamente.');
+        setError('Ocurrió un error al guardar los datos. Intenta nuevamente.');
       }
     }
   };
@@ -189,9 +189,9 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
 
     } catch (err: any) {
       setCargando(false);
-      console.error('❌ Error al buscar cuenta en Firestore:', err.code, err.message);
+      console.error('❌ Error al buscar cuenta en Base de Datos:', err.code, err.message);
       if (err.code === 'permission-denied') {
-        setError('Permiso denegado por reglas de Firestore. Actualiza firestore.rules.');
+        setError('Permiso denegado por reglas del Administrador. Revisa Administrador.rules.');
       } else {
         setError('Error al conectar con la base de datos. Intenta nuevamente.');
       }
@@ -362,7 +362,7 @@ export default function Registro({ onLoginSuccess, variante = 'gridCyber' }: Reg
                 disabled={cargando}
                 className={`w-full bg-[#0DEDC0] text-[#090D18] hover:bg-[#0DEDC0]/90 font-bold py-3.5 px-6 rounded-lg tracking-wide transition-all duration-300 disabled:opacity-50 cursor-pointer mt-4 shadow-[0_0_15px_rgba(13,237,192,0.3)] flex justify-center items-center ${ESTILOS_TEXTO.boton}`}
               >
-                {cargando ? 'Guardando en Firestore...' : 'Registrar Bodega e Ingresar'}
+                {cargando ? 'Guardando en Base de Datos...' : 'Registrar Bodega e Ingresar'}
               </button>
             </form>
           ) : (

@@ -7,6 +7,7 @@ import {
   doc, 
   updateDoc, 
   addDoc, 
+  deleteDoc, 
   query, 
   orderBy, 
   limit 
@@ -73,6 +74,11 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
 
   const [bitacora, setBitacora] = useState<RegistroBitacora[]>([]);
   const [cargandoBitacora, setCargandoBitacora] = useState<boolean>(false);
+
+  // Validar si el usuario actual es el Super Admin
+  const esSuperAdmin = useMemo(() => {
+    return adminActual.trim().toLowerCase() === 'info@atomsolutionsdata.com';
+  }, [adminActual]);
 
   // Carga inicial de sesión
   useEffect(() => {
@@ -165,6 +171,62 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
     }
   }, [adminActual]);
 
+  // -------------------------------------------------------------
+  // 🔥 FUNCIÓN DE PURGA DIRECTA EXCLUSIVA PARA SUPER ADMIN
+  // -------------------------------------------------------------
+  const purgarBaseDatosDirecta = useCallback(async () => {
+    if (!esSuperAdmin) {
+      alert('⛔ ACCESO RESTRINGIDO: Esta función es exclusiva para el Super Administrador principal.');
+      return;
+    }
+
+    const confirmacion1 = confirm(
+      '⚠️ ¿ESTÁS SEGURO DE EJECUTAR LA PURGA DIRECTA?\n\n' +
+      'Esta acción eliminará PERMANENTEMENTE de Bases de Datos:\n' +
+      '1. Todas las solicitudes de cancelación registradas.\n' +
+      '2. Todos los registros de la bitácora de auditoría.\n\n' +
+      'Esta operación NO se puede deshacer.'
+    );
+
+    if (!confirmacion1) return;
+
+    setCargandoDatos(true);
+    setCargandoBitacora(true);
+
+    try {
+      // 1. Borrar todos los documentos de solicitudes_baja
+      const snapSolicitudes = await getDocs(collection(db, 'solicitudes_baja'));
+      const promesasSolicitudes = snapSolicitudes.docs.map((d) => deleteDoc(doc(db, 'solicitudes_baja', d.id)));
+      await Promise.all(promesasSolicitudes);
+
+      // 2. Borrar todos los documentos de bitacora_auditoria
+      const snapBitacora = await getDocs(collection(db, 'bitacora_auditoria'));
+      const promesasBitacora = snapBitacora.docs.map((d) => deleteDoc(doc(db, 'bitacora_auditoria', d.id)));
+      await Promise.all(promesasBitacora);
+
+      // 3. Limpiar estado local
+      setSolicitudes([]);
+      setBitacora([]);
+
+      // 4. Escribir registro inicial de la purga
+      await addDoc(collection(db, 'bitacora_auditoria'), {
+        adminEmail: adminActual,
+        modulo: 'SUPER_ADMIN',
+        accion: 'PURGA DIRECTA: Se eliminaron todas las cancelaciones e historiales anteriores.',
+        fechaISO: new Date().toISOString(),
+      });
+
+      alert('✅ PURGA COMPLETADA: Se han borrado los datos de prueba en Bases de Datos con éxito.');
+      cargarTodo();
+    } catch (error) {
+      console.error('Error al ejecutar la purga directa:', error);
+      alert('❌ Error al purgar la base de datos. Asegúrate de tener permisos de eliminación en las reglas de Bases de Datos.');
+    } finally {
+      setCargandoDatos(false);
+      setCargandoBitacora(false);
+    }
+  }, [esSuperAdmin, adminActual, cargarTodo]);
+
   const cambiarEstadoCancelacion = useCallback(async (item: SolicitudBaja, nuevoEstado: SolicitudBaja['estado']) => {
     try {
       const docRef = doc(db, 'solicitudes_baja', item.id);
@@ -189,7 +251,7 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
       const accion = nuevoValor ? 'HABILITÓ' : 'REVOCÓ';
       await registrarAccionEnBitacora('DIRECTORIO', `${accion} el permiso [${campo}] de: ${adminTarget.correo}`);
     } catch (error) {
-      alert('Error de permisos al modificar Firestore.');
+      alert('Error de permisos al modificar Bases de Datos.');
     }
   }, [registrarAccionEnBitacora]);
 
@@ -221,7 +283,7 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
       {/* CONTENEDOR PRINCIPAL */}
       <div className="relative z-10 max-w-7xl mx-auto p-4 sm:p-8 space-y-8">
         
-        {/* CABECERA GENERAL CON EFECTOS NEÓN */}
+        {/* CABECERA GENERAL */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800/80 pb-6 bg-[#090D16]/40 backdrop-blur-md p-6 rounded-3xl border border-white/5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -236,7 +298,22 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
             </Subtitulo>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            
+            {/* BOTÓN DE PURGA DIRECTA (SOLO SUPER ADMIN) */}
+            {esSuperAdmin && (
+              <button
+                onClick={purgarBaseDatosDirecta}
+                className="group flex items-center gap-2 px-4 py-2.5 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/50 rounded-xl font-mono text-xs font-bold transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.3)] active:scale-95 cursor-pointer"
+                title="Elimina permanentemente solicitudes y bitácora de prueba"
+              >
+                <svg className="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Purga Directa</span>
+              </button>
+            )}
+
             <button
               onClick={cargarTodo}
               className="group flex items-center gap-2 px-4 py-2.5 bg-[#102935]/80 hover:bg-[#0DEDC0] text-[#0DEDC0] hover:text-[#090D18] border border-[#0DEDC0]/40 rounded-xl font-mono text-xs font-bold transition-all duration-300 shadow-[0_0_15px_rgba(13,237,192,0.15)] active:scale-95 cursor-pointer"
@@ -259,9 +336,8 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
           </div>
         </div>
 
-        {/* SELECTOR DE PESTAÑAS (NAVEGACIÓN 2D) */}
+        {/* SELECTOR DE PESTAÑAS */}
         <div className="flex flex-wrap items-center gap-3 border-b border-white/10 pb-4">
-          
           <button
             onClick={() => setTabActiva('METRICAS_GENERALES')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold transition-all duration-300 backdrop-blur-md cursor-pointer ${
@@ -337,7 +413,6 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
             </svg>
             <span>Bitácora</span>
           </button>
-
         </div>
 
         {/* PESTAÑA 1: MÉTRICAS GENERALES */}
@@ -352,10 +427,8 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                   </div>
                 </div>
-                <span className="text-3xl font-black text-[#0DEDC0] block mt-2 drop-shadow-[0_0_12px_rgba(13,237,192,0.4)]">14,280</span>
-                <span className="text-[10px] text-emerald-400 mt-2 block font-semibold flex items-center gap-1">
-                  <span>↑ +18.4% vs mes anterior</span>
-                </span>
+                <span className="text-3xl font-black text-[#0DEDC0] block mt-2 drop-shadow-[0_0_12px_rgba(13,237,192,0.4)]">0</span>
+                <span className="text-[10px] text-slate-500 mt-2 block font-semibold">Sin tráfico registrado</span>
               </div>
 
               <div className="group bg-[#090D16]/70 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-amber-400/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(251,191,36,0.15)] relative overflow-hidden">
@@ -365,8 +438,8 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8l-2-2m0 0l-2 2m2-2v6"/></svg>
                   </div>
                 </div>
-                <span className="text-3xl font-black text-amber-400 block mt-2 drop-shadow-[0_0_12px_rgba(251,191,36,0.4)]">342</span>
-                <span className="text-[10px] text-amber-300 mt-2 block font-semibold">Tasa Conversión: 2.4%</span>
+                <span className="text-3xl font-black text-amber-400 block mt-2 drop-shadow-[0_0_12px_rgba(251,191,36,0.4)]">0</span>
+                <span className="text-[10px] text-slate-500 mt-2 block font-semibold">Tasa Conversión: 0%</span>
               </div>
 
               <div className="group bg-[#090D16]/70 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-blue-400/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(96,165,250,0.15)] relative overflow-hidden">
@@ -376,8 +449,8 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                   </div>
                 </div>
-                <span className="text-3xl font-black text-blue-400 block mt-2 drop-shadow-[0_0_12px_rgba(96,165,250,0.4)]">1,890</span>
-                <span className="text-[10px] text-blue-300 mt-2 block font-semibold">Vía Calculadora Avanzada</span>
+                <span className="text-3xl font-black text-blue-400 block mt-2 drop-shadow-[0_0_12px_rgba(96,165,250,0.4)]">0</span>
+                <span className="text-[10px] text-slate-500 mt-2 block font-semibold">Vía Calculadora Avanzada</span>
               </div>
 
               <div className="group bg-[#090D16]/70 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-red-400/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(248,113,113,0.15)] relative overflow-hidden">
@@ -423,13 +496,13 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
                   </thead>
                   <tbody className="divide-y divide-white/5 text-slate-300 font-sans">
                     {administradores.map((admin) => {
-                      const esSuperAdmin = admin.correo.toLowerCase() === 'info@atomsolutionsdata.com';
+                      const esSuperAdminTarget = admin.correo.toLowerCase() === 'info@atomsolutionsdata.com';
                       return (
-                        <tr key={admin.id} className={`hover:bg-white/5 transition-colors ${esSuperAdmin ? 'bg-[#0DEDC0]/5' : ''}`}>
+                        <tr key={admin.id} className={`hover:bg-white/5 transition-colors ${esSuperAdminTarget ? 'bg-[#0DEDC0]/5' : ''}`}>
                           <td className="p-4">
                             <strong className="text-white block font-bold flex items-center gap-2">
                               {admin.nombre} 
-                              {esSuperAdmin && (
+                              {esSuperAdminTarget && (
                                 <span className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-mono px-2 py-0.5 rounded-full font-bold shadow-[0_0_10px_rgba(245,158,11,0.3)]">
                                   <svg className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
                                   SUPER ADMIN
@@ -443,9 +516,9 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
                           <td className="p-4 text-center">
                             <button
                               onClick={() => alternarPermisoAdmin(admin, 'esAdmin')}
-                              disabled={esSuperAdmin}
+                              disabled={esSuperAdminTarget}
                               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] font-bold transition-all border cursor-pointer ${
-                                esSuperAdmin ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 cursor-not-allowed opacity-80'
+                                esSuperAdminTarget ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 cursor-not-allowed opacity-80'
                                 : admin.esAdmin ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500 hover:text-white shadow-[0_0_10px_rgba(16,185,129,0.2)]' 
                                 : 'bg-black/40 text-slate-400 border-white/10 hover:bg-white/10'
                               }`}
@@ -463,9 +536,9 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
                           <td className="p-4 text-center">
                             <button
                               onClick={() => alternarPermisoAdmin(admin, 'activo')}
-                              disabled={esSuperAdmin}
+                              disabled={esSuperAdminTarget}
                               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[10px] font-bold transition-all border cursor-pointer ${
-                                esSuperAdmin ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 cursor-not-allowed opacity-80'
+                                esSuperAdminTarget ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 cursor-not-allowed opacity-80'
                                 : admin.activo ? 'bg-blue-500/20 text-blue-400 border-blue-500/40 hover:bg-blue-500 hover:text-white shadow-[0_0_10px_rgba(59,130,246,0.2)]' 
                                 : 'bg-black/40 text-slate-400 border-white/10 hover:bg-white/10'
                               }`}
@@ -498,21 +571,20 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
               <div>
                 <div className="flex justify-between text-slate-200 mb-1.5 font-bold">
                   <span>1. Botón "Descargar Tarjeta B2B (PNG)"</span>
-                  <span className="text-[#0DEDC0] font-black">34.3%</span>
+                  <span className="text-[#0DEDC0] font-black">0%</span>
                 </div>
                 <div className="w-full h-3 bg-black/40 rounded-full overflow-hidden border border-white/5">
-                  <div className="h-full bg-gradient-to-r from-[#0DEDC0] to-emerald-400 shadow-[0_0_12px_rgba(13,237,192,0.8)] w-[34.3%]" />
+                  <div className="h-full bg-gradient-to-r from-[#0DEDC0] to-emerald-400 shadow-[0_0_12px_rgba(13,237,192,0.8)] w-[0%]" />
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* PESTAÑA 4: GESTIÓN DE CANCELACIONES (CON FICHA COMPLETA DESPLEGABLE) */}
+        {/* PESTAÑA 4: GESTIÓN DE CANCELACIONES */}
         {tabActiva === 'GESTION_CANCELACIONES' && (
           <div className="space-y-6">
             
-            {/* BUSCADOR Y FILTROS */}
             <div className="flex flex-col sm:flex-row justify-between gap-4 bg-[#090D16]/70 backdrop-blur-xl p-4 rounded-2xl border border-white/10">
               <div className="relative w-full sm:w-80">
                 <input
@@ -546,7 +618,7 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
               {cargandoDatos ? (
                 <div className="p-12 text-center text-slate-400 font-mono text-xs flex flex-col items-center justify-center gap-3">
                   <div className="w-8 h-8 border-2 border-[#0DEDC0] border-t-transparent rounded-full animate-spin" />
-                  <span>Cargando solicitudes de cancelación desde Firestore...</span>
+                  <span>Cargando solicitudes de cancelación desde Bases de Datos...</span>
                 </div>
               ) : solicitudesFiltradas.length === 0 ? (
                 <div className="p-12 text-center text-slate-400 font-mono text-xs">No hay solicitudes registradas con ese filtro.</div>
@@ -568,7 +640,6 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
                         
                         return (
                           <React.Fragment key={item.id}>
-                            {/* FILA PRINCIPAL (CLICK PARA EXPANDIR) */}
                             <tr 
                               onClick={() => toggleFila(item.id)}
                               className={`hover:bg-[#102935]/60 transition-all cursor-pointer ${
@@ -631,7 +702,6 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
                               </td>
                             </tr>
 
-                            {/* FICHA TÉCNICA Y DETALLES COMPLETOS (DESPLEGABLE) */}
                             {estaAbierto && (
                               <tr className="bg-[#080C14] border-b border-white/10">
                                 <td colSpan={5} className="p-6">
@@ -649,7 +719,6 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
                                       </span>
                                     </div>
 
-                                    {/* GRID DE DATOS COMPLETOS */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
                                       <div className="bg-[#102935]/50 p-3.5 rounded-xl border border-slate-800">
                                         <span className="text-slate-400 text-[10px] uppercase font-bold block mb-1">Nombre Solicitante</span>
@@ -672,7 +741,6 @@ export default function Seccion1({ onLogout, variante = 'hexGrid' }: Seccion1Pro
                                       </div>
                                     </div>
 
-                                    {/* MOTIVO Y OBSERVACIONES */}
                                     <div className="space-y-3 font-sans">
                                       <div>
                                         <span className="text-xs font-bold text-red-400 font-mono uppercase tracking-wider block mb-1">

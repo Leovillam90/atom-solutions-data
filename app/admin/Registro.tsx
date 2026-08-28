@@ -96,7 +96,7 @@ export default function Registro({ onLoginSuccess }: RegistroProps) {
       setLoginIdentificador(correoMinusculas);
       setLoginClave(claveIngresada);
       setModo('login');
-      setMensajeExito('¡Cuenta registrada con éxito! Tus credenciales fueron precargadas. Una vez que apruebes esAdmin: true en Firestore, solo haz clic en "Ingresar al Dashboard".');
+      setMensajeExito('¡Cuenta registrada con éxito! Tus credenciales fueron precargadas. Una vez que apruebes esAdmin: true en Bases de Datos, solo haz clic en "Ingresar al Dashboard".');
 
       setNombre('');
       setCorreo('');
@@ -105,7 +105,7 @@ export default function Registro({ onLoginSuccess }: RegistroProps) {
 
     } catch (err) {
       console.error('Error al registrar administrador:', err);
-      setError('Error al guardar en Firestore. Verifica los permisos de la base de datos.');
+      setError('Error al guardar en Bases de Datos. Verifica los permisos de la base de datos.');
     } finally {
       setCargando(false);
     }
@@ -153,7 +153,7 @@ export default function Registro({ onLoginSuccess }: RegistroProps) {
       }
 
       if (adminDoc.esAdmin !== true && adminDoc.activo !== true) {
-        setError('Tu cuenta aún no ha sido aprobada. Por favor, contacta al administrador de ATOM.');
+        setError('Tu cuenta aún no ha sido aprobada. Por favor, contacta al administrador ATOM.');
         setCargando(false);
         return;
       }
@@ -168,7 +168,7 @@ export default function Registro({ onLoginSuccess }: RegistroProps) {
 
     } catch (err) {
       console.error('Error al validar Administrador:', err);
-      setError('Error de conexión con Firestore. Intenta de nuevo.');
+      setError('Error de conexión con Bases de Datos. Intenta de nuevo.');
     } finally {
       setCargando(false);
     }
@@ -190,7 +190,7 @@ export default function Registro({ onLoginSuccess }: RegistroProps) {
           </h2>
           <p className="text-xs text-slate-400">
             {modo === 'registro' 
-              ? 'Registra tus datos. Tu cuenta requerirá aprobación en Firestore.' 
+              ? 'Registra tus datos. Tu cuenta requerirá aprobación del Administrador.' 
               : 'Ingresa tus credenciales autorizadas (esAdmin: true):'}
           </p>
         </div>

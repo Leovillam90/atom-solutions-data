@@ -66,7 +66,7 @@ export async function registrarSolicitudCancelacion(data: PayloadCancelacion) {
           }),
         });
       } catch (emailErr) {
-        console.warn('⚠️ No se pudo despachar el correo, pero la solicitud quedó guardada en Firestore:', emailErr);
+        console.warn('⚠️ No se pudo despachar el correo, pero la solicitud quedó guardada en Bases de Datos:', emailErr);
       }
     }
 
@@ -74,6 +74,6 @@ export async function registrarSolicitudCancelacion(data: PayloadCancelacion) {
 
   } catch (error: any) {
     console.error('❌ Error en Server Action cancelaciones.ts:', error);
-    return { success: false, error: error.message || 'Error guardando en Firestore.' };
+    return { success: false, error: error.message || 'Error guardando en Bases de Datos.' };
   }
 }

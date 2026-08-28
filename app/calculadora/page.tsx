@@ -6,7 +6,6 @@ import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firesto
 import { auth, db } from '@/app/lib/firebase';
 import Registro from '@/app/complementos/Registro';
 import Seccion1 from './paginas/Seccion1';
-import Seccion2 from './paginas/Seccion2';
 
 export default function CalculadoraPage() {
   const [autenticado, setAutenticado] = useState<boolean>(false);
@@ -42,7 +41,7 @@ export default function CalculadoraPage() {
           }
         }
       } catch (error) {
-        console.error('Error al verificar cuenta en Firestore:', error);
+        console.error('Error al verificar cuenta en Bases de Datos:', error);
       }
       return false;
     };
@@ -90,7 +89,7 @@ export default function CalculadoraPage() {
       <div className="min-h-screen bg-[#070B14] flex flex-col items-center justify-center gap-3">
         <div className="w-10 h-10 border-4 border-[#0DEDC0] border-t-transparent rounded-full animate-spin" />
         <span className="text-xs font-mono text-[#0DEDC0] uppercase tracking-widest">
-          Validando registro en Firestore...
+          Validando registro en Bases de Datos...
         </span>
       </div>
     );
@@ -108,7 +107,6 @@ export default function CalculadoraPage() {
   return (
     <div className="min-h-screen bg-[#0B171C] text-white relative">
       <Seccion1 variante="hexGrid" />
-      <Seccion2 variante="hexGrid" />
     </div>
   );
 }
