@@ -234,8 +234,8 @@ export default function Menu({ variante = 'gridCyber' }: MenuProps) {
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#091A23] border-t border-[#0DEDC0]/20 px-6 py-5 flex flex-col gap-4 relative z-[9999]">
           <Link href="/" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0]">Inicio</Link>
-          <Link href="/calculadora/basica" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between">
-            <span>Simulador $</span>
+          <Link href="/simulador" onClick={() => setMobileMenuOpen(false)} className="text-slate-200 font-semibold text-sm pb-2 border-b border-white/5 hover:text-[#0DEDC0] flex items-center justify-between">
+            <span>Simulador</span>
           </Link>
 
           <div>
