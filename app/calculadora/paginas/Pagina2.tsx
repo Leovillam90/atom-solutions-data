@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { MonedaConfig } from '@/app/lib/moneda';
 import { EscenarioTipo } from './Pagina1';
+import html2canvas from 'html2canvas';
 
 type OpcionPropuestaTipo = 'OPCION1' | 'OPCION2';
 
