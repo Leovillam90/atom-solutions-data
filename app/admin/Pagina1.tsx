@@ -238,7 +238,7 @@ export default function Pagina1({ onLogout }: Pagina1Props) {
   return (
     <div className="space-y-6 text-white font-sans">
       
-      {/* CABECERA DEL MÓDULO OPERATIVO */}
+      {/* CABECERA */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6 bg-[#090D16]/70 backdrop-blur-md p-6 rounded-3xl border border-white/5 shadow-xl">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -279,7 +279,7 @@ export default function Pagina1({ onLogout }: Pagina1Props) {
         </div>
       </div>
 
-      {/* PESTAÑAS INTERNAS DE LA CONSOLA OPERATIVA */}
+      {/* PESTAÑAS INTERNAS */}
       <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4">
         <button
           onClick={() => setTabActiva('METRICAS_GENERALES')}
@@ -323,7 +323,7 @@ export default function Pagina1({ onLogout }: Pagina1Props) {
         </button>
       </div>
 
-      {/* SECCIÓN 1: KPIS */}
+      {/* KPIS */}
       {tabActiva === 'METRICAS_GENERALES' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
           <div className="bg-[#090D16]/80 p-6 rounded-2xl border border-white/10">
@@ -345,7 +345,7 @@ export default function Pagina1({ onLogout }: Pagina1Props) {
         </div>
       )}
 
-      {/* SECCIÓN 2: ACCESOS */}
+      {/* ACCESOS */}
       {tabActiva === 'DIRECTORIO_USUARIOS' && (
         <div className="bg-[#090D16]/80 rounded-3xl border border-white/10 p-6">
           <h3 className="text-sm font-bold text-[#0DEDC0] font-mono uppercase mb-4">Cuentas Administrativas</h3>
@@ -386,7 +386,7 @@ export default function Pagina1({ onLogout }: Pagina1Props) {
         </div>
       )}
 
-      {/* SECCIÓN 3: MAPA DE CALOR */}
+      {/* MAPA DE CALOR */}
       {tabActiva === 'MAPA_CALOR' && (
         <div className="bg-[#090D16]/80 p-6 rounded-3xl border border-white/10 text-xs font-mono space-y-2">
           <h3 className="text-base font-black text-white">Interacciones de Usuarios</h3>
@@ -394,7 +394,7 @@ export default function Pagina1({ onLogout }: Pagina1Props) {
         </div>
       )}
 
-      {/* SECCIÓN 4: CANCELACIONES */}
+      {/* CANCELACIONES */}
       {tabActiva === 'GESTION_CANCELACIONES' && (
         <div className="bg-[#090D16]/80 rounded-3xl border border-white/10 p-6">
           <h3 className="text-sm font-bold text-[#0DEDC0] font-mono uppercase mb-4">Gestión de Bajas</h3>
@@ -428,7 +428,7 @@ export default function Pagina1({ onLogout }: Pagina1Props) {
         </div>
       )}
 
-      {/* SECCIÓN 5: BITÁCORA */}
+      {/* BITÁCORA */}
       {tabActiva === 'BITACORA' && (
         <div className="bg-[#090D16]/80 rounded-3xl border border-white/10 p-6 font-mono text-xs space-y-4">
           <h3 className="text-sm font-bold text-amber-400 uppercase">Bitácora de Auditoría</h3>

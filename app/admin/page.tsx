@@ -20,7 +20,7 @@ export default function AdminPage() {
 
       <div className="relative z-10 max-w-7xl mx-auto space-y-6">
         
-        {/* BARRA DE NAVEGACIÓN MAESTRA (SIEMPRE VISIBLE) */}
+        {/* BARRA DE NAVEGACIÓN MAESTRA */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-5 gap-4 bg-[#090D16]/90 backdrop-blur-md p-5 rounded-3xl border border-white/10 shadow-2xl">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-[#0DEDC0]/10 border border-[#0DEDC0]/40 flex items-center justify-center text-[#0DEDC0] shadow-[0_0_15px_rgba(13,237,192,0.2)]">
@@ -34,7 +34,6 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* BOTONES CONMUTADORES DE MÓDULO */}
           <div className="flex bg-[#050811] p-1.5 rounded-2xl border border-slate-800 shadow-inner">
             <button
               type="button"
@@ -62,7 +61,6 @@ export default function AdminPage() {
           </div>
         </header>
 
-        {/* ÁREA DE CONTENIDO DE PÁGINA */}
         <main>
           {tabModulo === 'modulo1' && <Pagina1 onLogout={handleLogout} />}
           {tabModulo === 'modulo2' && <Pagina2 />}

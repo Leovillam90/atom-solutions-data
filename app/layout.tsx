@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import Menu from '@/app/Menu_Contacto/paginas/Menu';
 import Contacto from '@/app/Menu_Contacto/paginas/Contacto';
+import { CMSProvider } from '@/app/context/CMSContext';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -24,20 +25,25 @@ export default function RootLayout({
     <html lang="es" className="scroll-smooth">
       <body className="bg-[#091A23] text-white antialiased m-0 p-0 min-h-screen flex flex-col justify-between selection:bg-[#0DEDC0] selection:text-[#061217]">
         
-        {/* 1. Menú principal / Navegación */}
-        <header className="w-full">
-          <Menu variante="spotlightCyan" />
-        </header>
+        {/* PROVEEDOR GLOBAL DE CONTENIDOS CMS */}
+        <CMSProvider>
+          
+          {/* 1. Menú principal / Navegación */}
+          <header className="w-full">
+            <Menu variante="spotlightCyan" />
+          </header>
 
-        {/* 2. Contenedor semántico principal (se expande dinámicamente) */}
-        <main className="flex-1 w-full">
-          {children}
-        </main>
-        
-        {/* 3. Pie de página de Contacto */}
-        <footer className="w-full">
-          <Contacto variante="spotlightCyan" />
-        </footer>
+          {/* 2. Contenedor semántico principal (se expande dinámicamente) */}
+          <main className="flex-1 w-full">
+            {children}
+          </main>
+          
+          {/* 3. Pie de página de Contacto */}
+          <footer className="w-full">
+            <Contacto variante="spotlightCyan" />
+          </footer>
+
+        </CMSProvider>
 
       </body>
     </html>

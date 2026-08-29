@@ -17,8 +17,7 @@ interface TarjetaDiagnostico {
   icon: React.ReactNode;
 }
 
-// Estructura estática fuera del componente: Cero asignación de memoria en re-renders
-const DIAGNOSTICOS: TarjetaDiagnostico[] = [
+const DIAGNOSTICOS: readonly TarjetaDiagnostico[] = Object.freeze([
   {
     id: 'descontrol-guias',
     titulo: 'Descontrol de Guías',
@@ -59,7 +58,7 @@ const DIAGNOSTICOS: TarjetaDiagnostico[] = [
       </svg>
     )
   }
-];
+]);
 
 export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
   return (
@@ -70,13 +69,13 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
         
         {/* ENCABEZADO */}
         <div className="text-center mb-16">
-          <Kicker>DIAGNÓSTICO OPERATIVO</Kicker>
+          <Kicker varianteFondo={variante}>DIAGNÓSTICO OPERATIVO</Kicker>
 
-          <H2 className="text-balance">
-            ¿Cuánto capital <Highlight>dejaste estancado</Highlight> este mes?
+          <H2 varianteFondo={variante} className="text-balance">
+            ¿Cuánto capital <Highlight varianteFondo={variante}>dejaste estancado</Highlight> este mes?
           </H2>
 
-          <Subtitulo className="max-w-[720px] mx-auto mt-3">
+          <Subtitulo varianteFondo={variante} className="max-w-[720px] mx-auto mt-3">
             El descontrol logístico no es un error de cálculo, es la pérdida directa de tu dinero.
           </Subtitulo>
         </div>
@@ -92,8 +91,8 @@ export default function Seccion3({ variante = 'gridCyber' }: Seccion3Props) {
                 <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500 mb-5 border border-red-500/20">
                   {tarjeta.icon}
                 </div>
-                <H3 className="mb-3">{tarjeta.titulo}</H3>
-                <Texto className="mb-6">{tarjeta.descripcion}</Texto>
+                <H3 varianteFondo={variante} className="mb-3">{tarjeta.titulo}</H3>
+                <Texto varianteFondo={variante} className="mb-6">{tarjeta.descripcion}</Texto>
               </div>
               
               <a 

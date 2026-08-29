@@ -12,7 +12,6 @@ interface Pagina1Props {
 }
 
 // COMPONENTE TOOLTIP OPTIMIZADO
-// Regla: z-0 normal (no estorba ni bloquea clics), z-50 y z-[9999] solo al hacer hover
 function Tooltip({ contenido }: { contenido: string }) {
   return (
     <div className="relative inline-flex items-center group ml-1.5 align-middle z-0 hover:z-50">
@@ -49,7 +48,7 @@ function SelectorMonedaCustom({
   }, []);
 
   return (
-    <div className="relative z-20" ref={contenedorRef}>
+    <div className="relative z-30" ref={contenedorRef}>
       <label className="block text-xs font-semibold text-slate-300 mb-1.5">
         Moneda de Cálculo
         <Tooltip contenido="Selecciona la divisa local en la que operas tus ventas y costos para formatear las cifras." />
@@ -87,7 +86,7 @@ function SelectorMonedaCustom({
 
       {/* Lista Desplegable Flotante */}
       {abierto && (
-        <div className="absolute top-full left-0 w-full mt-2 bg-[#090D16]/95 backdrop-blur-xl border border-[#0DEDC0]/40 rounded-xl shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-50 overflow-hidden animate-in fade-in duration-200">
+        <div className="absolute top-full left-0 w-full mt-2 bg-[#090D16]/95 backdrop-blur-xl border border-[#0DEDC0]/40 rounded-xl shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-50 overflow-hidden animate-in fade-in duration-200 transform-gpu">
           <div className="max-h-56 overflow-y-auto py-1 divide-y divide-slate-800/60 custom-scrollbar">
             {MONEDAS.map((m) => {
               const esSeleccionada = m.codigo === monedaSeleccionada.codigo;
@@ -223,17 +222,17 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
         
         {/* CABECERA */}
         <div className="border-b border-slate-800 pb-6">
-          <Kicker className="!text-[#0DEDC0]">HERRAMIENTA DE DIAGNÓSTICO</Kicker>
-          <H1 className="text-balance mb-2">
-            Simulador de <Highlight>Rentabilidad Real.</Highlight>
+          <Kicker varianteFondo={variante}>HERRAMIENTA DE DIAGNÓSTICO</Kicker>
+          <H1 varianteFondo={variante} className="text-balance mb-2">
+            Simulador de <Highlight varianteFondo={variante}>Rentabilidad Real.</Highlight>
           </H1>
-          <Subtitulo className="max-w-2xl">
+          <Subtitulo varianteFondo={variante} className="max-w-2xl">
             Calcula tus márgenes y precios de venta exactos contemplando el castigo de fletes por devoluciones y mermas del contra entrega.
           </Subtitulo>
         </div>
 
         {/* SELECCIÓN DE MODO */}
-        <div className="flex bg-[#090D16] p-1.5 rounded-2xl border border-slate-800 w-full max-w-md mx-auto relative z-20">
+        <div className="flex bg-[#090D16] p-1.5 rounded-2xl border border-slate-800 w-full max-w-md mx-auto relative z-20 shadow-lg">
           <button
             type="button"
             onClick={() => setModoSeleccionado('PROVEEDOR')}
@@ -269,12 +268,11 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
         {modoSeleccionado === 'PROVEEDOR' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            <div className="lg:col-span-5 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+            <div className="lg:col-span-5 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl backdrop-blur-md">
               <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-3">
                 1. Costos de Fabricación y Riesgo
               </span>
 
-              {/* SELECTOR MODERNO DE MONEDA DE CÁLCULO */}
               <SelectorMonedaCustom
                 monedaSeleccionada={monedaSeleccionada}
                 setMonedaSeleccionada={setMonedaSeleccionada}
@@ -290,7 +288,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                   min="0"
                   value={provCostoFabricacion}
                   onChange={(e) => setProvCostoFabricacion(Number(e.target.value))}
-                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] outline-none"
+                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] focus:ring-1 focus:ring-[#0DEDC0]/50 outline-none transition-all"
                 />
               </div>
 
@@ -304,7 +302,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                   min="0"
                   value={provGastosOperativos}
                   onChange={(e) => setProvGastosOperativos(Number(e.target.value))}
-                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] outline-none"
+                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] focus:ring-1 focus:ring-[#0DEDC0]/50 outline-none transition-all"
                 />
               </div>
 
@@ -345,7 +343,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
               </div>
             </div>
 
-            <div className="lg:col-span-7 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl">
+            <div className="lg:col-span-7 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl backdrop-blur-md">
               <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-3">
                 2. Fijación de Precio al Dropshipper
               </span>
@@ -370,7 +368,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-5 rounded-xl border-2 border-[#0DEDC0]/40 text-center space-y-1 shadow-[0_10px_30px_rgba(13,237,192,0.15)]">
+              <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-5 rounded-xl border-2 border-[#0DEDC0]/40 text-center space-y-1 shadow-[0_10px_30px_rgba(13,237,192,0.15)] transform-gpu">
                 <span className="text-xs font-mono text-slate-400 uppercase font-bold block">
                   Precio de Venta Sugerido en Plataforma
                   <Tooltip contenido="El precio oficial al que debes publicar este producto en Dropi para no perder dinero." />
@@ -404,12 +402,11 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
         {modoSeleccionado === 'DROPSHIPPER' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            <div className="lg:col-span-5 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+            <div className="lg:col-span-5 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl backdrop-blur-md">
               <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-3">
                 1. Costos Directos y Volumen
               </span>
 
-              {/* SELECTOR MODERNO DE MONEDA DE CÁLCULO */}
               <SelectorMonedaCustom
                 monedaSeleccionada={monedaSeleccionada}
                 setMonedaSeleccionada={setMonedaSeleccionada}
@@ -429,7 +426,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                   value={dropUnidades}
                   onChange={(e) => setDropUnidades(Math.max(1, Number(e.target.value)))}
                   placeholder="1"
-                  className="w-full bg-[#090D16] border border-[#0DEDC0]/50 rounded-lg p-2.5 font-mono text-white text-base font-black text-center focus:border-[#0DEDC0] outline-none"
+                  className="w-full bg-[#090D16] border border-[#0DEDC0]/50 rounded-lg p-2.5 font-mono text-white text-base font-black text-center focus:border-[#0DEDC0] focus:ring-1 focus:ring-[#0DEDC0]/50 outline-none transition-all"
                 />
               </div>
 
@@ -443,7 +440,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                   min="0"
                   value={dropCostoProducto}
                   onChange={(e) => setDropCostoProducto(Number(e.target.value))}
-                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] outline-none"
+                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] focus:ring-1 focus:ring-[#0DEDC0]/50 outline-none transition-all"
                 />
               </div>
 
@@ -457,7 +454,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                   min="0"
                   value={dropFletePromedio}
                   onChange={(e) => setDropFletePromedio(Number(e.target.value))}
-                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] outline-none"
+                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] focus:ring-1 focus:ring-[#0DEDC0]/50 outline-none transition-all"
                 />
               </div>
 
@@ -471,7 +468,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                   min="0"
                   value={dropCpaAds}
                   onChange={(e) => setDropCpaAds(Number(e.target.value))}
-                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] outline-none"
+                  className="w-full bg-[#102935] border border-slate-700 rounded-xl p-3 font-mono text-white text-sm font-bold focus:border-[#0DEDC0] focus:ring-1 focus:ring-[#0DEDC0]/50 outline-none transition-all"
                 />
               </div>
 
@@ -512,7 +509,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
               </div>
             </div>
 
-            <div className="lg:col-span-7 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl">
+            <div className="lg:col-span-7 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl backdrop-blur-md">
               <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-3">
                 2. Resultado Recomendado ({metricasDropshipper.qty} {metricasDropshipper.qty === 1 ? 'Unidad' : 'Unidades'})
               </span>
@@ -545,7 +542,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-6 rounded-xl border-2 border-[#0DEDC0]/50 text-center space-y-2 shadow-[0_10px_30px_rgba(13,237,192,0.15)]">
+              <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-6 rounded-xl border-2 border-[#0DEDC0]/50 text-center space-y-2 shadow-[0_10px_30px_rgba(13,237,192,0.15)] transform-gpu">
                 <span className="text-xs font-mono text-slate-300 uppercase font-bold tracking-wider block">
                   VALOR SUGERIDO DE VENTA AL CLIENTE FINAL (POR UNIDAD)
                   <Tooltip contenido="El precio mínimo en el que tu tienda debe vender el producto al cliente final." />

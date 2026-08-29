@@ -3,6 +3,7 @@ export interface MonedaConfig {
   nombre: string;
   simbolo: string;
   locale: string;
+  decimales: number; // ⚡ Movido a la config para evitar condicionales quemados
 }
 
 export interface TarifaImpuesto {
@@ -10,25 +11,24 @@ export interface TarifaImpuesto {
   label: string;
 }
 
-export const MONEDAS: MonedaConfig[] = [
-  { codigo: 'COP', nombre: 'Colombia (COP)', simbolo: '$', locale: 'es-CO' },
-  { codigo: 'USD', nombre: 'Estados Unidos (USD)', simbolo: '$', locale: 'en-US' },
-  { codigo: 'MXN', nombre: 'México (MXN)', simbolo: '$', locale: 'es-MX' },
-  { codigo: 'GTQ', nombre: 'Guatemala (GTQ)', simbolo: 'Q', locale: 'es-GT' },
-  { codigo: 'PEN', nombre: 'Perú (PEN)', simbolo: 'S/', locale: 'es-PE' },
-  { codigo: 'CLP', nombre: 'Chile (CLP)', simbolo: '$', locale: 'es-CL' },
-  { codigo: 'BRL', nombre: 'Brasil (BRL)', simbolo: 'R$', locale: 'pt-BR' },
-  { codigo: 'EUR', nombre: 'Europa (EUR)', simbolo: '€', locale: 'es-ES' },
-  { codigo: 'VES', nombre: 'Venezuela (VES)', simbolo: 'Bs', locale: 'es-VE' }
-];
+export const MONEDAS: readonly MonedaConfig[] = Object.freeze([
+  { codigo: 'COP', nombre: 'Colombia (COP)', simbolo: '$', locale: 'es-CO', decimales: 0 },
+  { codigo: 'USD', nombre: 'Estados Unidos (USD)', simbolo: '$', locale: 'en-US', decimales: 2 },
+  { codigo: 'MXN', nombre: 'México (MXN)', simbolo: '$', locale: 'es-MX', decimales: 2 },
+  { codigo: 'GTQ', nombre: 'Guatemala (GTQ)', simbolo: 'Q', locale: 'es-GT', decimales: 2 },
+  { codigo: 'PEN', nombre: 'Perú (PEN)', simbolo: 'S/', locale: 'es-PE', decimales: 2 },
+  { codigo: 'CLP', nombre: 'Chile (CLP)', simbolo: '$', locale: 'es-CL', decimales: 0 },
+  { codigo: 'BRL', nombre: 'Brasil (BRL)', simbolo: 'R$', locale: 'pt-BR', decimales: 2 },
+  { codigo: 'EUR', nombre: 'Europa (EUR)', simbolo: '€', locale: 'es-ES', decimales: 2 },
+  { codigo: 'VES', nombre: 'Venezuela (VES)', simbolo: 'Bs', locale: 'es-VE', decimales: 2 },
+]);
 
-// ⚡ BÚSQUEDA O(1): Mapa de monedas por código en scope global
-const MAPA_MONEDAS: Record<string, MonedaConfig> = MONEDAS.reduce((acc, m) => {
-  acc[m.codigo] = m;
-  return acc;
-}, {} as Record<string, MonedaConfig>);
+// ⚡ BÚSQUEDA O(1): Objeto inmutable generado sin callback reduce
+const MAPA_MONEDAS: Readonly<Record<string, MonedaConfig>> = Object.freeze(
+  Object.fromEntries(MONEDAS.map((m) => [m.codigo, m]))
+);
 
-export const MAPA_INDICATIVO_MONEDA: Record<string, string> = {
+export const MAPA_INDICATIVO_MONEDA: Readonly<Record<string, string>> = Object.freeze({
   '+57': 'COP',
   '+593': 'USD',
   '+52': 'MXN',
@@ -40,9 +40,9 @@ export const MAPA_INDICATIVO_MONEDA: Record<string, string> = {
   '+55': 'BRL',
   '+54': 'USD',
   '+58': 'VES',
-};
+});
 
-export const IMPUESTOS_POR_MONEDA: Record<string, TarifaImpuesto[]> = {
+export const IMPUESTOS_POR_MONEDA: Readonly<Record<string, readonly TarifaImpuesto[]>> = Object.freeze({
   COP: [
     { valor: 19, label: '19% - IVA Tarifa General' },
     { valor: 5, label: '5% - IVA Tarifa Reducida' },
@@ -100,33 +100,34 @@ export const IMPUESTOS_POR_MONEDA: Record<string, TarifaImpuesto[]> = {
     { valor: 27, label: '27% - Argentina (Servicios)' },
     { valor: 0, label: '0% - Exento / Sin Impuesto' }
   ]
-};
+});
 
 export const obtenerMonedaPorIndicativo = (indicativo: string): string => {
-  return MAPA_INDICATIVO_MONEDA[indicativo] || 'COP';
+  return MAPA_INDICATIVO_MONEDA[indicativo] ?? 'COP';
 };
 
-export const obtenerTarifasImpuesto = (codigoMoneda: string = 'COP'): TarifaImpuesto[] => {
-  return IMPUESTOS_POR_MONEDA[codigoMoneda] || IMPUESTOS_POR_MONEDA['COP'];
+export const obtenerTarifasImpuesto = (codigoMoneda: string = 'COP'): readonly TarifaImpuesto[] => {
+  return IMPUESTOS_POR_MONEDA[codigoMoneda] ?? IMPUESTOS_POR_MONEDA['COP'];
 };
 
 // ⚡ CACHÉ EN MEMORIA PARA INSTANCIAS DE INTL.NUMBERFORMAT
 const CACHE_FORMATO = new Map<string, Intl.NumberFormat>();
 
 export const formatearMonedaGlobal = (monto: number = 0, codigoMoneda: string = 'COP'): string => {
-  const config = MAPA_MONEDAS[codigoMoneda] || MONEDAS[0];
+  const config = MAPA_MONEDAS[codigoMoneda] ?? MONEDAS[0];
   
   let formatter = CACHE_FORMATO.get(config.codigo);
   if (!formatter) {
-    const decimals = config.codigo === 'CLP' || config.codigo === 'COP' ? 0 : 2;
     formatter = new Intl.NumberFormat(config.locale, {
       style: 'currency',
       currency: config.codigo,
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
+      minimumFractionDigits: config.decimales,
+      maximumFractionDigits: config.decimales
     });
     CACHE_FORMATO.set(config.codigo, formatter);
   }
 
-  return formatter.format(monto || 0);
+  // Protección contra valores no numéricos (NaN, Infinity)
+  const valorValido = Number.isFinite(monto) ? monto : 0;
+  return formatter.format(valorValido);
 };

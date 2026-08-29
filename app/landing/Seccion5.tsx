@@ -20,7 +20,7 @@ interface Seccion5Props {
   variante?: TipoFondo;
 }
 
-const PLANES: PlanPricing[] = [
+const PLANES: readonly PlanPricing[] = Object.freeze([
   {
     id: 'despegue',
     nombre: 'DESPEGUE',
@@ -59,7 +59,7 @@ const PLANES: PlanPricing[] = [
   {
     id: 'experto',
     nombre: 'EXPERTO',
-    badge: '🔥 MÁS ELEGIDO POR LOS PROVEEDORES',
+    badge: '🔥OPCIÓN DE LAS BODEGAS LÍDERES',
     perfil: 'Operaciones de venta a gran escala',
     precioCOP: '$250.000',
     precioUSD: '$69 USD',
@@ -92,26 +92,26 @@ const PLANES: PlanPricing[] = [
     ],
     cta: 'Activar Multi-Cuenta →',
   },
-];
+]);
 
 export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
   const [moneda, setMoneda] = useState<'COP' | 'USD'>('COP');
 
   return (
     <section id="precios" className="relative z-20 py-16 w-full overflow-hidden">       
-   <Fondos variante={variante} modo="absolute" />
+      <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-5">
         
         {/* ENCABEZADO */}
         <div className="text-center mb-12">
-          <Kicker>INVERSIÓN TRANSPARENTE</Kicker>
+          <Kicker varianteFondo={variante}>INVERSIÓN TRANSPARENTE</Kicker>
 
-          <H2 className="text-balance">
-            Planes diseñados para <Highlight>escalar tu rentabilidad.</Highlight>
+          <H2 varianteFondo={variante} className="text-balance">
+            Planes diseñados para <Highlight varianteFondo={variante}>escalar tu rentabilidad.</Highlight>
           </H2>
 
-          <Subtitulo className="max-w-[720px] mx-auto mt-3">
+          <Subtitulo varianteFondo={variante} className="max-w-[720px] mx-auto mt-3">
             Elige el nivel de auditoría que tu bodega necesita hoy y recupera tu capital sin contratos de permanencia.
           </Subtitulo>
 
@@ -137,7 +137,7 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
                   : 'bg-transparent text-slate-400 hover:text-white'
               }`}
             >
-             🌏 Internacional (USD)
+              🌏 Internacional (USD)
             </button>
           </div>
         </div>
@@ -159,11 +159,11 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
                     : 'bg-[#090D16]/60 border border-slate-800/80 opacity-90 hover:opacity-100 hover:border-slate-700 hover:-translate-y-1'
                 }`}
               >
-                {/* BADGE DESTACADO CON MÁSCARA SÓLIDA */}
+                {/* BADGE DESTACADO */}
                 {plan.badge && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
                     {esExperto && (
-                      <div className="absolute inset-0 rounded-full bg-[#0DEDC0] blur-md animate-pulse opacity-80" />
+                      <div className="absolute inset-0 rounded-full bg-[#0DEDC0] blur-md animate-pulse opacity-80 will-change-transform" />
                     )}
                     <span
                       className={`relative z-10 block text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full whitespace-nowrap shadow-md ${
@@ -178,7 +178,6 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
                 )}
 
                 <div>
-                  {/* CABECERA DEL PLAN */}
                   <div className="flex justify-between items-center mb-1">
                     <h3 className={`text-xl font-black tracking-tight ${
                       esExperto ? 'text-[#0DEDC0]' : esControl ? 'text-[#A78BFA]' : 'text-white'
@@ -191,7 +190,6 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
                     {plan.perfil}
                   </p>
 
-                  {/* PRECIO */}
                   <div className="my-4 border-b border-white/10 pb-4 flex items-baseline">
                     <span className={`text-3xl lg:text-4xl font-black tracking-tight font-mono ${
                       esExperto ? 'text-[#0DEDC0]' : esControl ? 'text-white' : 'text-slate-200'
@@ -203,7 +201,6 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
                     </span>
                   </div>
 
-                  {/* CARACTERÍSTICAS */}
                   <ul className="space-y-2.5 mb-8 p-0 list-none">
                     {plan.caracteristicas.map((feat, idx) => (
                       <li
@@ -225,7 +222,6 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
                   </ul>
                 </div>
 
-                {/* BOTÓN CTA */}
                 <a
                   href="https://atomapp.com.co/register"
                   target="_blank"
@@ -245,7 +241,6 @@ export default function Seccion5({ variante = 'gridCyber' }: Seccion5Props) {
           })}
         </div>
 
-        {/* NOTA AL PIE DE SEGURIDAD FINANCIERA */}
         <div className="mt-10 text-center text-xs font-mono text-slate-400 flex items-center justify-center gap-2">
           <span>🔒 Cero contratos de permanencia</span>
           <span>·</span>

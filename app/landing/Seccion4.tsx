@@ -2,14 +2,11 @@
 
 import React from 'react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
-import { Kicker } from '@/app/complementos/Tipografia';
+import { Kicker, esFondoClaro } from '@/app/complementos/Tipografia';
 
 interface Seccion4Props {
   variante?: TipoFondo;
 }
-
-// Data y listas de validación estáticas fuera del componente
-const FONDOS_CLAROS: TipoFondo[] = ['pureWhite' as TipoFondo, 'light' as TipoFondo, 'greenGridLight' as TipoFondo, 'greenDotsLight' as TipoFondo];
 
 const METRICAS = [
   {
@@ -21,7 +18,7 @@ const METRICAS = [
   {
     valor: '99.9%',
     kicker: 'TRAZABILIDAD FINANCIERA',
-    colorClaro: 'text-slate-900',
+    colorClaro: 'text-[#102935]',
     colorOscuro: 'text-white'
   },
   {
@@ -33,15 +30,15 @@ const METRICAS = [
 ];
 
 export default function Seccion4({ variante = 'gridCyber' }: Seccion4Props) {
-  const esClaro = FONDOS_CLAROS.includes(variante);
+  const esClaro = esFondoClaro(variante);
 
   return (
     <section className="relative z-10 py-16 lg:py-20 px-6 overflow-hidden border-b border-[#0DEDC0]/10">
       <Fondos variante={variante} modo="absolute" />
 
-      {/* BORDES LUMINOSOS SUPERIOR E INFERIOR (Uso de CSS global) */}
-      <div className="absolute top-0 inset-x-0 h-[2px] z-20 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep" />
-      <div className="absolute bottom-0 inset-x-0 h-[2px] z-20 bg-[linear-gradient(90deg,transparent_0%,#6884C5_25%,#0DEDC0_50%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep" />
+      {/* BORDES LUMINOSOS SUPERIOR E INFERIOR */}
+      <div className="absolute top-0 inset-x-0 h-[2px] z-20 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep transform-gpu" />
+      <div className="absolute bottom-0 inset-x-0 h-[2px] z-20 bg-[linear-gradient(90deg,transparent_0%,#6884C5_25%,#0DEDC0_50%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep transform-gpu" />
 
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-around items-center gap-10 text-center">
         {METRICAS.map((metrica, idx) => (
@@ -51,9 +48,7 @@ export default function Seccion4({ variante = 'gridCyber' }: Seccion4Props) {
             }`}>
               {metrica.valor}
             </div>
-            <Kicker className={`!text-xs mt-3 !mb-0 ${
-              esClaro ? '!text-slate-600' : '!text-slate-400'
-            }`}>
+            <Kicker varianteFondo={variante} className="!text-xs mt-3 !mb-0">
               {metrica.kicker}
             </Kicker>
           </div>

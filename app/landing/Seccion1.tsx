@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Kicker, H1, Subtitulo, Highlight, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 
@@ -12,12 +12,13 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
 
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(videoRef.current.muted);
+      const nuevoEstado = !videoRef.current.muted;
+      videoRef.current.muted = nuevoEstado;
+      setIsMuted(nuevoEstado);
     }
-  };
+  }, []);
 
   return (
     <section className="relative z-10 py-12 border-b border-[#0DEDC0]/10 overflow-hidden">
@@ -25,27 +26,27 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1Props) {
       {/* CAPA DE FONDO DINÁMICO */}
       <Fondos variante={variante} modo="absolute" />
 
-      {/* BORDE SUPERIOR ANIMADO */}
-      <div className="absolute top-0 inset-x-0 h-[2px] z-20 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep" />
+      {/* BORDE SUPERIOR ANIMADO CON ACELERACIÓN GPU */}
+      <div className="absolute top-0 inset-x-0 h-[2px] z-20 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep transform-gpu" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-8 items-center min-h-[75vh]">
         
         {/* COLUMNA IZQUIERDA: COPY PRINCIPAL */}
         <div className="flex-1 w-full lg:max-w-[600px]">
           
-          <Kicker>SISTEMA DE AUDITORÍA PARA PROVEEDORES</Kicker>
+          <Kicker varianteFondo={variante}>SISTEMA DE AUDITORÍA PARA PROVEEDORES</Kicker>
 
-          <H1 className="mb-4">
-            Deja de regalarle tu dinero a las <Highlight>transportadoras.</Highlight>
+          <H1 varianteFondo={variante} className="mb-4">
+            Deja de regalarle tu dinero a las <Highlight varianteFondo={variante}>transportadoras.</Highlight>
           </H1>
           
-          <Subtitulo className="max-w-[550px] mb-6">
-            ATOM audita tu cuenta Dropi 24/7 y detecta mercancía "devuelta" que jamás reingresó a tu bodega o en "curso" que sigue en la calle. Te damos la información exacta y las pruebas necesarias para recuperar el control de tu inventario y tu dinero.
+          <Subtitulo varianteFondo={variante} className="max-w-[550px] mb-6">
+            ATOM audita tu cuenta Dropi 24/7 y detecta mercancía &quot;devuelta&quot; que jamás reingresó a tu bodega o en &quot;curso&quot; que sigue en la calle. Te damos la información exacta y las pruebas necesarias para recuperar el control de tu inventario y tu dinero.
           </Subtitulo>
           
           <div className="flex flex-col gap-3 mb-8">
             <div className="flex items-center gap-2.5">
-              <svg width="18" height="18" fill="none" stroke="#0DEDC0" viewBox="0 0 24 24" strokeWidth="2.5">
+              <svg width="18" height="18" fill="none" stroke="#0DEDC0" viewBox="0 0 24 24" strokeWidth="2.5" className="shrink-0">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               <span className="text-xs sm:text-sm font-semibold text-slate-300">
@@ -54,7 +55,7 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1Props) {
             </div>
 
             <div className="flex items-center gap-2.5">
-              <svg width="18" height="18" fill="none" stroke="#0DEDC0" viewBox="0 0 24 24" strokeWidth="2.5">
+              <svg width="18" height="18" fill="none" stroke="#0DEDC0" viewBox="0 0 24 24" strokeWidth="2.5" className="shrink-0">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               <span className="text-xs sm:text-sm font-semibold text-slate-300">
@@ -63,7 +64,7 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1Props) {
             </div>
 
             <div className="flex items-center gap-2.5">
-              <svg width="18" height="18" fill="none" stroke="#0DEDC0" viewBox="0 0 24 24" strokeWidth="2.5">
+              <svg width="18" height="18" fill="none" stroke="#0DEDC0" viewBox="0 0 24 24" strokeWidth="2.5" className="shrink-0">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               <span className="text-xs sm:text-sm font-semibold text-slate-300">
@@ -84,7 +85,7 @@ export default function Seccion1({ variante = 'gridCyber' }: Seccion1Props) {
 
         {/* COLUMNA DERECHA: REPRODUCTOR DE VIDEO */}
         <div className="flex-1 w-full max-w-[650px] relative">
-          <div className="absolute -inset-5 bg-[radial-gradient(circle,rgba(13,237,192,0.15)_0%,transparent_60%)] blur-2xl z-0" />
+          <div className="absolute -inset-5 bg-[radial-gradient(circle,rgba(13,237,192,0.15)_0%,transparent_60%)] blur-2xl z-0 pointer-events-none" />
           
           <div className="relative z-10 bg-[#102935]/60 border border-[#0DEDC0]/30 rounded-2xl p-2 shadow-2xl backdrop-blur-md">
             <div className="flex gap-1.5 p-2">

@@ -1,78 +1,53 @@
+/* 1. Las fuentes de Google/Fontshare SIEMPRE van en la primera línea */
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap');
 @import "tailwindcss";
 
+/* 2. Registro del Tema para Tailwind v4 (Habilita clases como bg-atom-cyan, font-sans, etc.) */
+@theme {
+  --font-sans: 'Satoshi', sans-serif;
+
+  --color-atom-gunmetal: #102935;
+  --color-atom-cyan: #0DEDC0;
+  --color-atom-purple: #CB1FDA;
+  --color-atom-blue: #6884C5;
+}
+
+/* 3. Variables Nativas CSS y Modos Claro / Oscuro */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #102935;
+
+  --atom-gunmetal: #102935;
+  --atom-cyan: #0DEDC0;
+  --atom-purple: #CB1FDA;
+  --atom-blue: #6884C5;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #102935;
+    --foreground: #ffffff;
   }
 }
 
+/* 4. Estilos Base y Suavizado de Renderizado Tipográfico */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* ========================================== */
-/* OPTIMIZACIONES DE RENDIMIENTO - SAGITARIO  */
-/* ========================================== */
-
-/* 1. Barrido de luz continuo sobre degradados cian */
-@keyframes borderLightSweep {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+/* Forzar peso Black 900 en encabezados según el manual ATOM */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 900;
+  font-family: var(--font-sans);
 }
 
-.animate-border-sweep {
-  animation: borderLightSweep 4s linear infinite;
-}
-
-/* 2. Pulsación suave del botón principal sin colapsar capas */
-@keyframes pulseActivar {
-  0%, 100% {
-    box-shadow: 0 0 12px rgba(13, 237, 192, 0.4);
-    transform: translateY(0);
-  }
-  50% {
-    box-shadow: 0 0 25px rgba(13, 237, 192, 0.85);
-    transform: translateY(-2px);
-  }
-}
-
-.btn-activar-anim {
-  animation: pulseActivar 2.5s infinite ease-in-out;
-}
-
-/* 3. Marquee continuo de países en hardware GPU */
-@keyframes marqueeScroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.marquee-track {
-  animation: marqueeScroll 30s linear infinite;
-  will-change: transform;
-}
-
-.marquee-container:hover .marquee-track {
-  animation-play-state: paused;
-}
-@keyframes pulseRescue {
-  0% { box-shadow: 0 0 0 0 rgba(13, 237, 192, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(13, 237, 192, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(13, 237, 192, 0); }
-}
-
-.btn-rescue-solid {
-  animation: pulseRescue 2.5s infinite;
-}
-
-/* Animación de borde multicolor rotativo para Seccion3 (Comunidad) */
+/* 5. Animación Borde Multicolor Rotativo (Comunidad / Tarjetas) */
 @keyframes borderRotate {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -93,7 +68,7 @@ body {
   will-change: transform;
 }
 
-/* Animación Neón Pulsante para el Icono del Portal ATOM */
+/* 6. Animación Neón Pulsante para el Icono del Portal ATOM */
 @keyframes neonGlow {
   0%, 100% {
     filter: drop-shadow(0 0 4px #0DEDC0) drop-shadow(0 0 12px rgba(13, 237, 192, 0.6));
@@ -110,8 +85,7 @@ body {
   will-change: transform, filter;
 }
 
-
-/* Animación de crecimiento vertical para barras financieras */
+/* 7. Animación Crecimiento Vertical (Barras de Gráficos Financieros) */
 @keyframes barRise {
   0% {
     transform: scaleY(0);
@@ -129,15 +103,45 @@ body {
   will-change: transform, opacity;
 }
 
-/* Ocultar flechas de inputs numéricos en Chrome, Safari, Edge y Opera */
+/* 8. Normalización e Inhabilitación de Flechas en Inputs Numéricos */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Ocultar flechas en Firefox y navegadores estándar */
 input[type=number] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* 9. Animación Marquee Continuo (Cinta de Países) */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee 25s linear infinite;
+  will-change: transform;
+}
+
+/* 10. Animación Barrido de Bordes Luminosos (Border Sweep) */
+@keyframes borderSweep {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+.animate-border-sweep {
+  animation: borderSweep 5s linear infinite;
+  will-change: background-position;
+}
+

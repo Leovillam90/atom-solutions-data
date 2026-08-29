@@ -18,7 +18,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#070B14]">
       {/* SECCIÓN 1 */}
-      <Seccion1 variante="hexGrid" />
+      <Seccion1 variante="perspectiveGrid" />
 
       {/* SEPARADOR 1 */}
       
@@ -30,7 +30,7 @@ export default function Home() {
      
 
       {/* SECCIÓN 3 */}
-      <Seccion3 variante="hexGrid" />
+      <Seccion3 variante="perspectiveGrid" />
 
       {/* SEPARADOR 3 */}
       
@@ -42,13 +42,13 @@ export default function Home() {
       
 
       {/* SECCIÓN 5 */}
-      <Seccion5 variante="hexGrid" />
+      <Seccion5 variante="perspectiveGrid" />
 
       {/* SEPARADOR 5 */}
       <SeparadorNeon />
 
       {/* SECCIÓN 6 */}
-      <Seccion6 variante="cyanSolidDots" />
+      <Seccion6 variante="perspectiveGrid" />
     </div>
   );
 }
