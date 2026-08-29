@@ -45,7 +45,7 @@ export default function Home() {
       <Seccion5 variante="perspectiveGrid" />
 
       {/* SEPARADOR 5 */}
-      <SeparadorNeon />
+     
 
       {/* SECCIÓN 6 */}
       <Seccion6 variante="perspectiveGrid" />

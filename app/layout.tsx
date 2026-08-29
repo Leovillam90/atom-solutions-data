@@ -25,24 +25,21 @@ export default function RootLayout({
     <html lang="es" className="scroll-smooth">
       <body className="bg-[#091A23] text-white antialiased m-0 p-0 min-h-screen flex flex-col justify-between selection:bg-[#0DEDC0] selection:text-[#061217]">
         
-        {/* PROVEEDOR GLOBAL DE CONTENIDOS CMS */}
         <CMSProvider>
-          
-          {/* 1. Menú principal / Navegación */}
-          <header className="w-full">
+          {/* 1. Menú principal con capa superior explícita */}
+          <header className="w-full relative z-[100]">
             <Menu variante="spotlightCyan" />
           </header>
 
-          {/* 2. Contenedor semántico principal (se expande dinámicamente) */}
-          <main className="flex-1 w-full">
+          {/* 2. Contenido de las páginas */}
+          <main className="flex-1 w-full relative z-10">
             {children}
           </main>
           
           {/* 3. Pie de página de Contacto */}
-          <footer className="w-full">
+          <footer className="w-full relative z-[100]">
             <Contacto variante="spotlightCyan" />
           </footer>
-
         </CMSProvider>
 
       </body>

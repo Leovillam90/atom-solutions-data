@@ -2,17 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  ArrowLeft, 
+  Maximize2, 
+  ShieldCheck, 
+  ExternalLink, 
+  Loader2, 
+  AlertCircle,
+  Radio
+} from 'lucide-react';
+import Fondos from '@/app/complementos/Fondos';
 
 interface Pagina1Props {
   variante?: 'gridCyber' | 'spotlightCyan' | 'hexGrid' | 'default';
 }
-
-const FONDOS_MAP: Record<string, string> = {
-  gridCyber: 'bg-[#070B14]',
-  spotlightCyan: 'bg-[#091A23]',
-  hexGrid: 'bg-[#070B14]',
-  default: 'bg-[#091A23]',
-};
 
 const ATOM_APP_URL = 'https://atomapp.com.co/login';
 
@@ -20,112 +24,116 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   const [cargando, setCargando] = useState<boolean>(true);
   const [mostrarBotonExterno, setMostrarBotonExterno] = useState<boolean>(false);
 
-  const bgClase = FONDOS_MAP[variante] || FONDOS_MAP.default;
-
-  // Temporizador de cortesía: Si el iframe no responde en 6s, ofrece el link directo
+  // Temporizador de cortesía: Si el iframe tarda más de 5s, ofrece link directo
   useEffect(() => {
     const timer = setTimeout(() => {
       if (cargando) {
         setMostrarBotonExterno(true);
       }
-    }, 6000);
+    }, 5000);
     return () => clearTimeout(timer);
   }, [cargando]);
 
   return (
-    <section className={`relative z-10 w-full h-screen h-[100dvh] ${bgClase} flex flex-col overflow-hidden font-sans antialiased`}>
+    <section className="relative z-10 w-full h-screen h-[100dvh] bg-[#070B14] flex flex-col overflow-hidden font-sans antialiased">
       
-      {/* BARRA SUPERIOR DE CONTROL */}
-      <header className="relative z-30 shrink-0 bg-[#091A23] px-4 sm:px-6 py-2.5 flex items-center justify-between border-b border-[#0DEDC0]/20 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+      {/* BARRA SUPERIOR DE CONTROL Y NAVEGACIÓN */}
+      <header className="relative z-30 shrink-0 bg-[#091A23] px-4 sm:px-6 py-2.5 flex items-center justify-between border-b border-[#0DEDC0]/30 shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
         
-        {/* RETORNO A LA LANDING */}
+        {/* RETORNO A LA WEB PRINCIPAL */}
         <Link
           href="/"
           title="Volver a la Web Principal"
-          className="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#102935]/80 border border-[#0DEDC0]/30 hover:border-[#0DEDC0] transition-all hover:bg-[#0DEDC0]/10 cursor-pointer"
+          className="group flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#102935]/80 border border-[#0DEDC0]/40 hover:border-[#0DEDC0] hover:bg-[#0DEDC0]/10 transition-all duration-300 cursor-pointer text-xs font-mono font-bold text-[#0DEDC0]"
         >
-          <div className="transition-transform duration-300 group-hover:-translate-x-0.5">
-            <svg 
-              width="18" 
-              height="18" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="#0DEDC0" 
-              strokeWidth="2.2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-          </div>
-          <span className="text-xs font-mono font-bold text-[#0DEDC0] hidden sm:inline">
-            Volver a ATOM
-          </span>
+          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+          <span className="hidden sm:inline">Volver a ATOM</span>
         </Link>
 
-        {/* INDICADOR DE ESTADO */}
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[#0DEDC0] animate-pulse" />
-          <span className="text-xs font-mono text-slate-300 font-bold uppercase tracking-wider">
+        {/* INDICADOR DE ESTADO EN VIVO */}
+        <div className="flex items-center gap-2 bg-[#102935]/60 px-3 py-1 rounded-full border border-white/10">
+          <Radio className="w-3.5 h-3.5 text-[#0DEDC0] animate-pulse" />
+          <span className="text-[11px] font-mono text-slate-200 font-extrabold uppercase tracking-wider">
             Portal Operativo ATOM
           </span>
         </div>
 
-        {/* BOTÓN RESCATE PESTAÑA INDEPENDIENTE */}
+        {/* BOTÓN EXPANDIR EN PESTAÑA INDEPENDIENTE */}
         <a
           href={ATOM_APP_URL}
           target="_blank"
           rel="noopener noreferrer"
           title="Abrir en ventana completa"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#102935]/60 border border-slate-700 hover:border-[#0DEDC0] text-slate-300 hover:text-white text-xs font-mono font-semibold transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#102935] border border-slate-700 hover:border-[#0DEDC0] text-slate-300 hover:text-white text-xs font-mono font-bold transition-all cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(13,237,192,0.2)]"
         >
-          <span className="hidden sm:inline">Expandir portal</span>
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
+          <span className="hidden sm:inline">Expandir Portal</span>
+          <Maximize2 className="w-3.5 h-3.5 text-[#0DEDC0]" />
         </a>
 
-        {/* LÍNEA DIVISORIA CON ILUMINACIÓN */}
-        <div className="absolute bottom-0 inset-x-0 h-[1.5px] z-20 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[size:200%_100%] animate-border-sweep" />
+        {/* LÍNEA DIVISORIA LUMINOSA */}
+        <div className="absolute bottom-0 inset-x-0 h-[2px] z-20 bg-[linear-gradient(90deg,transparent_0%,#0DEDC0_50%,#6884C5_75%,transparent_100%)] bg-[length:200%_100%] animate-border-sweep" />
       </header>
 
-      {/* CONTENEDOR DEL IFRAME */}
-      <div className={`relative z-10 flex-1 w-full h-full ${bgClase} overflow-hidden`}>
+      {/* CONTENEDOR DEL IFRAME Y OVERLAY DE CARGA */}
+      <div className="relative z-10 flex-1 w-full h-full bg-[#070B14] overflow-hidden">
         
-        {/* PANTALLA Y SPINNER DE CARGA */}
-        {cargando && (
-          <div className={`absolute inset-0 z-20 flex flex-col items-center justify-center ${bgClase} p-6 gap-4 text-center`}>
-            <div className="w-11 h-11 border-4 border-[#0DEDC0] border-t-transparent rounded-full animate-spin shadow-[0_0_20px_rgba(13,237,192,0.3)]" />
-            
-            <div className="space-y-1">
-              <p className="text-xs font-mono text-[#0DEDC0] tracking-widest uppercase font-bold">
-                Estableciendo enlace seguro con atomapp.com.co...
-              </p>
-              <p className="text-[11px] font-sans text-slate-400 max-w-sm">
-                Conectando plataforma e inventarios en tiempo real.
-              </p>
-            </div>
+        {/* OVERLAY DE CARGA ANIMADO */}
+        <AnimatePresence>
+          {cargando && (
+            <motion.div 
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#070B14] p-6 gap-5 text-center"
+            >
+              <Fondos variante="atomDynamicGradient" modo="absolute" />
 
-            {mostrarBotonExterno && (
-              <div className="mt-4 p-4 rounded-2xl bg-[#090D16] border border-amber-500/40 text-amber-300 text-xs space-y-2 max-w-md animate-fade-in">
-                <p>¿Tu navegador restringe cookies dentro de un marco?</p>
-                <a
-                  href={ATOM_APP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block px-4 py-2 bg-amber-500 text-[#090D16] font-bold rounded-xl text-xs uppercase tracking-wider hover:bg-white transition-all cursor-pointer"
-                >
-                  Abrir App Directamente →
-                </a>
+              <div className="relative z-10 flex flex-col items-center gap-4">
+                <div className="relative flex items-center justify-center">
+                  <div className="w-14 h-14 border-4 border-[#0DEDC0]/20 border-t-[#0DEDC0] rounded-full animate-spin shadow-[0_0_25px_rgba(13,237,192,0.4)]" />
+                  <ShieldCheck className="w-6 h-6 text-[#0DEDC0] absolute" />
+                </div>
+                
+                <div className="space-y-1">
+                  <p className="text-xs font-mono text-[#0DEDC0] tracking-widest uppercase font-black">
+                    Estableciendo enlace seguro con atomapp.com.co...
+                  </p>
+                  <p className="text-[11px] font-sans text-slate-400 max-w-sm font-medium">
+                    Sincronizando portal de auditoría e inventarios en tiempo real.
+                  </p>
+                </div>
+
+                {/* BOTÓN RESCATE EN CASO DE BLOQUEO DE COOKIES */}
+                {mostrarBotonExterno && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-3 p-4 rounded-2xl bg-[#090D16]/90 border border-amber-500/40 text-amber-300 text-xs space-y-2.5 max-w-md shadow-2xl backdrop-blur-md"
+                  >
+                    <div className="flex items-center gap-2 justify-center font-bold">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+                      <span>¿Tu navegador restringe sesiones embebidas?</span>
+                    </div>
+                    <a
+                      href={ATOM_APP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-white text-[#090D16] font-black rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg"
+                    >
+                      <span>Abrir App en Pestaña Directa</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </motion.div>
+                )}
               </div>
-            )}
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* PLATAFORMA ATOM EMBEDDED */}
+        {/* EMBED DEL APLICATIVO */}
         <iframe
           src={ATOM_APP_URL}
-          title="ATOM App Portal"
+          title="ATOM App Portal Operativo"
           className="w-full h-full border-0 block"
           onLoad={() => setCargando(false)}
           allow="geolocation; microphone; camera; clipboard-write; encrypted-media; autoplay; storage-access"

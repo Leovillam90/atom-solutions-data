@@ -1,6 +1,19 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Sparkles, 
+  Calendar, 
+  Clock, 
+  User, 
+  ArrowRight, 
+  Radio, 
+  ChevronLeft, 
+  ChevronRight,
+  Volume2,
+  VolumeX
+} from 'lucide-react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H1, Subtitulo, Highlight, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 
@@ -47,7 +60,7 @@ const esVideo = (url: string) => {
 
 export default function Pagina1({
   articuloPrincipal = ARTICULO_DEFAULT,
-  variante = 'gridCyber',
+  variante = 'atomDynamicGradient',
 }: Pagina1Props) {
   const [indexHistoria, setIndexHistoria] = useState(0);
   const [pausado, setPausado] = useState(false);
@@ -60,16 +73,14 @@ export default function Pagina1({
   const historiaActual = historias[indexHistoria];
   const esVideoActual = esVideo(historiaActual);
 
-  // 1. CARROUSEL AUTOMÁTICO
   useEffect(() => {
     if (pausado) return;
     const timer = setInterval(() => {
       setIndexHistoria((prev) => (prev + 1) % historias.length);
-    }, 4000);
+    }, 4500);
     return () => clearInterval(timer);
   }, [historias.length, pausado]);
 
-  // 2. FORZAR REPRODUCCIÓN NATIVA DEL VIDEO AL CAMBIAR DE SLIDE
   useEffect(() => {
     if (esVideoActual && videoRef.current) {
       videoRef.current.defaultMuted = true;
@@ -97,18 +108,28 @@ export default function Pagina1({
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center">
         
         {/* HERO CABECERA */}
-        <div className="text-center mb-12">
-          <Kicker>INTELIGENCIA & CONTENIDO</Kicker>
-          <H1 className="text-balance mb-4 max-w-4xl mx-auto">
-            Noticias del Ecosistema <Highlight>E-Commerce LATAM.</Highlight>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <Kicker varianteFondo={variante}>INTELIGENCIA & CONTENIDO</Kicker>
+          <H1 varianteFondo={variante} className="text-balance mb-4 max-w-4xl mx-auto">
+            Noticias del Ecosistema <Highlight varianteFondo={variante}>E-Commerce LATAM.</Highlight>
           </H1>
-          <Subtitulo className="max-w-3xl mx-auto">
+          <Subtitulo varianteFondo={variante} className="max-w-3xl mx-auto">
             Información estratégica, métricas operativas y actualizaciones logísticas para proveedores, importadores y dropshippers.
           </Subtitulo>
-        </div>
+        </motion.div>
 
-        {/* TARJETA DESTACADA */}
-        <div className="w-full relative bg-[#102935]/50 backdrop-blur-xl border border-[#0DEDC0]/30 rounded-3xl p-6 sm:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.6)] overflow-hidden">
+        {/* TARJETA DESTACADA PRINCIPAL */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="w-full relative bg-[#090D16]/90 backdrop-blur-xl border border-[#0DEDC0]/40 rounded-3xl p-6 sm:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.7)] overflow-hidden"
+        >
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#0DEDC0] to-transparent" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
@@ -118,21 +139,27 @@ export default function Pagina1({
               <div>
                 <div className="flex items-center gap-3 mb-4 flex-wrap">
                   <span 
-                    className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border"
+                    className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 shadow-sm"
                     style={{
                       color: articuloPrincipal.tagColor,
                       backgroundColor: `${articuloPrincipal.tagColor}18`,
                       borderColor: `${articuloPrincipal.tagColor}40`,
                     }}
                   >
-                    🎯 {articuloPrincipal.categoria}
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {articuloPrincipal.categoria}
                   </span>
-                  <span className="text-slate-400 text-xs font-semibold font-mono">
-                    {articuloPrincipal.fecha} | {articuloPrincipal.tiempoLectura}
+                  
+                  <span className="text-slate-400 text-xs font-semibold font-mono flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#0DEDC0]" /> {articuloPrincipal.fecha}
+                  </span>
+                  
+                  <span className="text-slate-400 text-xs font-semibold font-mono flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-[#0DEDC0]" /> {articuloPrincipal.tiempoLectura}
                   </span>
                 </div>
 
-                <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-4 tracking-tight">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-4 tracking-tight">
                   {articuloPrincipal.titulo}
                 </h2>
 
@@ -142,22 +169,23 @@ export default function Pagina1({
               </div>
 
               <div className="flex items-center justify-between flex-wrap gap-4 pt-4 border-t border-white/10">
-                <span className="text-slate-300 text-xs sm:text-sm font-bold">
-                  Por <span className="text-[#0DEDC0]">{articuloPrincipal.autor}</span>
+                <span className="text-slate-300 text-xs sm:text-sm font-bold flex items-center gap-1.5">
+                  <User className="w-4 h-4 text-[#0DEDC0]" /> Por <span className="text-[#0DEDC0]">{articuloPrincipal.autor}</span>
                 </span>
 
                 <a 
                   href={LINK_WHATSAPP_EXPO}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`bg-[#0DEDC0] hover:bg-white text-[#102935] font-black px-6 py-3 rounded-xl text-xs uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(13,237,192,0.2)] hover:shadow-[0_0_30px_rgba(13,237,192,0.4)] cursor-pointer inline-flex items-center justify-center gap-2 ${ESTILOS_TEXTO.boton}`}
+                  className={`bg-[#0DEDC0] hover:bg-white text-[#102935] font-black px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(13,237,192,0.3)] hover:shadow-[0_0_30px_rgba(13,237,192,0.6)] hover:-translate-y-0.5 cursor-pointer inline-flex items-center justify-center gap-2 ${ESTILOS_TEXTO.boton}`}
                 >
-                  SABER MÁS SOBRE EL EVENTO EXPO WINNERS →
+                  <span>SABER MÁS DEL EVENTO EXPO WINNERS</span>
+                  <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
             </div>
 
-            {/* MÓDULO VISOR HISTORIA IG */}
+            {/* MÓDULO VISOR HISTORIA TIPO IG/TIKTOK */}
             <div className="lg:col-span-5 flex justify-center items-center relative py-4">
               <div className="absolute -inset-4 bg-gradient-to-r from-[#0DEDC0]/30 via-[#6884C5]/20 to-[#CB1FDA]/30 rounded-3xl blur-3xl pointer-events-none animate-pulse" />
 
@@ -169,34 +197,45 @@ export default function Pagina1({
               >
                 <div className="relative w-full h-full rounded-[24px] overflow-hidden bg-black flex items-center justify-center">
                   
-                  {!esVideoActual && (
-                    <img 
-                      src={historiaActual} 
-                      alt="Ambient Background"
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-125 pointer-events-none"
-                    />
-                  )}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={indexHistoria}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 1.05 }}
+                      transition={{ duration: 0.3 }}
+                      className="w-full h-full relative"
+                    >
+                      {!esVideoActual && (
+                        <img 
+                          src={historiaActual} 
+                          alt="Ambient Background"
+                          loading="lazy"
+                          className="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-125 pointer-events-none"
+                        />
+                      )}
 
-                  {esVideoActual ? (
-                    <video 
-                      ref={videoRef}
-                      key={historiaActual} 
-                      src={historiaActual} 
-                      className="relative z-10 w-full h-full object-cover transition-all duration-500"
-                      autoPlay 
-                      muted 
-                      loop 
-                      playsInline
-                    />
-                  ) : (
-                    <img 
-                      src={historiaActual} 
-                      alt={`Historia destacada ${indexHistoria + 1}`}
-                      loading="lazy"
-                      className="relative z-10 w-full h-full object-contain transition-all duration-500"
-                    />
-                  )}
+                      {esVideoActual ? (
+                        <video 
+                          ref={videoRef}
+                          key={historiaActual} 
+                          src={historiaActual} 
+                          className="relative z-10 w-full h-full object-cover transition-all duration-500"
+                          autoPlay 
+                          muted 
+                          loop 
+                          playsInline
+                        />
+                      ) : (
+                        <img 
+                          src={historiaActual} 
+                          alt={`Historia destacada ${indexHistoria + 1}`}
+                          loading="lazy"
+                          className="relative z-10 w-full h-full object-contain transition-all duration-500"
+                        />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
 
                   <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/80 via-black/20 to-transparent pointer-events-none z-20" />
                   <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none z-20" />
@@ -234,25 +273,25 @@ export default function Pagina1({
                       </div>
                     </div>
 
-                    <span className="text-[9px] font-mono font-black uppercase tracking-wider bg-red-500/80 text-white px-2 py-0.5 rounded-full border border-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)] backdrop-blur-md">
-                      ● LIVE
+                    <span className="text-[9px] font-mono font-black uppercase tracking-wider bg-red-500/80 text-white px-2 py-0.5 rounded-full border border-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)] backdrop-blur-md flex items-center gap-1">
+                      <Radio className="w-3 h-3 animate-pulse" /> LIVE
                     </span>
                   </div>
 
-                  {/* FLECHAS HOVER */}
+                  {/* CONTROLES LATERALES EN HOVER */}
                   <div className="absolute inset-y-0 left-0 w-12 z-30 flex items-center justify-start pl-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    <div className="w-7 h-7 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center text-xs backdrop-blur-md">
-                      ‹
+                    <div className="w-7 h-7 rounded-full bg-black/70 border border-white/20 text-white flex items-center justify-center backdrop-blur-md">
+                      <ChevronLeft className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="absolute inset-y-0 right-0 w-12 z-30 flex items-center justify-end pr-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    <div className="w-7 h-7 rounded-full bg-black/60 border border-white/20 text-white flex items-center justify-center text-xs backdrop-blur-md">
-                      ›
+                    <div className="w-7 h-7 rounded-full bg-black/70 border border-white/20 text-white flex items-center justify-center backdrop-blur-md">
+                      <ChevronRight className="w-4 h-4" />
                     </div>
                   </div>
 
-                  {/* PIE DE VISTA */}
-                  <div className="absolute bottom-3 inset-x-3 z-30 flex items-center justify-between text-[10px] text-slate-300 font-mono pointer-events-none bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+                  {/* FOOTER DE ESTADO */}
+                  <div className="absolute bottom-3 inset-x-3 z-30 flex items-center justify-between text-[10px] text-slate-300 font-mono pointer-events-none bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
                     <span className="text-[#0DEDC0] font-bold">Toca para cambiar</span>
                     <span className="bg-[#0DEDC0]/20 text-[#0DEDC0] px-1.5 py-0.5 rounded font-bold">
                       {indexHistoria + 1} / {historias.length}
@@ -265,7 +304,7 @@ export default function Pagina1({
             </div>
 
           </div>
-        </div>
+        </motion.div>
 
       </div>
     </section>

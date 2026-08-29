@@ -1,30 +1,19 @@
+'use client';
+
+import React from 'react';
 import Pagina1 from './paginas/Pagina1';
 import Pagina2 from './paginas/Pagina2';
 
-// Componente separador reutilizable
-function SeparadorNeon() {
+export default function AcademyPage() {
   return (
-    <div className="relative max-w-6xl mx-auto px-6 my-6">
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-[#0DEDC0]/30 to-transparent" />
-    </div>
-  );
-}
+    <main className="min-h-screen bg-[#070B14] text-white w-full overflow-x-hidden font-sans">
+      
+      {/* 1. CENTRO DE LECCIONES EN VIDEO INTERACTIVAS */}
+      <Pagina1 variante="perspectiveGrid" />
 
-export default function NoticiasPage() {
-  return (
-    <div className="min-h-screen bg-[#070B14] text-white">
-      {/* PÁGINA 1 */}
-      <Pagina1 variante="hexGrid" />
+      {/* 2. BIBLIOTECA DE RECURSOS, PROTOCOLOS Y DOCUMENTACIÓN */}
+      <Pagina2 variante="perspectiveGrid" />
 
-      {/* SEPARADOR 1 */}
-      <SeparadorNeon />
-
-      {/* PÁGINA 2 */}
-      <Pagina2 variante="hexGrid" />
-
-      {/* SEPARADOR 2 */}
-      <SeparadorNeon />
-
-    </div>
+    </main>
   );
 }

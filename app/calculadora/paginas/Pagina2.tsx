@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { Download, Sparkles } from 'lucide-react';
 import { MonedaConfig } from '@/app/lib/moneda';
 import { EscenarioTipo } from './Pagina1';
 
@@ -57,21 +59,16 @@ export default function Pagina2({
   const bonoElegido = esOp1 ? (metricas?.comisionOp1 ?? 0) : (metricas?.comisionOp2 ?? 0);
   const bonoTotalLote = esOp1 ? (metricas?.totalComisionOp1 ?? 0) : (metricas?.totalComisionOp2 ?? 0);
 
-  // CÁLCULOS KPI DE DEVOLUCIÓN Y EFECTIVIDAD
   const pctProvisionDev = Math.round((metricas?.devActivo ?? 0) * 100);
-  const pctDevMaxTolerada = Math.min(100, pctProvisionDev + 5); // Provisión + 5% máximo
+  const pctDevMaxTolerada = Math.min(100, pctProvisionDev + 5); 
   const pctEfectividadMin = Math.max(0, 100 - pctDevMaxTolerada);
 
-  // FUNCIÓN PARA DESCARGAR LA VISTA PREVIA COMO IMAGEN (Usando html2canvas-pro)
+  // DESCARGA CON NOTIFICACIÓN FLOTANTE SONNER
   const descargarImagen = async () => {
     setDescargando(true);
-    
-    // PAUSA ESTRATÉGICA: Damos 150ms para que React renderice el "spinner" 
-    // y el DOM se quede quieto antes de tomar la foto.
     await new Promise((resolve) => setTimeout(resolve, 150));
 
     try {
-      // Importación dinámica robusta de la versión PRO
       const module = await import('html2canvas-pro');
       const html2canvas = module.default || module;
 
@@ -80,22 +77,28 @@ export default function Pagina2({
         throw new Error("No se encontró el elemento a capturar");
       }
 
-      // Generación del Canvas con configuración de compatibilidad máxima
       const canvas = await html2canvas(elemento, {
-        scale: 2, // Alta resolución
+        scale: 2,
         backgroundColor: '#F8FAFC',
-        useCORS: true, // Esto permite el logo sin bloquear la descarga
-        logging: false, // Evita spam en la consola
+        useCORS: true,
+        logging: false,
       });
 
-      // Descarga automática
       const enlace = document.createElement('a');
       enlace.download = `Acuerdo_B2B_${(nombreProveedor || 'ATOM').replace(/\s+/g, '_')}.png`;
       enlace.href = canvas.toDataURL('image/png');
       enlace.click();
+
+      // NOTIFICACIÓN SONNER TOAST
+      toast.success('Acuerdo Comercial B2B generado', {
+        description: `Se guardó correctamente el documento de propuesta para ${nombreProveedor || 'tu empresa'}.`,
+      });
+
     } catch (error) {
       console.error('Detalle técnico del error:', error);
-      alert('Hubo un error al generar la imagen. Verifica la consola para más detalles.');
+      toast.error('Error al generar la imagen', {
+        description: 'Verifica la consola para más información sobre la descarga.',
+      });
     } finally {
       setDescargando(false);
     }
@@ -263,14 +266,11 @@ export default function Pagina2({
         {/* DISTRIBUCIÓN PRINCIPAL DE 2 COLUMNAS */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-4 items-start">
           
-          {/* COLUMNA IZQUIERDA: GUÍA DE EFICIENCIA ÚNICAMENTE */}
+          {/* COLUMNA IZQUIERDA: PLAYBOOK ATOM */}
           <div className="lg:col-span-5 space-y-6">
-            
-            {/* GUÍA DE EFICIENCIA (PLAYBOOK ATOM) */}
             <div className="bg-[#090D16]/95 p-6 rounded-2xl border border-[#0DEDC0]/30 shadow-xl space-y-5">
               <div className="border-b border-slate-800 pb-3 flex justify-between items-center">
                 <div>
-                  {/* EFECTO NEÓN SUTIL EN PLAYBOOK ATOM */}
                   <span className="text-[10px] font-mono font-bold text-[#0DEDC0] uppercase tracking-widest block drop-shadow-[0_0_8px_rgba(13,237,192,0.8)] mb-1">
                     PLAYBOOK ATOM
                   </span>
@@ -278,8 +278,8 @@ export default function Pagina2({
                     Guía de Eficiencia Operativa
                   </h4>
                 </div>
-                <span className="text-[10px] font-mono text-[#0DEDC0] bg-[#0DEDC0]/10 px-2 py-0.5 rounded border border-[#0DEDC0]/30 font-bold">
-                  ⚡ Best Practices
+                <span className="text-[10px] font-mono text-[#0DEDC0] bg-[#0DEDC0]/10 px-2 py-0.5 rounded border border-[#0DEDC0]/30 font-bold flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" /> Best Practices
                 </span>
               </div>
 
@@ -321,14 +321,17 @@ export default function Pagina2({
                 </div>
               </div>
             </div>
-
           </div>
 
-          {/* COLUMNA DERECHA: DOCUMENTO DE PAPEL FÍSICO */}
-          <div className="lg:col-span-7">
-            <div id="documento-oficial" className="w-full bg-[#F8FAFC] p-6 sm:p-7 rounded-2xl border border-slate-300 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] space-y-4 text-slate-900 font-sans relative overflow-hidden">
+          {/* COLUMNA DERECHA: DOCUMENTO OFICIAL B2B CON LUZ DE RESPLANDOR NEÓN */}
+          <div className="lg:col-span-7 relative">
+            
+            {/* LUZ DE RESPLANDOR AMBIENTAL DETRÁS DEL DOCUMENTO */}
+            <div className="absolute -inset-2 bg-[#0DEDC0]/15 rounded-3xl blur-2xl pointer-events-none" />
+
+            <div id="documento-oficial" className="relative z-10 w-full bg-[#F8FAFC] p-6 sm:p-7 rounded-2xl border-2 border-[#0DEDC0]/40 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(13,237,192,0.18)] space-y-4 text-slate-900 font-sans overflow-hidden">
               
-              {/* ENCABEZADO DE PAPEL Y BOTÓN DE DESCARGA */}
+              {/* ENCABEZADO DE PAPEL */}
               <div className="border-b-2 border-slate-900 pb-3 flex justify-between items-end">
                 <div>
                   <span className="text-[11px] sm:text-[12px] font-black text-slate-900 px-0 py-0.5 uppercase tracking-wider block">
@@ -339,26 +342,23 @@ export default function Pagina2({
                   </span>
                 </div>
                 
-                {/* LADO DERECHO: BOTÓN DE DESCARGA (data-html2canvas-ignore evita que salga en la foto) */}
                 <div className="flex-shrink-0" data-html2canvas-ignore="true">
                   <button 
                     onClick={descargarImagen}
                     disabled={descargando}
                     title="Descargar Documento como Imagen"
-                    className="p-1.5 bg-slate-800 hover:bg-slate-700 text-[#0DEDC0] border border-slate-600 rounded-lg shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center cursor-pointer group"
+                    className="p-2 bg-slate-800 hover:bg-slate-700 text-[#0DEDC0] border border-slate-600 rounded-lg shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center cursor-pointer group"
                   >
                     {descargando ? (
                       <div className="w-4 h-4 border-2 border-[#0DEDC0] border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
+                      <Download className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* SECCIÓN 1: DATOS DE OPERACIÓN */}
+              {/* SECCIÓN 1 */}
               <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-1.5 text-[11px]">
                 <span className="text-[#0A1923] font-mono font-bold block text-[11px] border-b border-slate-100 pb-1 uppercase">
                   1. DATOS DE OPERACIÓN
@@ -383,7 +383,7 @@ export default function Pagina2({
                 </div>
               </div>
 
-              {/* SECCIÓN 2: ESTRUCTURA FINANCIERA */}
+              {/* SECCIÓN 2 */}
               <div className="bg-slate-100 p-3.5 rounded-xl border-l-4 border-slate-900 space-y-1.5 text-[11px]">
                 <span className="text-[#0A1923] font-mono font-bold block text-[11px] uppercase">
                   2. ESTRUCTURA FINANCIERA
@@ -402,7 +402,7 @@ export default function Pagina2({
                 </div>
               </div>
 
-              {/* SECCIÓN 3: KPIS Y REGLAS DEL NEGOCIO */}
+              {/* SECCIÓN 3 */}
               <div className="bg-slate-100 p-3.5 rounded-xl border-l-4 border-amber-500 space-y-1.5 text-[11px]">
                 <span className="text-[#0A1923] font-mono font-bold block text-[11px] uppercase">
                   3. KPIS Y REGLAS DEL NEGOCIO
@@ -416,7 +416,6 @@ export default function Pagina2({
                   <span className="font-mono font-bold text-slate-900">{pctProvisionDev}%</span>
                 </div>
 
-                {/* DEVOLUCIÓN MÁXIMA TOLERADA (SIN EFECTO CAJÓN, COLOR ROSA/ROJO) */}
                 <div className="flex justify-between items-center pt-2 border-t border-slate-200 mt-1">
                   <span className="font-bold text-gray-800">Devolución Máxima Tolerada:</span>
                   <div className="flex items-center gap-1.5">
@@ -431,7 +430,7 @@ export default function Pagina2({
                 </div>
               </div>
 
-              {/* SECCIÓN 4: CONDICIÓN DE DESEMBOLSO */}
+              {/* SECCIÓN 4 */}
               <div className="bg-slate-100 p-3.5 rounded-xl border-l-4 border-indigo-600 space-y-1.5 text-[11px]">
                 <span className="text-[#0A1923] font-mono font-bold block text-[11px] uppercase">
                   4. CONDICIÓN DE DESEMBOLSO
@@ -441,9 +440,8 @@ export default function Pagina2({
                 </p>
               </div>
 
-              {/* PIE DE PÁGINA CON LOGO CENTRADO */}
+              {/* PIE DE PÁGINA CON LOGO */}
               <div className="pt-4 border-t border-slate-300 flex items-center justify-center">
-                {/* CENTRO: LOGO ATOM */}
                 <div className="flex flex-col items-center justify-center">
                   <img src="/LOGO_ATOM.png" alt="ATOM Logo" crossOrigin="anonymous" className="h-6 w-auto object-contain opacity-100 mb-1" />
                   <span className="text-[8px] font-mono text-gray-500 uppercase tracking-wide">

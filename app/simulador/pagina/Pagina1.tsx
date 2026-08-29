@@ -1,6 +1,25 @@
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Building2, 
+  ShoppingBag, 
+  ChevronDown, 
+  Check, 
+  HelpCircle, 
+  ShieldAlert, 
+  TrendingUp, 
+  Sparkles, 
+  Calculator, 
+  AlertTriangle,
+  Package,
+  Truck,
+  Target,
+  BarChart3,
+  DollarSign,
+  Percent
+} from 'lucide-react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H1, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
 import { MONEDAS, MonedaConfig, formatearMonedaGlobal } from '@/app/lib/moneda';
@@ -14,13 +33,13 @@ interface Pagina1Props {
 // COMPONENTE TOOLTIP OPTIMIZADO
 function Tooltip({ contenido }: { contenido: string }) {
   return (
-    <div className="relative inline-flex items-center group ml-1.5 align-middle z-0 hover:z-50">
+    <div className="relative inline-flex items-center group ml-1.5 align-middle z-10 hover:z-50">
       <span className="w-4 h-4 rounded-full bg-[#102935] border border-[#0DEDC0]/50 text-[#0DEDC0] text-[10px] font-mono font-bold flex items-center justify-center cursor-help transition-all duration-200 group-hover:bg-[#0DEDC0] group-hover:text-[#090D16] group-hover:scale-110 shrink-0 shadow-[0_0_8px_rgba(13,237,192,0.2)]">
         ?
       </span>
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center w-60 p-3 bg-[#090D16] border border-[#0DEDC0]/50 rounded-xl text-[11px] font-sans text-slate-200 font-normal normal-case tracking-normal shadow-[0_15px_30px_rgba(0,0,0,0.9)] z-0 group-hover:z-[9999] leading-relaxed text-center">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center w-64 p-3 bg-[#090D16] border border-[#0DEDC0]/50 rounded-xl text-[11px] font-sans text-slate-200 font-normal normal-case tracking-normal shadow-[0_15px_30px_rgba(0,0,0,0.9)] z-50 leading-relaxed text-center">
         {contenido}
-        <div className="w-2 h-2 bg-[#090D16] border-r border-b border-[#0DEDC0]/50 rotate-45 -mb-4 mt-1" />
+        <div className="w-2.5 h-2.5 bg-[#090D16] border-r border-b border-[#0DEDC0]/50 rotate-45 -mb-4 mt-1" />
       </div>
     </div>
   );
@@ -72,64 +91,67 @@ function SelectorMonedaCustom({
           <span className="truncate">{monedaSeleccionada.nombre}</span>
         </div>
 
-        <svg
+        <ChevronDown
           className={`w-4 h-4 text-[#0DEDC0] transition-transform duration-300 ${
             abierto ? 'rotate-180' : ''
           }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-        </svg>
+        />
       </button>
 
       {/* Lista Desplegable Flotante */}
-      {abierto && (
-        <div className="absolute top-full left-0 w-full mt-2 bg-[#090D16]/95 backdrop-blur-xl border border-[#0DEDC0]/40 rounded-xl shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-50 overflow-hidden animate-in fade-in duration-200 transform-gpu">
-          <div className="max-h-56 overflow-y-auto py-1 divide-y divide-slate-800/60 custom-scrollbar">
-            {MONEDAS.map((m) => {
-              const esSeleccionada = m.codigo === monedaSeleccionada.codigo;
-              return (
-                <button
-                  key={m.codigo}
-                  type="button"
-                  onClick={() => {
-                    setMonedaSeleccionada(m);
-                    setAbierto(false);
-                  }}
-                  className={`w-full text-left px-3.5 py-2.5 text-xs font-bold transition-all duration-150 flex items-center justify-between cursor-pointer ${
-                    esSeleccionada
-                      ? 'bg-[#102935] text-[#0DEDC0]'
-                      : 'text-slate-300 hover:bg-[#102935]/60 hover:text-[#0DEDC0]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                        esSeleccionada
-                          ? 'bg-[#0DEDC0]/20 text-[#0DEDC0] border border-[#0DEDC0]/40'
-                          : 'bg-slate-800 text-slate-400'
-                      }`}
-                    >
-                      {m.codigo}
-                    </span>
-                    <span>{m.nombre}</span>
-                  </div>
-                  {esSeleccionada && (
-                    <span className="text-[#0DEDC0] font-black text-sm">✓</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {abierto && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 w-full mt-2 bg-[#090D16]/95 backdrop-blur-xl border border-[#0DEDC0]/40 rounded-xl shadow-[0_15px_35px_rgba(0,0,0,0.9)] z-50 overflow-hidden"
+          >
+            <div className="max-h-56 overflow-y-auto py-1 divide-y divide-slate-800/60 custom-scrollbar">
+              {MONEDAS.map((m) => {
+                const esSeleccionada = m.codigo === monedaSeleccionada.codigo;
+                return (
+                  <button
+                    key={m.codigo}
+                    type="button"
+                    onClick={() => {
+                      setMonedaSeleccionada(m);
+                      setAbierto(false);
+                    }}
+                    className={`w-full text-left px-3.5 py-2.5 text-xs font-bold transition-all duration-150 flex items-center justify-between cursor-pointer ${
+                      esSeleccionada
+                        ? 'bg-[#102935] text-[#0DEDC0]'
+                        : 'text-slate-300 hover:bg-[#102935]/60 hover:text-[#0DEDC0]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                          esSeleccionada
+                            ? 'bg-[#0DEDC0]/20 text-[#0DEDC0] border border-[#0DEDC0]/40'
+                            : 'bg-slate-800 text-slate-400'
+                        }`}
+                      >
+                        {m.codigo}
+                      </span>
+                      <span>{m.nombre}</span>
+                    </div>
+                    {esSeleccionada && (
+                      <Check className="w-4 h-4 text-[#0DEDC0]" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
+export default function Pagina1({ variante = 'perspectiveGrid' }: Pagina1Props) {
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
   const [modoSeleccionado, setModoSeleccionado] = useState<ModoCalculadora>('PROVEEDOR');
 
@@ -221,9 +243,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
       <div className="relative z-10 max-w-6xl mx-auto space-y-10">
         
         {/* CABECERA */}
-        <div className="border-b border-slate-800 pb-6">
-          <Kicker varianteFondo={variante}>HERRAMIENTA DE DIAGNÓSTICO</Kicker>
-          <H1 varianteFondo={variante} className="text-balance mb-2">
+        <div className="border-b border-slate-800 pb-6 text-center sm:text-left">
+          <Kicker varianteFondo={variante}>HERRAMIENTA DE DIAGNÓSTICO</Kicker>          <H1 varianteFondo={variante} className="text-balance mb-2">
             Simulador de <Highlight varianteFondo={variante}>Rentabilidad Real.</Highlight>
           </H1>
           <Subtitulo varianteFondo={variante} className="max-w-2xl">
@@ -231,45 +252,56 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
           </Subtitulo>
         </div>
 
-        {/* SELECCIÓN DE MODO */}
-        <div className="flex bg-[#090D16] p-1.5 rounded-2xl border border-slate-800 w-full max-w-md mx-auto relative z-20 shadow-lg">
+        {/* SELECCIÓN DE MODO ANIMADO CON FRAMER MOTION */}
+        <div className="flex bg-[#090D16] p-1.5 rounded-2xl border border-slate-800 w-full max-w-md mx-auto relative z-20 shadow-xl">
           <button
             type="button"
             onClick={() => setModoSeleccionado('PROVEEDOR')}
-            className={`flex-1 py-3 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
-              modoSeleccionado === 'PROVEEDOR'
-                ? 'bg-[#102935] text-[#0DEDC0] shadow-md border border-[#0DEDC0]/40'
-                : 'text-slate-500 hover:text-slate-300 border border-transparent'
+            className={`relative flex-1 py-3 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-colors duration-300 flex items-center justify-center gap-2 cursor-pointer z-10 ${
+              modoSeleccionado === 'PROVEEDOR' ? 'text-[#0DEDC0]' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-16 0H3m4 0h10M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 v5" />
-            </svg>
+            {modoSeleccionado === 'PROVEEDOR' && (
+              <motion.div
+                layoutId="pildoraCalculadora"
+                className="absolute inset-0 bg-[#102935] border border-[#0DEDC0]/40 rounded-xl shadow-md z-[-1]"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+            <Building2 className="w-4 h-4" />
             Soy Proveedor
           </button>
 
           <button
             type="button"
             onClick={() => setModoSeleccionado('DROPSHIPPER')}
-            className={`flex-1 py-3 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
-              modoSeleccionado === 'DROPSHIPPER'
-                ? 'bg-[#102935] text-[#0DEDC0] shadow-md border border-[#0DEDC0]/40'
-                : 'text-slate-500 hover:text-slate-300 border border-transparent'
+            className={`relative flex-1 py-3 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider transition-colors duration-300 flex items-center justify-center gap-2 cursor-pointer z-10 ${
+              modoSeleccionado === 'DROPSHIPPER' ? 'text-[#0DEDC0]' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
+            {modoSeleccionado === 'DROPSHIPPER' && (
+              <motion.div
+                layoutId="pildoraCalculadora"
+                className="absolute inset-0 bg-[#102935] border border-[#0DEDC0]/40 rounded-xl shadow-md z-[-1]"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+            <ShoppingBag className="w-4 h-4" />
             Soy Dropshipper
           </button>
         </div>
 
         {/* VISTA 1: PROVEEDOR */}
         {modoSeleccionado === 'PROVEEDOR' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            <div className="lg:col-span-5 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl backdrop-blur-md">
-              <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-3">
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+          >
+            <div className="lg:col-span-5 bg-[#090D16]/90 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl backdrop-blur-md">
+              <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-3 flex items-center gap-2">
+                <Calculator className="w-4 h-4" />
                 1. Costos de Fabricación y Riesgo
               </span>
 
@@ -306,9 +338,10 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                 />
               </div>
 
-              <div className="bg-red-900/20 border border-red-900/40 p-3.5 rounded-xl">
+              <div className="bg-red-950/30 border border-red-900/50 p-3.5 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-slate-300 mb-2">
-                  <span className="text-red-400">
+                  <span className="text-red-400 flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5" />
                     Tasa Histórica de Devoluciones
                     <Tooltip contenido="Porcentaje promedio de paquetes no entregados al cliente final." />
                   </span>
@@ -326,7 +359,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
               <div className="bg-[#102935]/60 border border-[#0DEDC0]/30 p-3.5 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-[#0DEDC0] mb-2">
-                  <span>
+                  <span className="flex items-center gap-1">
+                    <TrendingUp className="w-3.5 h-3.5" />
                     Margen de Ganancia Neta Deseada
                     <Tooltip contenido="Porcentaje de utilidad libre limpia que deseas conservar después de absorber todos los costos." />
                   </span>
@@ -343,8 +377,9 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
               </div>
             </div>
 
-            <div className="lg:col-span-7 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl backdrop-blur-md">
-              <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-3">
+            <div className="lg:col-span-7 bg-[#090D16]/90 p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl backdrop-blur-md">
+              <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-3 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-[#0DEDC0]" />
                 2. Fijación de Precio al Dropshipper
               </span>
 
@@ -358,25 +393,25 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                   <span className="text-[10px] text-slate-500 block mt-1">Fab + Empaque + Fugas</span>
                 </div>
 
-                <div className="bg-red-900/20 p-4 rounded-xl border border-red-900/40">
+                <div className="bg-red-950/30 p-4 rounded-xl border border-red-900/50">
                   <span className="text-[10px] text-red-400 uppercase block font-bold mb-1">
                     Provisión por Fugas
                     <Tooltip contenido="Monto precargado a cada venta para absorber la pérdida directa de la mercancía destruida o no recuperada." />
                   </span>
                   <span className="text-xl font-black text-red-400 block">{formatoMoneda(metricasProveedor.provisionRiesgoFuga)}</span>
-                  <span className="text-[10px] text-red-400/60 block mt-1">Costo de mercancía destruida o devuelta</span>
+                  <span className="text-[10px] text-red-400/70 block mt-1">Costo de mercancía destruida o devuelta</span>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-5 rounded-xl border-2 border-[#0DEDC0]/40 text-center space-y-1 shadow-[0_10px_30px_rgba(13,237,192,0.15)] transform-gpu">
-                <span className="text-xs font-mono text-slate-400 uppercase font-bold block">
+              <div className="bg-gradient-to-br from-[#102935] via-[#0D222E] to-[#0A1A24] p-6 rounded-xl border-2 border-[#0DEDC0]/50 text-center space-y-2 shadow-[0_10px_35px_rgba(13,237,192,0.2)]">
+                <span className="text-xs font-mono text-slate-300 uppercase font-bold tracking-wider block">
                   Precio de Venta Sugerido en Plataforma
                   <Tooltip contenido="El precio oficial al que debes publicar este producto en Dropi para no perder dinero." />
                 </span>
-                <span className="text-3xl font-black font-mono text-white block my-2">
+                <span className="text-3xl sm:text-4xl font-black font-mono text-white block my-2 drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
                   {formatoMoneda(metricasProveedor.precioSugeridoAlDrop)}
                 </span>
-                <div className="bg-[#090D16]/50 inline-block px-4 py-1.5 rounded-lg border border-[#0DEDC0]/20">
+                <div className="bg-[#090D16]/70 inline-block px-4 py-1.5 rounded-lg border border-[#0DEDC0]/30">
                   <span className="text-xs font-mono text-[#0DEDC0] font-bold">
                     Tu Utilidad Neta Real: {formatoMoneda(metricasProveedor.gananciaNetaUnidad)}
                   </span>
@@ -385,9 +420,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
+                  <ShieldAlert className="w-4 h-4 text-blue-400 shrink-0" />
                   <span className="text-blue-400 font-bold text-sm">Estrategia de Blindaje:</span>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed font-medium">
@@ -395,15 +428,20 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* VISTA 2: DROPSHIPPER */}
         {modoSeleccionado === 'DROPSHIPPER' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            <div className="lg:col-span-5 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl backdrop-blur-md">
-              <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-3">
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+          >
+            <div className="lg:col-span-5 bg-[#090D16]/90 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl backdrop-blur-md">
+              <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-3 flex items-center gap-2">
+                <Package className="w-4 h-4" />
                 1. Costos Directos y Volumen
               </span>
 
@@ -413,11 +451,11 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
               />
 
               <div className="bg-[#102935]/80 border border-[#0DEDC0]/40 p-3.5 rounded-xl">
-                <label className="block text-xs font-mono font-bold text-[#0DEDC0] uppercase mb-1 flex items-center">
-                  <svg className="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                  Unidades Objetivo a Vender
+                <label className="block text-xs font-mono font-bold text-[#0DEDC0] uppercase mb-1 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Package className="w-4 h-4" />
+                    Unidades Objetivo a Vender
+                  </span>
                   <Tooltip contenido="Cantidad proyectada de productos. Sirve para calcular la ganancia acumulada y el fondo acumulado de fletes." />
                 </label>
                 <input
@@ -445,7 +483,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                  <Truck className="w-3.5 h-3.5 text-slate-400" />
                   Flete Promedio de Salida ({monedaSeleccionada.codigo})
                   <Tooltip contenido="Costo promedio que cobra la transportadora por enviar un paquete exitoso." />
                 </label>
@@ -459,7 +498,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                  <Target className="w-3.5 h-3.5 text-slate-400" />
                   Costo Publicitario / CPA Ads ({monedaSeleccionada.codigo})
                   <Tooltip contenido="Costo Por Adquisición: El dinero aproximado que pagas en Facebook o TikTok Ads para lograr 1 venta." />
                 </label>
@@ -472,9 +512,10 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                 />
               </div>
 
-              <div className="bg-red-900/20 border border-red-900/40 p-3.5 rounded-xl">
+              <div className="bg-red-950/30 border border-red-900/50 p-3.5 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-slate-300 mb-2">
-                  <span className="text-red-400">
+                  <span className="text-red-400 flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5" />
                     % Devolución Estimada (Contra Entrega)
                     <Tooltip contenido="Porcentaje estimado de clientes que rechazarán el paquete al momento de la entrega." />
                   </span>
@@ -492,7 +533,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
               <div className="bg-[#102935]/60 border border-[#0DEDC0]/30 p-3.5 rounded-xl">
                 <div className="flex justify-between text-xs font-semibold text-[#0DEDC0] mb-2">
-                  <span>
+                  <span className="flex items-center gap-1">
+                    <TrendingUp className="w-3.5 h-3.5" />
                     % Ganancia Neta Libre Deseada
                     <Tooltip contenido="Tu utilidad real libre en el bolsillo después de descontar producto, fletes, anuncios y fletes devueltos." />
                   </span>
@@ -509,13 +551,14 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
               </div>
             </div>
 
-            <div className="lg:col-span-7 bg-[#090D16] p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl backdrop-blur-md">
-              <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-3">
+            <div className="lg:col-span-7 bg-[#090D16]/90 p-6 rounded-2xl border border-slate-800 space-y-6 shadow-xl backdrop-blur-md">
+              <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-3 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-[#0DEDC0]" />
                 2. Resultado Recomendado ({metricasDropshipper.qty} {metricasDropshipper.qty === 1 ? 'Unidad' : 'Unidades'})
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono">
-                <div className="bg-red-900/20 p-4 rounded-xl border border-red-900/40">
+                <div className="bg-red-950/30 p-4 rounded-xl border border-red-900/50">
                   <span className="text-[10px] text-red-400 uppercase block font-bold mb-1">
                     Fondo Fletes Devolución ({metricasDropshipper.qty} uds)
                     <Tooltip contenido="Esta es la bolsa de dinero total que debes guardar de tus ventas exitosas para pagar los paquetes devueltos." />
@@ -533,7 +576,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                     ROAS Mínimo Objetivo
                     <Tooltip contenido="Retorno Mínimo en Publicidad (Ventas ÷ Inversión Ads). Si tu ROAS en Meta/TikTok cae de este número, estarás perdiendo dinero." />
                   </span>
-                  <span className="text-xl font-black text-amber-400 block">
+                  <span className="text-xl font-black text-amber-400 block drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]">
                     {metricasDropshipper.roasObjetivoReal.toFixed(2)}x
                   </span>
                   <span className="text-[10px] text-slate-500 block mt-1">
@@ -542,12 +585,12 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-[#102935] to-[#0A1A24] p-6 rounded-xl border-2 border-[#0DEDC0]/50 text-center space-y-2 shadow-[0_10px_30px_rgba(13,237,192,0.15)] transform-gpu">
+              <div className="bg-gradient-to-br from-[#102935] via-[#0D222E] to-[#0A1A24] p-6 rounded-xl border-2 border-[#0DEDC0]/50 text-center space-y-2 shadow-[0_10px_35px_rgba(13,237,192,0.2)]">
                 <span className="text-xs font-mono text-slate-300 uppercase font-bold tracking-wider block">
                   VALOR SUGERIDO DE VENTA AL CLIENTE FINAL (POR UNIDAD)
                   <Tooltip contenido="El precio mínimo en el que tu tienda debe vender el producto al cliente final." />
                 </span>
-                <span className="text-3xl sm:text-4xl font-black font-mono text-[#0DEDC0] block my-2">
+                <span className="text-3xl sm:text-4xl font-black font-mono text-[#0DEDC0] block my-2 drop-shadow-[0_0_12px_rgba(13,237,192,0.5)]">
                   {formatoMoneda(metricasDropshipper.precioVentaSugeridoFinal)}
                 </span>
                 
@@ -599,9 +642,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
                   <span className="text-amber-400 font-bold text-sm">Blindaje de Precios para Dropshippers:</span>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed font-medium">
@@ -610,7 +651,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
               </div>
 
             </div>
-          </div>
+          </motion.div>
         )}
 
       </div>

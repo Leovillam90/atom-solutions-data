@@ -1,6 +1,16 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Calculator, 
+  BarChart3, 
+  TrendingUp, 
+  AlertTriangle, 
+  ChevronDown, 
+  Check, 
+  HelpCircle
+} from 'lucide-react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H1, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
 import { MONEDAS, MonedaConfig, formatearMonedaGlobal, obtenerTarifasImpuesto } from '@/app/lib/moneda';
@@ -12,14 +22,13 @@ interface Pagina1Props {
   variante?: TipoFondo;
 }
 
-// TOOLTIP CON REGLA ESTRICTA DE CAPA Z
 export function Tooltip({ contenido }: { contenido: string }) {
   return (
-    <div className="relative inline-flex items-center group ml-1.5 align-middle z-0 hover:z-50">
+    <div className="relative inline-flex items-center group ml-1.5 align-middle z-10 hover:z-50">
       <span className="w-4 h-4 rounded-full bg-[#102935] border border-[#0DEDC0]/60 text-[#0DEDC0] text-[10px] font-mono font-bold flex items-center justify-center cursor-help transition-all duration-200 group-hover:bg-[#0DEDC0] group-hover:text-[#090D16] group-hover:scale-110 shrink-0 shadow-[0_0_8px_rgba(13,237,192,0.3)]">
         ?
       </span>
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center w-64 p-3 bg-[#080C14] border border-[#0DEDC0]/50 rounded-xl text-[11px] font-sans text-slate-200 font-normal leading-relaxed text-center shadow-[0_15px_30px_rgba(0,0,0,0.9)] z-0 group-hover:z-[9999]">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2.5 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center w-64 p-3 bg-[#080C14] border border-[#0DEDC0]/50 rounded-xl text-[11px] font-sans text-slate-200 font-normal leading-relaxed text-center shadow-[0_15px_30px_rgba(0,0,0,0.9)] z-50">
         {contenido}
         <div className="w-2.5 h-2.5 bg-[#080C14] border-r border-b border-[#0DEDC0]/50 rotate-45 -mb-4 mt-1" />
       </div>
@@ -27,7 +36,6 @@ export function Tooltip({ contenido }: { contenido: string }) {
   );
 }
 
-// SELECTOR DE MONEDA DESPLEGABLE PERSONALIZADO
 function SelectorMonedaCustom({
   monedaSeleccionada,
   onSeleccionarMoneda,
@@ -72,12 +80,9 @@ function SelectorMonedaCustom({
           <span className="truncate">{monedaSeleccionada.nombre} ({monedaSeleccionada.simbolo})</span>
         </div>
 
-        <svg
+        <ChevronDown
           className={`w-4 h-4 text-[#0DEDC0] transition-transform duration-300 ${abierto ? 'rotate-180' : ''}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-        </svg>
+        />
       </button>
 
       {abierto && (
@@ -105,7 +110,7 @@ function SelectorMonedaCustom({
                     </span>
                     <span>{m.nombre}</span>
                   </div>
-                  {esSeleccionada && <span className="text-[#0DEDC0] font-black text-sm">✓</span>}
+                  {esSeleccionada && <Check className="w-4 h-4 text-[#0DEDC0]" />}
                 </button>
               );
             })}
@@ -119,6 +124,9 @@ function SelectorMonedaCustom({
 export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
 
+  // REF DE DESPLAZAMIENTO HACIA EL PASO 3
+  const propuestaRef = useRef<HTMLDivElement>(null);
+
   // INPUTS PASO 1
   const [costoFabricacion, setCostoFabricacion] = useState<number>(15000);
   const [costoEmpaque, setCostoEmpaque] = useState<number>(2000);
@@ -126,13 +134,10 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   
   const [porcentajeDevoluciones, setPorcentajeDevoluciones] = useState<number>(20); 
   const [porcentajeMermas, setPorcentajeMermas] = useState<number>(3); 
-  const [impactoFiscal, setImpactoFiscal] = useState<number>(0); // PREDETERMINADO EN 0
+  const [impactoFiscal, setImpactoFiscal] = useState<number>(0);
   const [margenDeseado, setMargenDeseado] = useState<number>(30);
 
-  // NOTIFICACIÓN EN CLIC DE MERMAS/DEVOLUCIÓN
   const [mensajeAlertaMermas, setMensajeAlertaMermas] = useState<boolean>(false);
-
-  // SELECCIÓN DE ESCENARIO PASO 2
   const [escenarioSeleccionado, setEscenarioSeleccionado] = useState<EscenarioTipo>('OBJETIVO');
 
   // INPUTS PASO 3
@@ -144,6 +149,16 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
     const timer = setTimeout(() => setMensajeAlertaMermas(false), 4500);
     return () => clearTimeout(timer);
   }, []);
+
+  // SELECCIÓN DE ESCENARIO CON AUTO-SCROLL SUAVE
+  const seleccionarEscenarioConScroll = (escenario: EscenarioTipo) => {
+    setEscenarioSeleccionado(escenario);
+    setTimeout(() => {
+      if (propuestaRef.current) {
+        propuestaRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
 
   const formatoMoneda = useCallback(
     (monto: number) => formatearMonedaGlobal(monto, monedaSeleccionada.codigo),
@@ -159,18 +174,18 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   };
 
   const metricas = useMemo(() => {
-    const cFab = Math.max(0, Number(costoFabricacion));
-    const cEmp = Math.max(0, Number(costoEmpaque));
+    const cFab = Math.max(0, Number(costoFabricacion) || 0);
+    const cEmp = Math.max(0, Number(costoEmpaque) || 0);
     const cBase = cFab + cEmp; 
-    const cRetorno = Math.max(0, Number(costoLogisticaInversa)); 
-    const qty = Math.max(1, Number(unidadesProyectadas));
+    const cRetorno = Math.max(0, Number(costoLogisticaInversa) || 0); 
+    const qty = Math.max(1, Number(unidadesProyectadas) || 1);
     
-    const pctMargenBase = Math.min(80, Math.max(1, Number(margenDeseado))) / 100;
-    const pctIVA = Math.min(50, Math.max(0, Number(impactoFiscal))) / 100;
+    const pctMargenBase = Math.min(0.80, Math.max(0.01, (Number(margenDeseado) || 1) / 100));
+    const pctIVA = Math.min(0.50, Math.max(0, (Number(impactoFiscal) || 0) / 100));
     
-    const pctDevBase = Math.min(0.50, Math.max(0.15, Number(porcentajeDevoluciones) / 100));
-    const pctMermasBase = Math.min(0.30, Math.max(0.01, Number(porcentajeMermas) / 100));
-    const pctComisionExtra = Math.min(0.30, Math.max(0, Number(comisionDropExtra) / 100));
+    const pctDevBase = Math.min(0.50, Math.max(0.15, (Number(porcentajeDevoluciones) || 15) / 100));
+    const pctMermasBase = Math.min(0.30, Math.max(0.01, (Number(porcentajeMermas) || 1) / 100));
+    const pctComisionExtra = Math.min(0.30, Math.max(0, (Number(comisionDropExtra) || 0) / 100));
 
     const calcularEscenario = (pDev: number, pMerma: number, pMargen: number) => {
       const factorDev = (1 - pDev) > 0 ? (pDev / (1 - pDev)) : 0;
@@ -180,7 +195,9 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
       const costoMerma = cBase * factorMerma;
 
       const costoAbsorbido = cBase + costoDev + costoMerma;
-      const precioNeto = (1 - pMargen) > 0 ? (costoAbsorbido / (1 - pMargen)) : (costoAbsorbido * 2);
+
+      const denomMargen = 1 - pMargen;
+      const precioNeto = denomMargen > 0.01 ? (costoAbsorbido / denomMargen) : (costoAbsorbido * 2);
       
       const impuestoIVA = precioNeto * pctIVA;
       const precioCatalogo = precioNeto + impuestoIVA;
@@ -218,7 +235,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
     const margenNetaOp1 = activo.precioNeto > 0 ? (gananciaNetaOp1 / activo.precioNeto) * 100 : 0;
 
     const divisorOp2 = 1 - margenActivo - pctComisionExtra;
-    const precioNetoOp2 = divisorOp2 > 0 ? (activo.costoAbsorbido / divisorOp2) : (activo.costoAbsorbido * 3);
+    const precioNetoOp2 = divisorOp2 > 0.01 ? (activo.costoAbsorbido / divisorOp2) : (activo.costoAbsorbido * 2.5);
     const impuestoOp2 = precioNetoOp2 * pctIVA;
     const precioCatalogoOp2 = precioNetoOp2 + impuestoOp2;
     const comisionOp2 = precioNetoOp2 * pctComisionExtra;
@@ -253,9 +270,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
     <section className="relative z-10 py-12 px-4 sm:px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10 text-white font-sans">
       <Fondos variante={variante} modo="absolute" />
 
-      {/* TOAST ADVERTENCIA CONDICIONES MERMAS */}
       {mensajeAlertaMermas && (
-        <div className="fixed top-6 right-6 z-50 max-w-md bg-[#090D16]/95 border-2 border-amber-400 p-4 rounded-2xl shadow-[0_10px_40px_rgba(245,158,11,0.4)] text-white animate-bounce">
+        <div className="fixed top-6 right-6 z-50 max-w-md bg-[#090D16]/95 border-2 border-amber-400 p-4 rounded-2xl shadow-[0_10px_40px_rgba(245,158,11,0.4)] text-white">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
               i
@@ -265,7 +281,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                 Condición de Entrega Operativa
               </span>
               <p className="text-xs text-slate-200 leading-relaxed font-sans">
-                Nota: Este valor solo se puede entregar si se cumple estrictamente con las condiciones especificadas en la tarjeta de propuesta.
+                Nota: Este valor solo se puede entregar si se cumple strictly con las condiciones especificadas en la tarjeta de propuesta.
               </p>
             </div>
           </div>
@@ -274,18 +290,16 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
       <div className="relative z-10 max-w-7xl mx-auto space-y-10">
         
-        {/* CABECERA */}
         <div className="border-b border-slate-800 pb-6">
-          <Kicker className="!text-[#0DEDC0]">HERRAMIENTA PARA GERENCIA B2B</Kicker>
-          <H1 className="text-balance mb-2">
-            Arquitectura de <Highlight>Precios & Sensibilidad.</Highlight>
+          <Kicker varianteFondo={variante}>HERRAMIENTA PARA GERENCIA B2B</Kicker>
+          <H1 varianteFondo={variante} className="text-balance mb-2">
+            Arquitectura de <Highlight varianteFondo={variante}>Precios & Sensibilidad.</Highlight>
           </H1>
-          <Subtitulo className="max-w-2xl">
+          <Subtitulo varianteFondo={variante} className="max-w-2xl">
             Audita matemáticamente tus costos logísticos inversos. Analiza los 4 escenarios de sensibilidad operativa y emite la propuesta comercial definitiva.
           </Subtitulo>
         </div>
 
-        {/* SELECTOR DE MONEDA DE OPERACIÓN (UBICADO ARRIBA DE COSTO OPERATIVO) */}
         <div className="bg-[#090D16]/90 p-4 sm:p-5 rounded-2xl border border-slate-800 max-w-md">
           <SelectorMonedaCustom
             monedaSeleccionada={monedaSeleccionada}
@@ -293,7 +307,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
           />
         </div>
 
-        {/* SECCIÓN 1: ESTRUCTURA FINANCIERA BASE */}
+        {/* PASO 1 */}
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0DEDC0]/20 to-[#0DEDC0]/5 border border-[#0DEDC0]/40 text-[#0DEDC0] font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(13,237,192,0.2)] shrink-0">
@@ -307,10 +321,9 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             
-            {/* BLOQUE 1.1 */}
             <div className="bg-[#090D16]/90 p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full">
-              <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-2">
-                Costos de Producción
+              <span className="text-xs font-mono font-bold text-[#0DEDC0] uppercase tracking-wider block border-b border-slate-800 pb-2 flex items-center gap-2">
+                <Calculator className="w-4 h-4 text-[#0DEDC0]" /> Costos de Producción
               </span>
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 mb-1">
@@ -334,10 +347,9 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
               </div>
             </div>
 
-            {/* BLOQUE 1.2: CONTROLES DÚO SLIDER + INPUT DERECHO */}
             <div className="bg-[#090D16]/90 p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full">
-              <span className="text-xs font-mono font-bold text-red-400 uppercase tracking-wider block border-b border-slate-800 pb-2">
-                Provisión Fricción Logística COD
+              <span className="text-xs font-mono font-bold text-red-400 uppercase tracking-wider block border-b border-slate-800 pb-2 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-400" /> Provisión Fricción Logística COD
                 <Tooltip contenido="Reserva financiera calculada para absorber las devoluciones y los productos no recuperados." />
               </span>
 
@@ -353,11 +365,9 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                
-                {/* DEVOLUCIÓN: SLIDER + INPUT */}
                 <div 
                   onClick={notificarCondicionesMermas}
-                  className="bg-red-900/10 border border-red-900/30 p-2.5 rounded-xl hover:border-red-500/50 transition-colors"
+                  className="bg-red-950/20 border border-red-900/40 p-2.5 rounded-xl hover:border-red-500/50 transition-colors"
                 >
                   <div className="flex justify-between items-center text-[10px] font-semibold text-red-300 mb-1.5">
                     <span className="flex items-center">
@@ -392,10 +402,9 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                   <span className="text-[9px] text-slate-500 block mt-1">Piso Técnico 15%</span>
                 </div>
 
-                {/* MERMAS: SLIDER + INPUT */}
                 <div 
                   onClick={notificarCondicionesMermas}
-                  className="bg-red-950/10 border border-red-900/30 p-2.5 rounded-xl hover:border-red-500/50 transition-colors"
+                  className="bg-red-950/20 border border-red-900/40 p-2.5 rounded-xl hover:border-red-500/50 transition-colors"
                 >
                   <div className="flex justify-between items-center text-[10px] font-semibold text-red-300 mb-1.5">
                     <span className="flex items-center">
@@ -429,17 +438,14 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                   />
                   <span className="text-[9px] text-slate-500 block mt-1">Piso Técnico 1%</span>
                 </div>
-
               </div>
             </div>
 
-            {/* BLOQUE 1.3: CONTROLES DÚO MARGEN E IMPUESTOS */}
             <div className="bg-[#090D16]/90 p-5 rounded-2xl border border-slate-800 space-y-4 shadow-xl h-full">
-              <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-2">
-                Objetivo de Rentabilidad & Fiscal
+              <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-800 pb-2 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[#0DEDC0]" /> Objetivo de Rentabilidad & Fiscal
               </span>
 
-              {/* MARGEN NETO: SLIDER + INPUT */}
               <div className="bg-[#102935]/40 border border-[#0DEDC0]/20 p-3 rounded-xl">
                 <div className="flex justify-between items-center text-xs font-semibold text-[#0DEDC0] mb-2">
                   <span>
@@ -461,7 +467,6 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                 <input type="range" min="1" max="70" value={margenDeseado} onChange={(e) => setMargenDeseado(Number(e.target.value))} className="w-full accent-[#0DEDC0] cursor-pointer" />
               </div>
 
-              {/* IMPUESTOS: SLIDER + INPUT */}
               <div className="bg-slate-800/30 border border-slate-700/50 p-3 rounded-xl">
                 <div className="flex justify-between items-center text-xs font-semibold text-slate-300 mb-2">
                   <span>
@@ -487,7 +492,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
           </div>
         </div>
 
-        {/* SECCIÓN 2: ANÁLISIS DE SENSIBILIDAD B2B */}
+        {/* PASO 2: ANÁLISIS DE SENSIBILIDAD CON AUTO-SCROLL */}
         <div className="space-y-6 pt-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0DEDC0]/20 to-[#0DEDC0]/5 border border-[#0DEDC0]/40 text-[#0DEDC0] font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(13,237,192,0.2)] shrink-0">
@@ -507,10 +512,10 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
             
-            {/* ESCENARIO 1: PÉSIMO */}
+            {/* ESCENARIO 1 */}
             <div 
-              onClick={() => setEscenarioSeleccionado('PESIMO')}
-              className={`relative hover:z-50 bg-[#1E1118]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+              onClick={() => seleccionarEscenarioConScroll('PESIMO')}
+              className={`relative bg-[#1E1118]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
                 escenarioSeleccionado === 'PESIMO' 
                   ? 'border-[#FF6B6B] shadow-[0_0_25px_rgba(255,107,107,0.35)] ring-1 ring-[#FF6B6B]/60 scale-[1.02] z-10' 
                   : 'border-[#FF6B6B]/30 hover:border-[#FF6B6B]/60'
@@ -553,8 +558,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
             {/* ESCENARIO 2 */}
             <div 
-              onClick={() => setEscenarioSeleccionado('FAVORABLE')}
-              className={`relative hover:z-50 bg-[#0F2330]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+              onClick={() => seleccionarEscenarioConScroll('FAVORABLE')}
+              className={`relative bg-[#0F2330]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
                 escenarioSeleccionado === 'FAVORABLE' ? 'border-blue-400 shadow-[0_0_25px_rgba(96,165,250,0.3)] ring-1 ring-blue-400/50 scale-[1.02] z-10' : 'border-blue-900/40 hover:border-blue-400/40'
               }`}
             >
@@ -589,8 +594,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
             {/* ESCENARIO 3 */}
             <div 
-              onClick={() => setEscenarioSeleccionado('OPTIMO')}
-              className={`relative hover:z-50 bg-[#0B1A14]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+              onClick={() => seleccionarEscenarioConScroll('OPTIMO')}
+              className={`relative bg-[#0B1A14]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
                 escenarioSeleccionado === 'OPTIMO' ? 'border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400/50 scale-[1.02] z-10' : 'border-emerald-500/30 hover:border-emerald-400/40'
               }`}
             >
@@ -625,8 +630,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
             {/* ESCENARIO 4 */}
             <div 
-              onClick={() => setEscenarioSeleccionado('OBJETIVO')}
-              className={`relative hover:z-50 bg-gradient-to-b from-[#0F2633] to-[#0A1A24] rounded-2xl p-5 shadow-[0_10px_40px_rgba(13,237,192,0.15)] flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+              onClick={() => seleccionarEscenarioConScroll('OBJETIVO')}
+              className={`relative bg-gradient-to-b from-[#0F2633] to-[#0A1A24] rounded-2xl p-5 shadow-[0_10px_40px_rgba(13,237,192,0.15)] flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
                 escenarioSeleccionado === 'OBJETIVO' ? 'border-[#0DEDC0] shadow-[0_0_30px_rgba(13,237,192,0.4)] ring-1 ring-[#0DEDC0]/50 scale-[1.02] z-10' : 'border-[#0DEDC0]/40 hover:border-[#0DEDC0]/80'
               }`}
             >
@@ -664,17 +669,19 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
           </div>
         </div>
 
-        {/* PASO 3: CREADOR DE PROPUESTAS */}
-        <Pagina2 
-          metricas={metricas}
-          monedaSeleccionada={monedaSeleccionada}
-          escenarioSeleccionado={escenarioSeleccionado}
-          formatoMoneda={formatoMoneda}
-          unidadesProyectadas={unidadesProyectadas}
-          setUnidadesProyectadas={setUnidadesProyectadas}
-          comisionDropExtra={comisionDropExtra}
-          setComisionDropExtra={setComisionDropExtra}
-        />
+        {/* CONTENEDOR DEL PASO 3 CON REF DE SCROLL */}
+        <div ref={propuestaRef}>
+          <Pagina2 
+            metricas={metricas}
+            monedaSeleccionada={monedaSeleccionada}
+            escenarioSeleccionado={escenarioSeleccionado}
+            formatoMoneda={formatoMoneda}
+            unidadesProyectadas={unidadesProyectadas}
+            setUnidadesProyectadas={setUnidadesProyectadas}
+            comisionDropExtra={comisionDropExtra}
+            setComisionDropExtra={setComisionDropExtra}
+          />
+        </div>
 
       </div>
     </section>

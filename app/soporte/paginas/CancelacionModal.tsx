@@ -2,6 +2,20 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  X, 
+  CheckCircle2, 
+  AlertTriangle, 
+  Gift, 
+  ArrowRight, 
+  Loader2, 
+  Building2, 
+  Mail, 
+  User, 
+  ShieldAlert,
+  Sparkles
+} from 'lucide-react';
 import { ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 import { registrarSolicitudCancelacion } from '@/app/lib/cancelaciones';
 
@@ -31,7 +45,6 @@ export default function CancelacionModal({
   isOpen, 
   onClose 
 }: CancelacionModalProps) {
-  // Estado para verificar hidratación en Next.js (React Portal)
   const [mounted, setMounted] = useState<boolean>(false);
 
   const [paso, setPaso] = useState<number>(1);
@@ -47,12 +60,10 @@ export default function CancelacionModal({
   const [cargando, setCargando] = useState<boolean>(false);
   const [errorEnvio, setErrorEnvio] = useState<string | null>(null);
 
-  // Asegurar montaje en el cliente para React Portal
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Cierre por tecla ESC y Bloqueo de Scroll en Body
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -71,7 +82,6 @@ export default function CancelacionModal({
     };
   }, [isOpen, onClose]);
 
-  // Autocompletado de datos desde sesión
   useEffect(() => {
     if (isOpen) {
       setPaso(1);
@@ -123,26 +133,25 @@ export default function CancelacionModal({
     }
   }, [nombreSolicitante, correo, cuentaAtom, planActual, rolProveeduria, motivoSeleccionado, detallesAdicionales, aceptoRetencion]);
 
-  // Si no está abierto o no se ha montado el cliente, no renderiza
   if (!isOpen || !mounted) return null;
 
-  // RENDERIZADO FUERA DEL DOM NORMAL VIA REACT PORTAL
   return createPortal(
     <div className="fixed inset-0 z-[9999] overflow-y-auto bg-black/85 backdrop-blur-xl p-3 sm:p-6 font-sans">
       <div className="flex min-h-full items-center justify-center pt-16 pb-8 sm:pt-20 sm:pb-10">
         
-        {/* TARJETA MODAL CON MARGEN SUPERIOR DE SEGURIDAD */}
-        <div className="relative w-full max-w-lg bg-[#090D16] border border-[#0DEDC0]/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_50px_rgba(13,237,192,0.15)] text-white space-y-4 my-auto">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 15 }}
+          className="relative w-full max-w-lg bg-[#090D16] border border-[#0DEDC0]/30 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_50px_rgba(13,237,192,0.15)] text-white space-y-4 my-auto"
+        >
           
-          {/* BOTÓN CIERRE 2D */}
           <button 
             onClick={onClose}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 sm:p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all cursor-pointer group z-10"
+            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all cursor-pointer group z-10"
             title="Cerrar (Esc)"
           >
-            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-4 h-4 transition-transform group-hover:rotate-90" />
           </button>
 
           {/* PASO 1: DATOS Y MOTIVO */}
@@ -150,8 +159,8 @@ export default function CancelacionModal({
             <div className="space-y-4">
               <div className="pr-8">
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
-                  <span className="text-[9px] sm:text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+                  <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest">
                     Paso 1 de 3 · Datos de la Cuenta
                   </span>
                 </div>
@@ -163,8 +172,7 @@ export default function CancelacionModal({
                 </p>
               </div>
 
-              {/* GRID ADAPTABLE: 1 COLUMNA EN MÓVIL / 2 COLUMNAS EN PC */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                   <label className="block text-slate-400 mb-1 font-semibold text-[11px]">Nombre de quien gestiona *</label>
                   <input
@@ -268,7 +276,7 @@ export default function CancelacionModal({
                 } ${ESTILOS_TEXTO.boton}`}
               >
                 <span>Continuar a Solución Alternativa</span>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -278,8 +286,8 @@ export default function CancelacionModal({
             <div className="space-y-4">
               <div className="pr-8">
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0DEDC0] animate-pulse shadow-[0_0_6px_#0DEDC0]" />
-                  <span className="text-[9px] sm:text-[10px] font-mono font-bold text-[#0DEDC0] uppercase tracking-widest">
+                  <span className="w-2 h-2 rounded-full bg-[#0DEDC0] animate-pulse shadow-[0_0_8px_#0DEDC0]" />
+                  <span className="text-[10px] font-mono font-bold text-[#0DEDC0] uppercase tracking-widest">
                     Paso 2 de 3 · Beneficio de Retención
                   </span>
                 </div>
@@ -291,12 +299,12 @@ export default function CancelacionModal({
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#102935]/80 border border-[#0DEDC0]/40 space-y-1 shadow-[0_0_15px_rgba(13,237,192,0.1)]">
-                <div className="flex items-center gap-1.5 text-[#0DEDC0] text-xs font-bold font-mono">
-                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 13C10.832 19.832 8.71 18 6.5 18c-1.54 0-2.5 1-2.5 2v1h16v-1c0-1-1-2-2.5-2-2.21 0-4.332 1.832-5.5 3z"/></svg>
-                  <span>Propuesta Comercial Especial</span>
+              <div className="p-4 rounded-xl bg-gradient-to-br from-[#102935] to-[#0D222E] border-2 border-[#0DEDC0] space-y-1.5 shadow-[0_0_20px_rgba(13,237,192,0.2)]">
+                <div className="flex items-center gap-2 text-[#0DEDC0] text-xs font-bold font-mono">
+                  <Gift className="w-4 h-4" />
+                  <span>PROPUESTA COMERCIAL ESPECIAL</span>
                 </div>
-                <p className="text-[10px] sm:text-[11px] text-slate-300">
+                <p className="text-[11px] sm:text-xs text-slate-200">
                   Aplica únicamente para la cuenta <strong className="text-white">{cuentaAtom}</strong> en su plan <strong className="text-amber-400">{planActual}</strong>.
                 </p>
               </div>
@@ -308,10 +316,10 @@ export default function CancelacionModal({
                     setDetallesAdicionales('Solicitó la aplicación del 50% de descuento en plan de retención.');
                     setPaso(3);
                   }}
-                  className={`w-full py-3.5 rounded-xl bg-[#0DEDC0] text-[#090D16] font-extrabold text-xs uppercase tracking-wider hover:bg-white transition-all cursor-pointer shadow-[0_0_15px_rgba(13,237,192,0.3)] active:scale-98 flex items-center justify-center gap-2 ${ESTILOS_TEXTO.boton}`}
+                  className={`w-full py-3.5 rounded-xl bg-[#0DEDC0] text-[#090D16] font-extrabold text-xs uppercase tracking-wider hover:bg-white transition-all cursor-pointer shadow-[0_0_20px_rgba(13,237,192,0.4)] active:scale-98 flex items-center justify-center gap-2 ${ESTILOS_TEXTO.boton}`}
                 >
+                  <Sparkles className="w-4 h-4" />
                   <span>Aceptar 50% de Descuento Promocional</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </button>
 
                 <button
@@ -332,8 +340,8 @@ export default function CancelacionModal({
             <div className="space-y-4">
               <div className="pr-8">
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shadow-[0_0_6px_rgba(248,113,113,0.8)]" />
-                  <span className="text-[9px] sm:text-[10px] font-mono font-bold text-red-400 uppercase tracking-widest">
+                  <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse shadow-[0_0_8px_rgba(248,113,113,0.8)]" />
+                  <span className="text-[10px] font-mono font-bold text-red-400 uppercase tracking-widest">
                     Paso 3 de 3 · Confirmación y Envío
                   </span>
                 </div>
@@ -354,7 +362,7 @@ export default function CancelacionModal({
               />
 
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[10px] sm:text-[11px] text-amber-300 flex items-center gap-2.5">
-                <svg className="w-4 h-4 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400" />
                 <span>
                   Al confirmar, se registrará la solicitud en el sistema y notificará a la gerencia directiva.
                 </span>
@@ -373,13 +381,13 @@ export default function CancelacionModal({
               >
                 {cargando ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Procesando Solicitud...</span>
                   </>
                 ) : (
                   <>
                     <span>Confirmar y Enviar Solicitud</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
@@ -390,7 +398,7 @@ export default function CancelacionModal({
           {paso === 4 && (
             <div className="space-y-3.5 text-center py-4 sm:py-6">
               <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#0DEDC0]/20 border border-[#0DEDC0] text-[#0DEDC0] flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(13,237,192,0.4)]">
-                <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <CheckCircle2 className="w-7 h-7" />
               </div>
               <h3 className="text-lg sm:text-xl font-black text-white">
                 Solicitud Enviada Exitosamente
@@ -407,7 +415,7 @@ export default function CancelacionModal({
             </div>
           )}
 
-        </div>
+        </motion.div>
       </div>
     </div>,
     document.body

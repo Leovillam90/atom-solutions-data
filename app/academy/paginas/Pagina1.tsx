@@ -1,6 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Play, 
+  Check, 
+  CheckCircle2, 
+  Zap, 
+  DollarSign, 
+  ShieldCheck, 
+  Clock, 
+  Lock, 
+  X, 
+  Sparkles 
+} from 'lucide-react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H2, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
 
@@ -19,13 +32,27 @@ interface VideoLesson {
 
 const ID_VIDEO_TEMPORAL = 'feDbKxnh50k';
 
-// DATA ESTÁTICA EN MEMORIA GLOBAL
 const CATEGORIAS: string[] = ['Todas', 'Integraciones', 'Financieras', 'Operaciones', 'Estrategias'];
 
-const BADGE_STYLES: Record<BadgeTipo, { color: string; border: string; bg: string }> = {
-  'Táctica Rápida': { color: '#0DEDC0', border: 'rgba(13, 237, 192, 0.3)', bg: 'rgba(13, 237, 192, 0.08)' },
-  'Alta Rentabilidad': { color: '#CB1FDA', border: 'rgba(203, 31, 218, 0.3)', bg: 'rgba(203, 31, 218, 0.08)' },
-  'Nivel Experto': { color: '#6884C5', border: 'rgba(104, 132, 197, 0.3)', bg: 'rgba(104, 132, 197, 0.08)' },
+const BADGE_STYLES: Record<BadgeTipo, { color: string; border: string; bg: string; icon: React.ReactNode }> = {
+  'Táctica Rápida': { 
+    color: '#0DEDC0', 
+    border: 'rgba(13, 237, 192, 0.4)', 
+    bg: 'rgba(13, 237, 192, 0.1)',
+    icon: <Zap className="w-3 h-3 text-[#0DEDC0]" />
+  },
+  'Alta Rentabilidad': { 
+    color: '#CB1FDA', 
+    border: 'rgba(203, 31, 218, 0.4)', 
+    bg: 'rgba(203, 31, 218, 0.1)',
+    icon: <DollarSign className="w-3 h-3 text-[#CB1FDA]" />
+  },
+  'Nivel Experto': { 
+    color: '#6884C5', 
+    border: 'rgba(104, 132, 197, 0.4)', 
+    bg: 'rgba(104, 132, 197, 0.1)',
+    icon: <ShieldCheck className="w-3 h-3 text-[#6884C5]" />
+  },
 };
 
 const LESSONS: VideoLesson[] = [
@@ -121,33 +148,11 @@ const LESSONS: VideoLesson[] = [
   },
 ];
 
-const renderBadgeIcon = (badge: BadgeTipo) => {
-  if (badge === 'Táctica Rápida') {
-    return (
-      <svg width="12" height="12" fill="none" stroke="#0DEDC0" viewBox="0 0 24 24" strokeWidth="2.5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    );
-  }
-  if (badge === 'Alta Rentabilidad') {
-    return (
-      <svg width="12" height="12" fill="none" stroke="#CB1FDA" viewBox="0 0 24 24" strokeWidth="2.5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    );
-  }
-  return (
-    <svg width="12" height="12" fill="none" stroke="#6884C5" viewBox="0 0 24 24" strokeWidth="2.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  );
-};
-
 interface Pagina1Props {
   variante?: TipoFondo;
 }
 
-export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
+export default function Pagina1({ variante = 'atomDynamicGradient' }: Pagina1Props) {
   const [categoriaActiva, setCategoriaActiva] = useState<string>('Todas');
   const [selectedVideo, setSelectedVideo] = useState<VideoLesson | null>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
@@ -182,7 +187,7 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
           }
         }
       } catch (e) {
-        // Ignorar mensajes irrelevantes
+        // Ignorar
       }
     };
 
@@ -195,23 +200,28 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
     : LESSONS.filter(v => v.categoria === categoriaActiva);
 
   return (
-    <section className="relative z-10 py-16 lg:py-24 px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10">
+    <section className="relative z-10 py-16 lg:py-24 px-6 overflow-hidden w-full border-b border-[#0DEDC0]/10 font-sans text-white">
       <Fondos variante={variante} modo="absolute" />
 
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center">
         
         {/* CABECERA */}
-        <div className="text-center mb-12">
-          <Kicker>CENTRO DE ENTRENAMIENTO TÁCTICO</Kicker>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <Kicker varianteFondo={variante}>CENTRO DE ENTRENAMIENTO TÁCTICO</Kicker>
 
-          <H2 className="text-balance mb-4 max-w-4xl mx-auto">
-            Domina la infraestructura de tu <Highlight>bodega.</Highlight>
+          <H2 varianteFondo={variante} className="text-balance mb-4 max-w-4xl mx-auto">
+            Domina la infraestructura de tu <Highlight varianteFondo={variante}>bodega.</Highlight>
           </H2>
 
-          <Subtitulo className="max-w-3xl mx-auto">
+          <Subtitulo varianteFondo={variante} className="max-w-3xl mx-auto">
             Entrénate con tácticas avanzadas para automatizar tu logística en Dropi, blindar tu inventario y multiplicar la rentabilidad real de tu negocio.
           </Subtitulo>
-        </div>
+        </motion.div>
 
         {/* FILTROS DE CATEGORÍA */}
         <div className="flex flex-wrap justify-center gap-3 mb-12 w-full">
@@ -220,6 +230,7 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
             return (
               <button
                 key={cat}
+                type="button"
                 onClick={() => setCategoriaActiva(cat)}
                 className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-extrabold transition-all duration-300 border cursor-pointer ${
                   isActive
@@ -234,26 +245,31 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
         </div>
 
         {/* GRILLA DE LECCIONES */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-          {videosFiltrados.map((lesson) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+          {videosFiltrados.map((lesson, idx) => {
             const badgeStyle = BADGE_STYLES[lesson.badge];
             const isCompleted = completedLessons.includes(lesson.id);
             const isAvailable = lesson.id === '0' || lesson.id === '1';
 
             return (
-              <div 
+              <motion.div 
                 key={lesson.id} 
-                className={`group relative flex flex-col justify-between rounded-2xl border backdrop-blur-md transition-all duration-300 overflow-hidden ${
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: idx * 0.08 }}
+                className={`group relative flex flex-col justify-between rounded-2xl border backdrop-blur-xl transition-all duration-300 overflow-hidden ${
                   isCompleted
-                    ? 'bg-[#0A202A]/70 border-[#0DEDC0]/60 shadow-[0_10px_25px_rgba(13,237,192,0.08)]'
-                    : 'bg-[#102935]/60 border-[#6884C5]/20'
-                } ${isAvailable ? 'hover:border-[#0DEDC0]/40 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_25px_rgba(13,237,192,0.08)] hover:-translate-y-1.5' : ''}`}
+                    ? 'bg-gradient-to-b from-[#0A202A] to-[#06141D] border-[#0DEDC0]/60 shadow-[0_10px_25px_rgba(13,237,192,0.12)]'
+                    : 'bg-[#090D16]/80 border-slate-800'
+                } ${isAvailable ? 'hover:border-[#0DEDC0] hover:shadow-[0_20px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(13,237,192,0.15)] hover:-translate-y-1.5' : ''}`}
               >
                 
+                {/* CANDADO O BLOQUEO DE CONTENIDO FUTURO */}
                 {!isAvailable && (
                   <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#070B14]/85 backdrop-blur-[3px] p-6 text-center select-none">
                     <div className="flex items-center gap-2 bg-[#6884C5]/20 border border-[#6884C5]/50 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(104,132,197,0.3)]">
-                      <div className="w-2 h-2 rounded-full bg-[#6884C5] animate-pulse" />
+                      <Lock className="w-3.5 h-3.5 text-[#6884C5]" />
                       <span className="text-xs font-mono font-bold text-slate-200 uppercase tracking-widest">
                         Próximamente
                       </span>
@@ -264,11 +280,12 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
                   </div>
                 )}
 
-                <div className={`flex flex-col flex-1 justify-between transition-all duration-300 ${!isAvailable ? 'blur-[4px] opacity-30 select-none pointer-events-none' : ''}`}>
+                <div className={`flex flex-col flex-1 justify-between ${!isAvailable ? 'blur-[4px] opacity-30 select-none pointer-events-none' : ''}`}>
                   
                   <div>
+                    {/* THUMBNAIL CON REPRODUCTOR HOVER */}
                     <div 
-                      className="relative aspect-video bg-[#091A23] flex items-center justify-center cursor-pointer overflow-hidden"
+                      className="relative aspect-video bg-[#091A23] flex items-center justify-center cursor-pointer overflow-hidden group/thumb"
                       onClick={() => isAvailable && setSelectedVideo(lesson)}
                     >
                       <img 
@@ -276,32 +293,30 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
                         alt={lesson.titulo}
                         loading="lazy"
                         decoding="async"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover/thumb:scale-105"
                       />
 
-                      <div className="absolute inset-0 bg-[#091A23]/40 group-hover:bg-[#091A23]/20 transition-colors duration-300 z-10" />
+                      <div className="absolute inset-0 bg-[#091A23]/50 group-hover/thumb:bg-[#091A23]/20 transition-colors duration-300 z-10" />
 
                       {isCompleted && (
-                        <span className="absolute top-3 right-3 bg-[#0DEDC0] text-[#0B171C] text-[10px] font-black font-mono uppercase tracking-wider px-2.5 py-1 rounded-full shadow-[0_0_15px_rgba(13,237,192,0.6)] z-20">
-                          ✓ VISTO
+                        <span className="absolute top-3 right-3 bg-[#0DEDC0] text-[#0B171C] text-[10px] font-black font-mono uppercase tracking-wider px-2.5 py-1 rounded-full shadow-[0_0_15px_rgba(13,237,192,0.6)] z-20 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> VISTO
                         </span>
                       )}
 
-                      <div className="absolute w-12 h-12 rounded-full bg-[#0DEDC0]/20 border border-[#0DEDC0] text-[#0DEDC0] flex items-center justify-center shadow-[0_0_20px_rgba(13,237,192,0.4)] group-hover:scale-110 group-hover:bg-[#0DEDC0] group-hover:text-[#091A23] group-hover:shadow-[0_0_30px_rgba(13,237,192,0.7)] transition-all duration-300 z-20">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
+                      <div className="absolute w-12 h-12 rounded-full bg-[#0DEDC0]/20 border border-[#0DEDC0] text-[#0DEDC0] flex items-center justify-center shadow-[0_0_20px_rgba(13,237,192,0.4)] group-hover/thumb:scale-110 group-hover/thumb:bg-[#0DEDC0] group-hover/thumb:text-[#091A23] group-hover/thumb:shadow-[0_0_30px_rgba(13,237,192,0.7)] transition-all duration-300 z-20">
+                        <Play className="w-5 h-5 fill-current ml-0.5" />
                       </div>
 
-                      <span className="absolute bottom-3 right-3 bg-[#091A23]/90 border border-white/15 text-slate-300 text-[11px] font-bold font-mono px-2 py-0.5 rounded backdrop-blur-md z-20">
-                        {lesson.duracion}
+                      <span className="absolute bottom-3 right-3 bg-[#091A23]/90 border border-white/15 text-slate-300 text-[11px] font-bold font-mono px-2 py-0.5 rounded backdrop-blur-md z-20 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-[#0DEDC0]" /> {lesson.duracion}
                       </span>
                     </div>
 
                     <div className="p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-extrabold text-[#6884C5] uppercase tracking-wider">
-                          {lesson.categoria}
+                      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <span className="text-xs font-black text-[#6884C5] uppercase tracking-wider flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" /> {lesson.categoria}
                         </span>
                         
                         <span 
@@ -312,7 +327,7 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
                             color: badgeStyle.color
                           }}
                         >
-                          {renderBadgeIcon(lesson.badge)}
+                          {badgeStyle.icon}
                           {lesson.badge}
                         </span>
                       </div>
@@ -321,7 +336,7 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
                         {lesson.titulo}
                       </h3>
                       
-                      <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium">
+                      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
                         {lesson.descripcion}
                       </p>
                     </div>
@@ -329,6 +344,7 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
 
                   <div className="p-6 pt-0">
                     <button 
+                      type="button"
                       onClick={() => isAvailable && setSelectedVideo(lesson)} 
                       disabled={!isAvailable}
                       className={`w-full py-3 rounded-xl font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
@@ -339,16 +355,13 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
                     >
                       {isCompleted ? (
                         <>
-                          <span className="text-[#0DEDC0] font-black group-hover:text-[#0B171C]">✓ COMPLETADA</span>
-                          <span className="opacity-40">•</span>
+                          <Check className="w-4 h-4 text-[#0DEDC0]" />
                           <span>VOLVER A VER</span>
                         </>
                       ) : (
                         <>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                          REPRODUCIR LECCIÓN
+                          <Play className="w-4 h-4 fill-current" />
+                          <span>REPRODUCIR LECCIÓN</span>
                         </>
                       )}
                     </button>
@@ -356,63 +369,76 @@ export default function Pagina1({ variante = 'auroraBoreal' }: Pagina1Props) {
 
                 </div>
 
-              </div>
+              </motion.div>
             );
           })}
         </div>
 
       </div>
 
-      {/* REPRODUCTOR MODAL */}
-      {selectedVideo && (
-        <div className="fixed inset-0 bg-[#091A23]/90 backdrop-blur-xl z-[2000] flex items-center justify-center p-4 sm:p-6">
-          <div className="relative bg-[#102935] border border-[#0DEDC0]/40 rounded-2xl w-full max-w-4xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.9),0_0_40px_rgba(13,237,192,0.15)]">
-            
-            <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-[#091A23]">
-              <div>
-                <span className="text-xs text-[#0DEDC0] font-extrabold uppercase tracking-wider block">
-                  {selectedVideo.categoria} • {selectedVideo.duracion}
-                </span>
-                <h3 className="text-white font-black text-sm sm:text-base tracking-tight mt-0.5">
-                  {selectedVideo.titulo}
-                </h3>
+      {/* REPRODUCTOR MODAL CON FRAMER MOTION */}
+      <AnimatePresence>
+        {selectedVideo && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#091A23]/90 backdrop-blur-2xl z-[2000] flex items-center justify-center p-4 sm:p-6"
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative bg-[#090D16] border border-[#0DEDC0]/40 rounded-2xl w-full max-w-4xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.9),0_0_40px_rgba(13,237,192,0.2)]"
+            >
+              <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-[#0F1722]">
+                <div>
+                  <span className="text-xs text-[#0DEDC0] font-mono font-bold uppercase tracking-wider block">
+                    {selectedVideo.categoria} • {selectedVideo.duracion}
+                  </span>
+                  <h3 className="text-white font-black text-sm sm:text-base tracking-tight mt-0.5">
+                    {selectedVideo.titulo}
+                  </h3>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => marcarCompletada(selectedVideo.id)}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-black border transition-all cursor-pointer ${
+                      completedLessons.includes(selectedVideo.id)
+                        ? 'bg-[#0DEDC0]/20 border-[#0DEDC0]/50 text-[#0DEDC0]'
+                        : 'bg-white/5 border-white/10 text-slate-300 hover:border-[#0DEDC0]/50'
+                    }`}
+                  >
+                    {completedLessons.includes(selectedVideo.id) ? '✓ Visto' : 'Marcar como visto'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedVideo(null)}
+                    className="bg-white/5 hover:bg-red-500/20 border border-white/15 text-white w-9 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => marcarCompletada(selectedVideo.id)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold border transition-all cursor-pointer ${
-                    completedLessons.includes(selectedVideo.id)
-                      ? 'bg-[#0DEDC0]/20 border-[#0DEDC0]/40 text-[#0DEDC0]'
-                      : 'bg-white/5 border-white/10 text-slate-300 hover:border-[#0DEDC0]/50'
-                  }`}
-                >
-                  {completedLessons.includes(selectedVideo.id) ? '✓ Visto' : 'Marcar como visto'}
-                </button>
-
-                <button
-                  onClick={() => setSelectedVideo(null)}
-                  className="bg-white/5 hover:bg-red-500/20 border border-white/15 text-white w-9 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
-                >
-                  ✕
-                </button>
+              <div className="aspect-video w-full bg-black">
+                <iframe
+                  id="youtube-player"
+                  className="w-full h-full border-none"
+                  src={`https://www.youtube-nocookie.com/embed/${selectedVideo.youtubeId}?autoplay=1&enablejsapi=1&rel=0&modestbranding=1&iv_load_policy=3`}
+                  title={selectedVideo.titulo}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
               </div>
-            </div>
-            
-            <div className="aspect-video w-full bg-black">
-              <iframe
-                id="youtube-player"
-                className="w-full h-full border-none"
-                src={`https://www.youtube-nocookie.com/embed/${selectedVideo.youtubeId}?autoplay=1&enablejsapi=1&rel=0&modestbranding=1&iv_load_policy=3`}
-                title={selectedVideo.titulo}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
 
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
