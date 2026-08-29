@@ -99,14 +99,14 @@ export default function CalculadoraPage() {
     return (
       <Registro 
         onLoginSuccess={() => setAutenticado(true)} 
-        variante="hexGrid" 
+        variante="perspectiveGrid" 
       />
     );
   }
 
   return (
     <div className="min-h-screen bg-[#0B171C] text-white relative">
-      <Seccion1 variante="hexGrid" />
+      <Seccion1 variante="perspectiveGrid" />
     </div>
   );
 }
