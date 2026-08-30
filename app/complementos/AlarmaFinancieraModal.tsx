@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   AlertTriangle, 
@@ -40,14 +41,33 @@ const OBTENER_COSTO_DEVOLUCION_MONEDA = (codigo: string): number => {
 const WHATSAPP_OFICIAL = '573138712634';
 
 export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinancieraModalProps) {
+  // Estado para hidratación segura con React Portal
+  const [mounted, setMounted] = useState<boolean>(false);
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
   const [selectorMonedaAbierto, setSelectorMonedaAbierto] = useState<boolean>(false);
 
+  // VALORES CONFIGURADOS POR EL USUARIO
   const [despachosMes, setDespachosMes] = useState<number>(3500);
   const [ticketPromedio, setTicketPromedio] = useState<number>(35000);
   const [porcentajeDevolucion, setPorcentajeDevolucion] = useState<number>(28);
   const [porcentajeMerma, setPorcentajeMerma] = useState<number>(10);
   const [diasRetornoWallet, setDiasRetornoWallet] = useState<number>(18);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Bloqueo de scroll en el body mientras el modal esté activo
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   const formatoMoneda = (monto: number) => 
     formatearMonedaGlobal(monto, monedaSeleccionada.codigo);
@@ -65,17 +85,20 @@ export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinanci
     const diasWallet = Math.max(1, Number(diasRetornoWallet) || 15);
 
     const ventasMensualesTotales = desp * ticket;
-    const cogsEstimadoUnitario = ticket * 0.35;
-
     const costoUnitarioDevolucion = OBTENER_COSTO_DEVOLUCION_MONEDA(monedaSeleccionada.codigo);
+
+    // 1. UNIDADES DEVUELTAS Y PÉRDIIDA EN PROCESAMIENTO
     const unidadesDevueltas = desp * pDev;
     const perdidaDevolucionesMensual = unidadesDevueltas * costoUnitarioDevolucion;
 
-    const unidadesMermadas = desp * mermaRealCalculada;
-    const perdidaMermasMensual = unidadesMermadas * cogsEstimadoUnitario;
+    // 2. MERMA CALCULADA SOBRE LAS UNIDADES DEVUELTAS MULTIPLICADA POR EL TICKET
+    const unidadesMermadas = unidadesDevueltas * mermaRealCalculada;
+    const perdidaMermasMensual = unidadesMermadas * ticket;
 
+    // 3. CAPITAL RETENIDO EN WALLET
     const capitalCongeladoEnCaja = ventasMensualesTotales * (diasWallet / 30);
 
+    // TOTALES
     const perdidaDirectaMensual = perdidaDevolucionesMensual + perdidaMermasMensual;
     const perdidaDirectaAnual = perdidaDirectaMensual * 12;
 
@@ -104,18 +127,19 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
     return `https://wa.me/${WHATSAPP_OFICIAL}?text=${encodeURIComponent(textoMensaje)}`;
   }, [despachosMes, monedaSeleccionada.codigo, diagnostico.perdidaDirectaMensual, formatoMoneda]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  // TELETRANSPORTA EL MODAL A DOCUMENT.BODY CON SUPER CAPA Z-999999
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4 font-sans overflow-y-auto">
+      <div className="fixed inset-0 z-[999999] bg-black/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4 font-sans overflow-y-auto">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-xl bg-[#090D16] border-2 border-[#0DEDC0] rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-[0_0_60px_rgba(13,237,192,0.35)] text-white space-y-3.5 my-auto max-h-[88vh] overflow-y-auto custom-scrollbar"
+          className="relative w-full max-w-xl bg-[#090D16] border-2 border-[#0DEDC0] rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-[0_0_60px_rgba(13,237,192,0.35)] text-white space-y-3.5 my-auto max-h-[85vh] overflow-y-auto custom-scrollbar"
         >
-          {/* LUZ DE RESPLANDOR */}
+          {/* LUZ DE RESPLANDOR AMBIENTAL */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-20 bg-[#0DEDC0]/15 rounded-full blur-2xl pointer-events-none" />
 
           {/* BOTÓN CERRAR */}
@@ -140,10 +164,10 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
             </p>
           </div>
 
-          {/* FORMULARIO - CAPA Z-20 PARA LIDERAR EL CORTE */}
+          {/* FORMULARIO */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 relative z-20 bg-[#102935]/60 p-3 rounded-xl border border-slate-800 text-[11px]">
             
-            {/* SELECTOR DIVISA - CAPA Z-50 CUANDO ESTÁ ABIERTO */}
+            {/* SELECTOR DIVISA */}
             <div className={`relative ${selectorMonedaAbierto ? 'z-50' : 'z-10'}`}>
               <label className="block text-[9px] font-mono font-bold text-slate-300 uppercase mb-0.5">
                 Moneda
@@ -236,7 +260,7 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
             {/* % MERMA / PERDIDA */}
             <div>
               <div className="flex justify-between text-[9px] font-mono font-bold text-slate-300 uppercase mb-0.5">
-                <span>% Merma / Perdida </span>
+                <span>% Merma / Perdida</span>
                 <span className="text-amber-400">{porcentajeMerma}%</span>
               </div>
               <input
@@ -267,7 +291,7 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
 
           </div>
 
-          {/* ALERTAS REACTIVAS - CAPA Z-0 PARA DEJAR PASAR EL DESPLEGABLE */}
+          {/* ALERTAS REACTIVAS INTELIGENTES */}
           <div className="space-y-1.5 relative z-0">
             {esDevolucionAlta && (
               <motion.div 
@@ -290,7 +314,7 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
               >
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span>
-                  <strong>Alerta:</strong> Asumir 0% de merma ignora pérdidas por empaque destruido o mercancía retenida. Calculamos sobre el <strong>2% mínimo técnico</strong>.
+                  <strong>Alerta:</strong> Asumir 0% de merma ignora pérdidas por empaque destruido o mercancía retenida. Calculamos sobre el <strong>2% técnico de las devoluciones</strong>.
                 </span>
               </motion.div>
             )}
@@ -351,7 +375,7 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
               className="w-full py-3 px-5 bg-[#0DEDC0] text-[#090D16] font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_0_25px_rgba(13,237,192,0.4)] hover:bg-white hover:shadow-[0_0_35px_rgba(255,255,255,0.8)] transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <MessageCircle className="w-4 h-4 fill-current" />
-              <span>DETENER FUGA AHORA MISMO </span>
+              <span>DETENER FUGA AHORA MISMO</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </a>
 
@@ -362,6 +386,7 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
 
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

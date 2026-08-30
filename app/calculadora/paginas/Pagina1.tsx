@@ -133,7 +133,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   const [costoLogisticaInversa, setCostoLogisticaInversa] = useState<number>(0); 
   
   const [porcentajeDevoluciones, setPorcentajeDevoluciones] = useState<number>(20); 
-  const [porcentajeMermas, setPorcentajeMermas] = useState<number>(3); 
+  const [porcentajeMermas, setPorcentajeMermas] = useState<number>(10); // % de merma sobre las devoluciones
   const [impactoFiscal, setImpactoFiscal] = useState<number>(0);
   const [margenDeseado, setMargenDeseado] = useState<number>(30);
 
@@ -187,15 +187,19 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
     const pctMermasBase = Math.min(0.30, Math.max(0.01, (Number(porcentajeMermas) || 1) / 100));
     const pctComisionExtra = Math.min(0.30, Math.max(0, (Number(comisionDropExtra) || 0) / 100));
 
+    // CÁLCULO UNIFICADO: MERMA SOBRE LAS DEVOLUCIONES
     const calcularEscenario = (pDev: number, pMerma: number, pMargen: number) => {
+      // 1. Factor de devolución por unidad entregada
       const factorDev = (1 - pDev) > 0 ? (pDev / (1 - pDev)) : 0;
       const costoDev = cRetorno * factorDev;
       
-      const factorMerma = (1 - pMerma) > 0 ? (pMerma / (1 - pMerma)) : 0;
-      const costoMerma = cBase * factorMerma;
+      // 2. Costo de merma aplicado SOBRE LAS DEVOLUCIONES (Costo Base x Unidades Devueltas x % Merma)
+      const costoMerma = cBase * factorDev * pMerma;
 
+      // 3. Costo Total Absorbido
       const costoAbsorbido = cBase + costoDev + costoMerma;
 
+      // 4. Precio Neto sin IVA
       const denomMargen = 1 - pMargen;
       const precioNeto = denomMargen > 0.01 ? (costoAbsorbido / denomMargen) : (costoAbsorbido * 2);
       
@@ -281,7 +285,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                 Condición de Entrega Operativa
               </span>
               <p className="text-xs text-slate-200 leading-relaxed font-sans">
-                Nota: Este valor solo se puede entregar si se cumple strictly con las condiciones especificadas en la tarjeta de propuesta.
+                Nota: Este valor solo se puede entregar si se cumple estrictamente con las condiciones especificadas en la tarjeta de propuesta.
               </p>
             </div>
           </div>
@@ -408,8 +412,8 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                 >
                   <div className="flex justify-between items-center text-[10px] font-semibold text-red-300 mb-1.5">
                     <span className="flex items-center">
-                      Mermas
-                      <Tooltip contenido="Porcentaje de inventario que no llega a bodega o es devuelto pero llega destruido o robado." />
+                      Merma s/Dev
+                      <Tooltip contenido="Porcentaje de mercancía perdida o destruida calculado estrictamente sobre los paquetes que rebotan/devuelven." />
                     </span>
                     <div className="flex items-center gap-1 bg-red-950/80 border border-red-800/60 rounded px-1.5 py-0.5">
                       <input
@@ -436,7 +440,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                     }} 
                     className="w-full accent-red-400 cursor-pointer" 
                   />
-                  <span className="text-[9px] text-slate-500 block mt-1">Piso Técnico 1%</span>
+                  <span className="text-[9px] text-slate-500 block mt-1">% sobre devoluciones</span>
                 </div>
               </div>
             </div>
