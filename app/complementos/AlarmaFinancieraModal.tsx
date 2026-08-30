@@ -233,10 +233,10 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
               />
             </div>
 
-            {/* % MERMA / ROBO */}
+            {/* % MERMA / PERDIDA */}
             <div>
               <div className="flex justify-between text-[9px] font-mono font-bold text-slate-300 uppercase mb-0.5">
-                <span>% Merma / Robo</span>
+                <span>% Merma / Perdida </span>
                 <span className="text-amber-400">{porcentajeMerma}%</span>
               </div>
               <input
