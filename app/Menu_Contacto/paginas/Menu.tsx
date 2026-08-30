@@ -15,7 +15,9 @@ import {
   LogIn, 
   Menu as MenuIcon, 
   X, 
-  Sparkles 
+  Sparkles,
+  Home,
+  SlidersHorizontal
 } from 'lucide-react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { ESTILOS_TEXTO, ModoTema, esFondoClaro } from '@/app/complementos/Tipografia';
@@ -30,6 +32,7 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
   const esClaro = esFondoClaro(variante, modoTema);
 
   const [herramientasOpen, setHerramientasOpen] = useState(false);
+  const [herramientasMobileOpen, setHerramientasMobileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Ocultar menú en la app principal
@@ -39,7 +42,6 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
    * ⚡ EVALUADOR DE ESTILOS INDIVIDUALES (HOVER Y ACTIVO)
    */
   const getLinkStyles = (href: string) => {
-    // Verifica si la opción coincide exactamente con la URL actual
     const esActivo = pathname === href;
 
     if (esClaro) {
@@ -73,7 +75,7 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
             <img 
               src="/logo-color.png" 
               alt="ATOM Solutions Data" 
-              className="h-14 md:h-16 w-auto transition-transform duration-300 group-hover:scale-105" 
+              className="h-12 sm:h-14 md:h-16 w-auto transition-transform duration-300 group-hover:scale-105" 
             />
           </Link>
 
@@ -88,7 +90,7 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
               Simuladores
             </Link>
 
-            {/* DESPLEGABLE HERRAMIENTAS */}
+            {/* DESPLEGABLE HERRAMIENTAS DESKTOP */}
             <div 
               className="relative py-2"
               onMouseEnter={() => setHerramientasOpen(true)}
@@ -123,7 +125,7 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
                           : 'hover:bg-[#0DEDC0]/10'
                       }`}
                     >
-                      <span className="flex items-center gap-2"><Calculator className="w-3.5 h-3.5" /> Calculadora Avanzada</span>
+                      <span className="flex items-center gap-2"><Calculator className="w-3.5 h-3.5 text-[#0DEDC0]" /> Calculadora Avanzada</span>
                       <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23]">NUEVO</span>
                     </Link>
 
@@ -133,7 +135,7 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
                       rel="noopener noreferrer" 
                       className="flex items-center justify-between px-4 py-2.5 text-xs hover:bg-[#0DEDC0]/10 transition-colors"
                     >
-                      <span className="flex items-center gap-2"><Boxes className="w-3.5 h-3.5" /> LoboStock</span>
+                      <span className="flex items-center gap-2"><Boxes className="w-3.5 h-3.5 text-[#0DEDC0]" /> LoboStock</span>
                       <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23]">NUEVO</span>
                     </a>
                   </motion.div>
@@ -173,33 +175,118 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
             </Link>
           </div>
 
-          {/* BOTÓN MÓVIL */}
+          {/* BOTÓN MÓVIL (HAMBURGUESA) */}
           <button 
             type="button" 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={`lg:hidden p-2 rounded-lg border cursor-pointer ${
+            className={`lg:hidden p-2 rounded-lg border cursor-pointer transition-colors ${
               esClaro ? 'bg-[#102935] text-white' : 'bg-[#0DEDC0]/10 text-[#0DEDC0] border-[#0DEDC0]/30'
             }`}
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
           </button>
         </div>
       </div>
 
-      {/* MENÚ MÓVIL */}
+      {/* MENÚ MÓVIL COMPLETO CON ACORDEÓN TÁCTIL */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div 
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className={`lg:hidden px-6 py-5 flex flex-col gap-3 border-t ${bgHeader}`}
+            className={`lg:hidden px-6 py-5 flex flex-col gap-3.5 border-t border-white/10 shadow-2xl ${bgHeader}`}
           >
-            <Link href="/" onClick={() => setMobileMenuOpen(false)} className={`text-sm pb-2 border-b border-white/10 ${getLinkStyles('/')}`}>Inicio</Link>
-            <Link href="/simulador" onClick={() => setMobileMenuOpen(false)} className={`text-sm pb-2 border-b border-white/10 ${getLinkStyles('/simulador')}`}>Simulador</Link>
-            <Link href="/academy" onClick={() => setMobileMenuOpen(false)} className={`text-sm pb-2 border-b border-white/10 ${getLinkStyles('/academy')}`}>Academy</Link>
-            <Link href="/soporte" onClick={() => setMobileMenuOpen(false)} className={`text-sm pb-2 border-b border-white/10 ${getLinkStyles('/soporte')}`}>Soporte</Link>
-            <Link href="/atomapp" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-2 py-3 bg-[#0DEDC0] text-[#061217] rounded-lg font-black text-xs uppercase shadow-lg">
+            <Link 
+              href="/" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className={`text-sm pb-2 border-b border-white/10 flex items-center gap-2 ${getLinkStyles('/')}`}
+            >
+              <Home className="w-4 h-4" /> Inicio
+            </Link>
+
+            <Link 
+              href="/simulador" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className={`text-sm pb-2 border-b border-white/10 flex items-center gap-2 ${getLinkStyles('/simulador')}`}
+            >
+              <SlidersHorizontal className="w-4 h-4" /> Simuladores
+            </Link>
+
+            {/* ACORDEÓN MÓVIL "HERRAMIENTAS" */}
+            <div className="border-b border-white/10 pb-2">
+              <button 
+                type="button"
+                onClick={() => setHerramientasMobileOpen(!herramientasMobileOpen)}
+                className="w-full flex items-center justify-between text-sm font-bold text-slate-200 py-1 cursor-pointer"
+              >
+                <span className="flex items-center gap-2 text-[#0DEDC0]">
+                  <Calculator className="w-4 h-4" /> Herramientas
+                </span>
+                <ChevronDown className={`w-4 h-4 text-[#0DEDC0] transition-transform duration-200 ${herramientasMobileOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {herramientasMobileOpen && (
+                <div className="flex flex-col gap-2 pl-6 pt-2 pb-1">
+                  <Link 
+                    href="/calculadora" 
+                    onClick={() => setMobileMenuOpen(false)} 
+                    className="flex items-center justify-between text-xs py-1.5 font-bold text-slate-300 hover:text-[#0DEDC0]"
+                  >
+                    <span className="flex items-center gap-2"><Calculator className="w-3.5 h-3.5 text-[#0DEDC0]" /> Calculadora Avanzada</span>
+                    <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23]">NUEVO</span>
+                  </Link>
+
+                  <a 
+                    href="https://lobostock.vercel.app/" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center justify-between text-xs py-1.5 font-bold text-slate-300 hover:text-[#0DEDC0]"
+                  >
+                    <span className="flex items-center gap-2"><Boxes className="w-3.5 h-3.5 text-[#0DEDC0]" /> LoboStock</span>
+                    <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0DEDC0] text-[#091A23]">NUEVO</span>
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <Link 
+              href="/academy" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className={`text-sm pb-2 border-b border-white/10 flex items-center gap-2 ${getLinkStyles('/academy')}`}
+            >
+              <GraduationCap className="w-4 h-4" /> ATOM Academy
+            </Link>
+
+            <a 
+              href="/#precios" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className={`text-sm pb-2 border-b border-white/10 flex items-center gap-2 ${getLinkStyles('/#precios')}`}
+            >
+              <Tag className="w-4 h-4" /> Precios
+            </a>
+
+            <Link 
+              href="/noticias" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className={`text-sm pb-2 border-b border-white/10 flex items-center gap-2 ${getLinkStyles('/noticias')}`}
+            >
+              <Newspaper className="w-4 h-4" /> Noticias
+            </Link>
+
+            <Link 
+              href="/soporte" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className={`text-sm pb-2 border-b border-white/10 flex items-center gap-2 ${getLinkStyles('/soporte')}`}
+            >
+              <HelpCircle className="w-4 h-4" /> Soporte
+            </Link>
+
+            <Link 
+              href="/atomapp" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="flex items-center justify-center gap-2 py-3 mt-2 bg-[#0DEDC0] text-[#061217] rounded-xl font-black text-xs uppercase shadow-lg hover:bg-white transition-colors"
+            >
               <LogIn className="w-4 h-4" /> ACCESO PORTAL
             </Link>
           </motion.div>
