@@ -21,10 +21,18 @@ interface AlarmaFinancieraModalProps {
   onClose: () => void;
 }
 
-const OBTENER_COSTO_DEVOLUCION_MONEDA = (codigo: string): number => {
+// OBTENCIÓN DINÁMICA DEL COSTO OPERATIVO DE DEVOLUCIÓN POR MONEDA
+const OBTENER_COSTO_DEVOLUCION_MONEDA = (moneda: MonedaConfig): number => {
+  // 1. Si la moneda tiene la propiedad 'costoDevolucion' en @/app/lib/moneda, se usa directamente
+  if ('costoDevolucion' in moneda && typeof (moneda as { costoDevolucion?: number }).costoDevolucion === 'number') {
+    return (moneda as { costoDevolucion: number }).costoDevolucion;
+  }
+
+  // 2. Mapa ampliado de equivalencias operativas locales (~$0.75 USD equivalente)
   const mapaCostos: Record<string, number> = {
     COP: 3000,
     USD: 0.75,
+    EUR: 0.70,
     MXN: 15,
     PEN: 3.0,
     CLP: 700,
@@ -34,19 +42,26 @@ const OBTENER_COSTO_DEVOLUCION_MONEDA = (codigo: string): number => {
     GTQ: 6.0,
     ECU: 0.75,
     PAN: 0.75,
+    PAB: 0.75,
+    BOB: 5.0,
+    DOP: 45.0,
+    CRC: 380.0,
+    HNL: 18.0,
+    NIO: 27.0,
+    UYU: 30.0,
   };
-  return mapaCostos[codigo] ?? 0.75;
+
+  return mapaCostos[moneda.codigo] ?? 0.75;
 };
 
 const WHATSAPP_OFICIAL = '573138712634';
 
 export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinancieraModalProps) {
-  // Estado para hidratación segura con React Portal
   const [mounted, setMounted] = useState<boolean>(false);
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
   const [selectorMonedaAbierto, setSelectorMonedaAbierto] = useState<boolean>(false);
 
-  // VALORES CONFIGURADOS POR EL USUARIO
+  // VALORES CONFIGURADOS
   const [despachosMes, setDespachosMes] = useState<number>(3500);
   const [ticketPromedio, setTicketPromedio] = useState<number>(35000);
   const [porcentajeDevolucion, setPorcentajeDevolucion] = useState<number>(28);
@@ -57,7 +72,7 @@ export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinanci
     setMounted(true);
   }, []);
 
-  // Bloqueo de scroll en el body mientras el modal esté activo
+  // Bloqueo de scroll en body mientras el modal está activo
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -85,9 +100,9 @@ export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinanci
     const diasWallet = Math.max(1, Number(diasRetornoWallet) || 15);
 
     const ventasMensualesTotales = desp * ticket;
-    const costoUnitarioDevolucion = OBTENER_COSTO_DEVOLUCION_MONEDA(monedaSeleccionada.codigo);
+    const costoUnitarioDevolucion = OBTENER_COSTO_DEVOLUCION_MONEDA(monedaSeleccionada);
 
-    // 1. UNIDADES DEVUELTAS Y PÉRDIIDA EN PROCESAMIENTO
+    // 1. UNIDADES DEVUELTAS Y PÉRDIDA EN PROCESAMIENTO
     const unidadesDevueltas = desp * pDev;
     const perdidaDevolucionesMensual = unidadesDevueltas * costoUnitarioDevolucion;
 
@@ -113,7 +128,7 @@ export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinanci
       perdidaDirectaMensual,
       perdidaDirectaAnual,
     };
-  }, [despachosMes, ticketPromedio, porcentajeDevolucion, porcentajeMerma, esMermaFalsa, diasRetornoWallet, monedaSeleccionada.codigo]);
+  }, [despachosMes, ticketPromedio, porcentajeDevolucion, porcentajeMerma, esMermaFalsa, diasRetornoWallet, monedaSeleccionada]);
 
   const waLink = useMemo(() => {
     const textoMensaje = `Hola equipo ATOM ⚡, acabo de realizar la simulación de mi bodega en la Alarma Financiera:
@@ -129,7 +144,6 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
 
   if (!isOpen || !mounted) return null;
 
-  // TELETRANSPORTA EL MODAL A DOCUMENT.BODY CON SUPER CAPA Z-999999
   return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-[999999] bg-black/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4 font-sans overflow-y-auto">
