@@ -17,22 +17,22 @@ export default function Home() {
       <ExitIntentModal />
 
       {/* SECCIÓN 1: HERO PRINCIPAL */}
-      <Seccion1 variante="atomDynamicGradient" />
+      <Seccion1 variante="perspectiveGrid" />
 
       {/* SECCIÓN 2: MARQUEE PAÍSES LATAM */}
-      <Seccion2 variante="circuitBoard" />
+      <Seccion2 variante="spotlightCyan" />
 
       {/* SECCIÓN 3: DIAGNÓSTICO OPERATIVO */}
       <Seccion3 variante="perspectiveGrid" />
 
       {/* SECCIÓN 4: MÉTRICAS DE CAPITAL PROTEGIDO */}
-      <Seccion4 variante="vignetteDark" />
+      <Seccion4 variante="spotlightCyan" />
 
       {/* SECCIÓN 5: TABLA DE PRECIOS E INVERSIÓN */}
-      <Seccion5 variante="spotlightCyan" />
+      <Seccion5 variante="perspectiveGrid" />
 
       {/* SECCIÓN 6: CIERRE ESTRATÉGICO & WIDGET DE ROI */}
-      <Seccion6 variante="hexGrid" />
+      <Seccion6 variante="perspectiveGrid" />
 
     </div>
   );
