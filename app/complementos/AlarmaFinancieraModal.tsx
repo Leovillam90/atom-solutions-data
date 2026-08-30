@@ -43,19 +43,18 @@ export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinanci
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
   const [selectorMonedaAbierto, setSelectorMonedaAbierto] = useState<boolean>(false);
 
-  const [despachosMes, setDespachosMes] = useState<number>(8500);
-  const [ticketPromedio, setTicketPromedio] = useState<number>(53500);
-  const [porcentajeDevolucion, setPorcentajeDevolucion] = useState<number>(25);
+  const [despachosMes, setDespachosMes] = useState<number>(300);
+  const [ticketPromedio, setTicketPromedio] = useState<number>(110000);
+  const [porcentajeDevolucion, setPorcentajeDevolucion] = useState<number>(20);
   const [porcentajeMerma, setPorcentajeMerma] = useState<number>(10);
-  const [diasRetornoWallet, setDiasRetornoWallet] = useState<number>(18);
+  const [diasRetornoWallet, setDiasRetornoWallet] = useState<number>(15);
 
   const formatoMoneda = (monto: number) => 
     formatearMonedaGlobal(monto, monedaSeleccionada.codigo);
 
-  // EVALUACIÓN DE GATILLOS REACTIVOS
   const esMermaFalsa = porcentajeMerma === 0;
   const esLentaRetorno = diasRetornoWallet >= 12;
-  const esDevolucionAlta = porcentajeDevolucion > 25; // ⚡ NUEVO GATILLO
+  const esDevolucionAlta = porcentajeDevolucion > 25;
 
   const diagnostico = useMemo(() => {
     const desp = Math.max(1, Number(despachosMes) || 0);
@@ -93,7 +92,6 @@ export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinanci
     };
   }, [despachosMes, ticketPromedio, porcentajeDevolucion, porcentajeMerma, esMermaFalsa, diasRetornoWallet, monedaSeleccionada.codigo]);
 
-  // GENERADOR DINÁMICO DE ENLACE DE WHATSAPP
   const waLink = useMemo(() => {
     const textoMensaje = `Hola equipo ATOM ⚡, acabo de realizar la simulación de mi bodega en la Alarma Financiera:
 
@@ -124,7 +122,7 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
           <button 
             type="button"
             onClick={onClose}
-            className="absolute top-3.5 right-3.5 p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors cursor-pointer z-20"
+            className="absolute top-3.5 right-3.5 p-1.5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors cursor-pointer z-30"
           >
             <X className="w-4 h-4" />
           </button>
@@ -142,39 +140,51 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
             </p>
           </div>
 
-          {/* FORMULARIO */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 relative z-10 bg-[#102935]/60 p-3 rounded-xl border border-slate-800 text-[11px]">
+          {/* FORMULARIO - CAPA Z-20 PARA LIDERAR EL CORTE */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 relative z-20 bg-[#102935]/60 p-3 rounded-xl border border-slate-800 text-[11px]">
             
-            {/* SELECTOR DIVISA */}
-            <div className="relative">
+            {/* SELECTOR DIVISA - CAPA Z-50 CUANDO ESTÁ ABIERTO */}
+            <div className={`relative ${selectorMonedaAbierto ? 'z-50' : 'z-10'}`}>
               <label className="block text-[9px] font-mono font-bold text-slate-300 uppercase mb-0.5">
                 Moneda
               </label>
               <button
                 type="button"
                 onClick={() => setSelectorMonedaAbierto(!selectorMonedaAbierto)}
-                className="w-full bg-[#090D16] border border-slate-700 text-white text-[11px] font-bold rounded-lg p-1.5 flex items-center justify-between cursor-pointer"
+                className="w-full bg-[#090D16] border border-slate-700 text-white text-[11px] font-bold rounded-lg p-1.5 flex items-center justify-between cursor-pointer hover:border-[#0DEDC0]/60 transition-colors"
               >
                 <span className="font-mono text-[#0DEDC0]">{monedaSeleccionada.codigo}</span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${selectorMonedaAbierto ? 'rotate-180' : ''}`} />
               </button>
 
               {selectorMonedaAbierto && (
-                <div className="absolute top-full left-0 w-full mt-1 bg-[#090D16] border border-[#0DEDC0]/50 rounded-lg shadow-2xl z-50 overflow-hidden max-h-36 overflow-y-auto">
-                  {MONEDAS.map((m) => (
-                    <button
-                      key={m.codigo}
-                      type="button"
-                      onClick={() => {
-                        setMonedaSeleccionada(m);
-                        setSelectorMonedaAbierto(false);
-                      }}
-                      className="w-full text-left px-2.5 py-1.5 text-[11px] font-mono hover:bg-[#102935] hover:text-[#0DEDC0] flex items-center justify-between"
-                    >
-                      <span>{m.codigo}</span>
-                      {m.codigo === monedaSeleccionada.codigo && <Check className="w-3 h-3 text-[#0DEDC0]" />}
-                    </button>
-                  ))}
+                <div className="absolute top-full left-0 w-60 sm:w-64 mt-1 bg-[#090D16] border-2 border-[#0DEDC0]/70 rounded-xl shadow-[0_15px_35px_rgba(0,0,0,0.95)] z-50 overflow-hidden">
+                  <div className="max-h-44 overflow-y-auto py-1 divide-y divide-slate-800/80 custom-scrollbar">
+                    {MONEDAS.map((m) => {
+                      const esSeleccionada = m.codigo === monedaSeleccionada.codigo;
+                      return (
+                        <button
+                          key={m.codigo}
+                          type="button"
+                          onClick={() => {
+                            setMonedaSeleccionada(m);
+                            setSelectorMonedaAbierto(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-[11px] font-mono flex items-center justify-between cursor-pointer transition-colors ${
+                            esSeleccionada 
+                              ? 'bg-[#102935] text-[#0DEDC0] font-bold' 
+                              : 'text-slate-300 hover:bg-[#102935]/80 hover:text-[#0DEDC0]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span className="font-bold text-[#0DEDC0]">{m.codigo}</span>
+                            <span className="text-slate-400 text-[10px] truncate">{m.nombre}</span>
+                          </div>
+                          {esSeleccionada && <Check className="w-3.5 h-3.5 text-[#0DEDC0] shrink-0 ml-1" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -223,10 +233,10 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
               />
             </div>
 
-            {/* % MERMA / PERDODA */}
+            {/* % MERMA / ROBO */}
             <div>
               <div className="flex justify-between text-[9px] font-mono font-bold text-slate-300 uppercase mb-0.5">
-                <span>% Merma / Perdida </span>
+                <span>% Merma / Robo</span>
                 <span className="text-amber-400">{porcentajeMerma}%</span>
               </div>
               <input
@@ -257,10 +267,8 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
 
           </div>
 
-          {/* ALERTAS REACTIVAS INTELIGENTES */}
-          <div className="space-y-1.5 relative z-10">
-            
-            {/* ⚡ NUEVA ALERTA DEVOLUCIÓN > 25% */}
+          {/* ALERTAS REACTIVAS - CAPA Z-0 PARA DEJAR PASAR EL DESPLEGABLE */}
+          <div className="space-y-1.5 relative z-0">
             {esDevolucionAlta && (
               <motion.div 
                 initial={{ opacity: 0, height: 0 }}
@@ -274,7 +282,6 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
               </motion.div>
             )}
 
-            {/* ALERTA MERMA 0% */}
             {esMermaFalsa && (
               <motion.div 
                 initial={{ opacity: 0, height: 0 }}
@@ -288,7 +295,6 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
               </motion.div>
             )}
 
-            {/* ALERTA WALLET > 12 DÍAS */}
             {esLentaRetorno && (
               <motion.div 
                 initial={{ opacity: 0, height: 0 }}
@@ -297,14 +303,14 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
               >
                 <Clock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span>
-                  <strong>Aviso:</strong> Tardar {diasRetornoWallet} días en recuperar el dinero inmoviliza tu capital. El promedio saludable debe ser menor a 8 días.
+                  <strong>Aviso:</strong> Tardar {diasRetornoWallet} días en recuperar el dinero inmoviliza tu capital. El promedio saludable B2B debe ser menor a 8 días.
                 </span>
               </motion.div>
             )}
           </div>
 
-          {/* RESULTADO DE LA ALARMA FINANCIERA COMPACTA */}
-          <div className="relative z-10 bg-gradient-to-b from-[#170B0F] via-[#12070A] to-[#090D16] p-3.5 sm:p-4 rounded-xl border-2 border-red-500/80 shadow-[0_0_25px_rgba(239,68,68,0.25)] text-center space-y-2">
+          {/* RESULTADO DE LA ALARMA FINANCIERA */}
+          <div className="relative z-0 bg-gradient-to-b from-[#170B0F] via-[#12070A] to-[#090D16] p-3.5 sm:p-4 rounded-xl border-2 border-red-500/80 shadow-[0_0_25px_rgba(239,68,68,0.25)] text-center space-y-2">
             <div>
               <span className="text-[9px] font-mono font-black uppercase text-red-400 tracking-widest block">
                 PÉRDIDA DIRECTA ESTIMADA (MENSUAL)
@@ -337,7 +343,7 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
           </div>
 
           {/* BOTÓN CTA FINAL A WHATSAPP */}
-          <div className="relative z-10 text-center space-y-1">
+          <div className="relative z-0 text-center space-y-1">
             <a
               href={waLink}
               target="_blank"
@@ -345,12 +351,12 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
               className="w-full py-3 px-5 bg-[#0DEDC0] text-[#090D16] font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_0_25px_rgba(13,237,192,0.4)] hover:bg-white hover:shadow-[0_0_35px_rgba(255,255,255,0.8)] transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <MessageCircle className="w-4 h-4 fill-current" />
-              <span>DETENER FUGA AHORA MISMO </span>
+              <span>DETENER FUGA POR WHATSAPP CON MI REPORTE</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </a>
 
             <p className="text-[9px] font-mono text-slate-400">
-              ⚡ Atención prioritaria · Envía tus datos simulados a un especialista 1:1
+              ⚡ Atención prioritaria B2B · Envía tus datos simulados a un especialista 1:1
             </p>
           </div>
 
