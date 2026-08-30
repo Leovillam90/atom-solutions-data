@@ -43,11 +43,11 @@ export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinanci
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
   const [selectorMonedaAbierto, setSelectorMonedaAbierto] = useState<boolean>(false);
 
-  const [despachosMes, setDespachosMes] = useState<number>(300);
-  const [ticketPromedio, setTicketPromedio] = useState<number>(110000);
-  const [porcentajeDevolucion, setPorcentajeDevolucion] = useState<number>(20);
+  const [despachosMes, setDespachosMes] = useState<number>(3500);
+  const [ticketPromedio, setTicketPromedio] = useState<number>(35000);
+  const [porcentajeDevolucion, setPorcentajeDevolucion] = useState<number>(28);
   const [porcentajeMerma, setPorcentajeMerma] = useState<number>(10);
-  const [diasRetornoWallet, setDiasRetornoWallet] = useState<number>(15);
+  const [diasRetornoWallet, setDiasRetornoWallet] = useState<number>(18);
 
   const formatoMoneda = (monto: number) => 
     formatearMonedaGlobal(monto, monedaSeleccionada.codigo);
@@ -303,7 +303,7 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
               >
                 <Clock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span>
-                  <strong>Aviso:</strong> Tardar {diasRetornoWallet} días en recuperar el dinero inmoviliza tu capital. El promedio saludable B2B debe ser menor a 8 días.
+                  <strong>Aviso:</strong> Tardar {diasRetornoWallet} días en recuperar el dinero inmoviliza tu capital. El promedio saludable debe ser menor a 8 días.
                 </span>
               </motion.div>
             )}
@@ -351,12 +351,12 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
               className="w-full py-3 px-5 bg-[#0DEDC0] text-[#090D16] font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_0_25px_rgba(13,237,192,0.4)] hover:bg-white hover:shadow-[0_0_35px_rgba(255,255,255,0.8)] transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <MessageCircle className="w-4 h-4 fill-current" />
-              <span>DETENER FUGA POR WHATSAPP CON MI REPORTE</span>
+              <span>DETENER FUGA AHORA MISMO </span>
               <ArrowRight className="w-3.5 h-3.5" />
             </a>
 
             <p className="text-[9px] font-mono text-slate-400">
-              ⚡ Atención prioritaria B2B · Envía tus datos simulados a un especialista 1:1
+              ⚡ Atención prioritaria · Envía tus datos simulados a un especialista 1:1
             </p>
           </div>
 
