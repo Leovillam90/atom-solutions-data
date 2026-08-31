@@ -23,12 +23,10 @@ interface AlarmaFinancieraModalProps {
 
 // OBTENCIÓN DINÁMICA DEL COSTO OPERATIVO DE DEVOLUCIÓN POR MONEDA
 const OBTENER_COSTO_DEVOLUCION_MONEDA = (moneda: MonedaConfig): number => {
-  // 1. Si la moneda tiene la propiedad 'costoDevolucion' en @/app/lib/moneda, se usa directamente
   if ('costoDevolucion' in moneda && typeof (moneda as { costoDevolucion?: number }).costoDevolucion === 'number') {
     return (moneda as { costoDevolucion: number }).costoDevolucion;
   }
 
-  // 2. Mapa ampliado de equivalencias operativas locales (~$0.75 USD equivalente)
   const mapaCostos: Record<string, number> = {
     COP: 3000,
     USD: 0.75,
@@ -54,7 +52,7 @@ const OBTENER_COSTO_DEVOLUCION_MONEDA = (moneda: MonedaConfig): number => {
   return mapaCostos[moneda.codigo] ?? 0.75;
 };
 
-const WHATSAPP_OFICIAL = '573138712634';
+const WHATSAPP_OFICIAL = '573181242344';
 
 export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinancieraModalProps) {
   const [mounted, setMounted] = useState<boolean>(false);
@@ -72,7 +70,6 @@ export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinanci
     setMounted(true);
   }, []);
 
-  // Bloqueo de scroll en body mientras el modal está activo
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -102,18 +99,14 @@ export default function AlarmaFinancieraModal({ isOpen, onClose }: AlarmaFinanci
     const ventasMensualesTotales = desp * ticket;
     const costoUnitarioDevolucion = OBTENER_COSTO_DEVOLUCION_MONEDA(monedaSeleccionada);
 
-    // 1. UNIDADES DEVUELTAS Y PÉRDIDA EN PROCESAMIENTO
     const unidadesDevueltas = desp * pDev;
     const perdidaDevolucionesMensual = unidadesDevueltas * costoUnitarioDevolucion;
 
-    // 2. MERMA CALCULADA SOBRE LAS UNIDADES DEVUELTAS MULTIPLICADA POR EL TICKET
     const unidadesMermadas = unidadesDevueltas * mermaRealCalculada;
     const perdidaMermasMensual = unidadesMermadas * ticket;
 
-    // 3. CAPITAL RETENIDO EN WALLET
     const capitalCongeladoEnCaja = ventasMensualesTotales * (diasWallet / 30);
 
-    // TOTALES
     const perdidaDirectaMensual = perdidaDevolucionesMensual + perdidaMermasMensual;
     const perdidaDirectaAnual = perdidaDirectaMensual * 12;
 
@@ -380,12 +373,21 @@ Me gustaría agendar una auditoría estratégica para frenar la fuga de capital 
             </div>
           </div>
 
-          {/* BOTÓN CTA FINAL A WHATSAPP */}
+          {/* BOTÓN CTA FINAL A WHATSAPP CON EVENTO META PIXEL */}
           <div className="relative z-0 text-center space-y-1">
             <a
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => {
+                if (typeof window !== 'undefined' && (window as any).fbq) {
+                  (window as any).fbq('track', 'Lead', {
+                    content_name: 'Alarma Financiera WhatsApp',
+                    value: diagnostico.perdidaDirectaMensual,
+                    currency: monedaSeleccionada.codigo,
+                  });
+                }
+              }}
               className="w-full py-3 px-5 bg-[#0DEDC0] text-[#090D16] font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_0_25px_rgba(13,237,192,0.4)] hover:bg-white hover:shadow-[0_0_35px_rgba(255,255,255,0.8)] transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <MessageCircle className="w-4 h-4 fill-current" />
