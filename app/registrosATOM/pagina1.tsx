@@ -138,7 +138,7 @@ export default function Pagina1() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.15]">
-            Muestra la mejor versión ante <br />
+            Muestra tú mejor versión ante <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0DEDC0] via-[#38BDF8] to-[#A855F7]">
               +6,000 Dropshippers
             </span>
