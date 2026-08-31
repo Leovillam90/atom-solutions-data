@@ -18,7 +18,8 @@ import {
   Mail,
   Phone,
   User,
-  Globe
+  Globe,
+  Clock
 } from 'lucide-react';
 
 interface RegistroMeetModalProps {
@@ -210,15 +211,29 @@ export default function RegistroMeetModal({
                 </div>
               </div>
 
-              {/* HORARIO DEL MEET */}
-              <div className="flex items-center justify-between bg-gradient-to-r from-[#0C222E]/90 via-[#0F2D3D]/90 to-[#0C222E]/90 px-3 py-1.5 rounded-xl border border-[#0DEDC0]/35 text-[10.5px] font-mono">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#0DEDC0]" />
-                  <span className="font-bold text-white">Jueves · 4:00 PM (Hora CO)</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-slate-300">
-                  <Users className="w-3.5 h-3.5 text-[#0DEDC0]" />
-                  <span className="text-[9.5px] font-medium">Sesión Privada (30 min)</span>
+              {/* ⚡ FECHA Y HORA DESTACADA */}
+              <div className="relative overflow-hidden bg-gradient-to-r from-[#0DEDC0]/20 via-[#0F2D3D] to-[#0DEDC0]/20 p-2.5 sm:p-3 rounded-xl border-2 border-[#0DEDC0] shadow-[0_0_20px_rgba(13,237,192,0.25)]">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-[#0DEDC0]/20 rounded-lg text-[#0DEDC0] shrink-0 border border-[#0DEDC0]/40">
+                      <Calendar className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs sm:text-sm font-black text-white tracking-tight leading-tight">
+                        Jueves, 3 de Septiembre
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] font-mono font-bold text-[#0DEDC0] mt-0.5">
+                        <Clock className="w-3 h-3" />
+                        <span>4:00 PM (Hora Colombia)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-[9px] font-mono font-black uppercase tracking-wider text-amber-300 bg-amber-400/10 border border-amber-400/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                      <Users className="w-2.5 h-2.5 text-amber-400" />
+                      <span>Privado (30m)</span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -337,28 +352,13 @@ export default function RegistroMeetModal({
               </form>
             </div>
           ) : (
-            /* VISTA DE CONFIRMACIÓN CON BOTÓN DE RESPALDO WHATSAPP */
-            <div className="relative z-10 text-center py-6 space-y-4">
+            /* VISTA DE CONFIRMACIÓN SIN BOTÓN DE WHATSAPP */
+            <div className="relative z-10 text-center py-8 space-y-3">
               <CheckCircle2 className="w-14 h-14 text-[#0DEDC0] mx-auto animate-bounce drop-shadow-[0_0_15px_rgba(13,237,192,0.5)]" />
               <div className="space-y-1.5">
                 <h4 className="text-xl font-black text-white">¡Cupo Reservado con Éxito!</h4>
                 <p className="text-xs text-slate-300 max-w-xs mx-auto leading-relaxed">
                   Tus datos han sido registrados correctamente. Te estamos uniendo al <strong className="text-[#0DEDC0]">Grupo VIP de WhatsApp</strong> para enviarte el enlace a Google Meet.
-                </p>
-              </div>
-
-              <div className="pt-2">
-                <a
-                  href={WHATSAPP_GROUP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 w-full py-3 px-5 bg-[#25D366] hover:bg-[#20bd5a] text-[#04080F] font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(37,211,102,0.4)] transition-all cursor-pointer"
-                >
-                  <span>UNIRME AL GRUPO DE WHATSAPP</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </a>
-                <p className="text-[10px] text-slate-400 font-mono mt-2">
-                  (Haz clic aquí si tu navegador bloqueó la ventana emergente)
                 </p>
               </div>
             </div>

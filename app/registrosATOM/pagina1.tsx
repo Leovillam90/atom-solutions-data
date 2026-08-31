@@ -18,7 +18,8 @@ import {
   Mail,
   Phone,
   User,
-  Globe
+  Globe,
+  Clock
 } from 'lucide-react';
 
 // 🔗 MAPA DE INDICATIVOS POR PAÍS (SIN SIGNO +)
@@ -60,7 +61,6 @@ export default function Pagina1() {
     e.preventDefault();
     setCargando(true);
 
-    // Formatear WhatsApp sin el signo +
     const whatsappCompleto = `${indicativo} ${whatsapp}`.replace(/\+/g, '').trim();
 
     const payload = { 
@@ -107,9 +107,12 @@ export default function Pagina1() {
   return (
     <div className="min-h-screen w-full bg-[#090D16] text-white flex flex-col lg:flex-row overflow-hidden font-sans">
       
-      {/* PANEL IZQUIERDO */}
+      {/* =========================================================================
+          PANEL IZQUIERDO: BRANDING Y PROPUESTA DE VALOR
+         ========================================================================= */}
       <div className="relative w-full lg:w-1/2 bg-gradient-to-br from-[#180B2B] via-[#0E0C1F] to-[#070B14] p-8 lg:p-14 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800/80 min-h-[450px] lg:min-h-screen overflow-hidden">
         
+        {/* EFECTO DE MALLA Y PARTICULAS EN EL FONDO */}
         <div className="absolute inset-0 pointer-events-none z-0 opacity-25">
           <img 
             src="/complementos/FONDO.PNG" 
@@ -121,8 +124,10 @@ export default function Pagina1() {
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#0DEDC0]/15 rounded-full blur-[120px]" />
         </div>
 
-
+        {/* CONTENIDO PRINCIPAL IZQUIERDO */}
         <div className="relative z-10 my-auto py-8 space-y-6 max-w-xl">
+          
+          {/* BADGES OFICIALES */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-mono font-black uppercase tracking-widest text-[#0DEDC0] bg-[#0DEDC0]/10 border border-[#0DEDC0]/40 px-3 py-1 rounded-full inline-flex items-center gap-1.5 shadow-[0_0_15px_rgba(13,237,192,0.2)]">
               <Sparkles className="w-3 h-3" /> EXPOWINNERS 2026
@@ -133,7 +138,7 @@ export default function Pagina1() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.15]">
-            Muestra tú mejor versión ante <br />
+            Muestra la mejor versión ante <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0DEDC0] via-[#38BDF8] to-[#A855F7]">
               +6,000 Dropshippers
             </span>
@@ -143,7 +148,8 @@ export default function Pagina1() {
             Aprende a activar tu <strong className="text-white">Insignia Oficial ATOM de Alto Rendimiento</strong> y posicionar tu catálogo frente a los mejores vendedores de la región sin poner en riesgo tu margen.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          {/* BENEFICIOS DESTACADOS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div className="bg-[#131129]/80 backdrop-blur-md p-3.5 rounded-2xl border border-purple-500/30 flex items-start gap-3">
               <div className="p-2 bg-purple-500/20 rounded-xl text-[#0DEDC0] shrink-0 border border-purple-500/30">
                 <Award className="w-4 h-4" />
@@ -165,25 +171,52 @@ export default function Pagina1() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between bg-gradient-to-r from-[#171333] via-[#1E1945] to-[#171333] px-4 py-3 rounded-2xl border border-[#0DEDC0]/30 text-xs font-mono">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#0DEDC0]" />
-              <span className="font-bold text-white">Jueves · 4:00 PM (Hora CO)</span>
+          {/* CAJA DE FECHA Y HORA DESTACADA */}
+          <div className="relative overflow-hidden bg-gradient-to-r from-[#0DEDC0]/20 via-[#1E1945] to-[#0DEDC0]/20 p-4 rounded-2xl border-2 border-[#0DEDC0] shadow-[0_0_35px_rgba(13,237,192,0.3)] space-y-2.5">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="flex h-2.5 w-2.5 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0DEDC0] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#0DEDC0]"></span>
+                </span>
+                <span className="text-[10px] font-mono font-black text-[#0DEDC0] uppercase tracking-widest">
+                  FECHA Y HORA DE TRANSMISIÓN
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-amber-300 font-mono text-[10px] font-bold bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30">
+                <Users className="w-3 h-3 text-amber-400" />
+                <span>Sesión Privada (30 min)</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <Users className="w-4 h-4 text-[#0DEDC0]" />
-              <span className="text-[11px]">Sesión Privada (30 min)</span>
+
+            <div className="flex items-center gap-3.5">
+              <div className="p-3 bg-[#0DEDC0]/20 rounded-xl text-[#0DEDC0] shrink-0 border border-[#0DEDC0]/50 shadow-[0_0_15px_rgba(13,237,192,0.4)]">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-base sm:text-lg font-black text-white tracking-tight flex flex-wrap items-center gap-2">
+                  <span>Jueves, 3 de Septiembre</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#0DEDC0]">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>4:00 PM (Hora Colombia)</span>
+                </div>
+              </div>
             </div>
           </div>
+
         </div>
 
+        {/* PIE DE PÁGINA IZQUIERDO */}
         <div className="relative z-10 text-slate-500 text-[11px] font-mono flex items-center justify-between pt-4">
           <span>v1.0.0 · 20260831.ATOM</span>
           <span>ExpoWinners × ATOM Data</span>
         </div>
       </div>
 
-      {/* PANEL DERECHO */}
+      {/* =========================================================================
+          PANEL DERECHO: FORMULARIO DE REGISTRO
+         ========================================================================= */}
       <div className="w-full lg:w-1/2 bg-[#090D16] p-8 lg:p-14 flex flex-col justify-center min-h-[550px] lg:min-h-screen">
         <div className="max-w-md w-full mx-auto space-y-6">
           
@@ -269,7 +302,7 @@ export default function Pagina1() {
                       </div>
                     </div>
 
-                    {/* WHATSAPP (SIN SIGNO +) */}
+                    {/* WHATSAPP */}
                     <div className="space-y-1.5">
                       <label className="block text-xs font-medium text-slate-300">
                         WhatsApp <span className="text-[#0DEDC0]">*</span>
@@ -337,31 +370,17 @@ export default function Pagina1() {
               </motion.div>
             </AnimatePresence>
           ) : (
+            /* VISTA DE CONFIRMACIÓN EXITOSA LIMPIA */
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-8 space-y-5 bg-[#111827] p-8 rounded-3xl border border-[#0DEDC0]/30 shadow-[0_0_50px_rgba(13,237,192,0.1)]"
+              className="text-center py-10 space-y-4 bg-[#111827] p-8 rounded-3xl border border-[#0DEDC0]/30 shadow-[0_0_50px_rgba(13,237,192,0.1)]"
             >
               <CheckCircle2 className="w-16 h-16 text-[#0DEDC0] mx-auto animate-bounce drop-shadow-[0_0_20px_rgba(13,237,192,0.6)]" />
               <div className="space-y-2">
                 <h3 className="text-2xl font-black text-white">¡Cupo Reservado con Éxito!</h3>
                 <p className="text-xs text-slate-300 max-w-xs mx-auto leading-relaxed">
                   Tus datos se registraron correctamente. Te estamos redirigiendo al <strong className="text-[#0DEDC0]">Grupo VIP de WhatsApp</strong>.
-                </p>
-              </div>
-
-              <div className="pt-2">
-                <a
-                  href={WHATSAPP_GROUP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 bg-[#25D366] hover:bg-[#20bd5a] text-[#04080F] font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_0_25px_rgba(37,211,102,0.4)] transition-all cursor-pointer"
-                >
-                  <span>UNIRME AL GRUPO DE WHATSAPP</span>
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-                <p className="text-[10px] text-slate-400 font-mono mt-2">
-                  (Haz clic aquí si tu navegador bloqueó la ventana emergente)
                 </p>
               </div>
             </motion.div>
