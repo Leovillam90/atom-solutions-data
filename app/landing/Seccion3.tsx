@@ -12,6 +12,7 @@ interface Seccion3Props {
 
 interface TarjetaDiagnostico {
   id: string;
+  badge: string;
   titulo: string;
   descripcion: string;
   ctaText: string;
@@ -21,26 +22,29 @@ interface TarjetaDiagnostico {
 
 const DIAGNOSTICOS: readonly TarjetaDiagnostico[] = Object.freeze([
   {
-    id: 'descontrol-guias',
-    titulo: 'Descontrol de Guías',
-    descripcion: 'Dejas de rastrear el estado real de tus envíos y las devoluciones que jamás reingresan a tus estantes. Al no auditar en tiempo real, tu bodega asume pérdidas netas mes a mes en silencio.',
-    ctaText: 'Radar de auditoría en tiempo real',
+    id: 'devoluciones-fantasma',
+    badge: '🔴 HASTA 10% DE FUGA',
+    titulo: 'Devoluciones Fantasma',
+    descripcion: 'La inmensa mayoría de bodegas absorben este hueco de caja creyendo que es "costo del negocio", cuando la realidad es que están pagando por guías que jamás se reingresaron.',
+    ctaText: 'Radar de Auditoría 24/7',
     ctaLink: 'https://atomapp.com.co/register',
     icon: <PackageSearch className="w-5 h-5 text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.4)]" />
   },
   {
-    id: 'novedades-manuales',
-    titulo: 'Novedades Manuales',
-    descripcion: 'Pierdes horas al día chateando con soporte Dropi y transportadoras para destrabar envíos uno por uno. Sin una automatización que tome el control en tiempo real, las soluciones llegan tarde, las guías se marcan como devueltas y tu bodega absorbe el costo de la ineficiencia.',
-    ctaText: 'Sistema de resolución automatizado',
+    id: 'gestion-manual',
+    badge: '🔴 10+ HORAS PERDIDAS / SEMANA',
+    titulo: 'Gestión Manual Ineficiente',
+    descripcion: 'Tu equipo pierde días enteros chateando con soporte y transportadoras para destrabar guías una a una. Cuando responden, la guía ya se marcó como devuelta.',
+    ctaText: 'Automatización de Expedientes',
     ctaLink: 'https://atomapp.com.co/register',
     icon: <ClockAlert className="w-5 h-5 text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.4)]" />
   },
   {
     id: 'margenes-ciegas',
+    badge: '🔴 MARGEN NETO DISTORSIONADO',
     titulo: 'Márgenes a Ciegas',
-    descripcion: 'Adivinas tu ganancia real sin conocer el costo exacto de la mercancía no devuelta. Al calcular tu utilidad sobre el precio de lista y no sobre despachos efectivos, absorbes mermas invisibles que devoran tu margen neto mes a mes.',
-    ctaText: 'Tablero exacto de ROI operativo',
+    descripcion: 'Calculas tu utilidad sobre precio de lista y no sobre entregas reales, absorbiendo mermas invisibles que devoran tu caja.',
+    ctaText: 'Tablero Real de ROI Neto',
     ctaLink: 'https://atomapp.com.co/register',
     icon: <TrendingDown className="w-5 h-5 text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.4)]" />
   }
@@ -55,14 +59,14 @@ export default function Seccion3({ variante = 'perspectiveGrid' }: Seccion3Props
         
         {/* ENCABEZADO DE SECCIÓN */}
         <div className="text-center mb-16">
-          <Kicker varianteFondo={variante}>DIAGNÓSTICO OPERATIVO</Kicker>
+          <Kicker varianteFondo={variante}>DIAGNÓSTICO DE PÉRDIDAS EN BODEGA</Kicker>
 
           <H2 varianteFondo={variante} className="text-balance">
-            ¿Cuánto capital <Highlight varianteFondo={variante}>dejaste estancado</Highlight> este mes?
+            ¿Cuánto dinero <Highlight varianteFondo={variante}>se está desangrando</Highlight> en tu operación este mes?
           </H2>
 
-          <Subtitulo varianteFondo={variante} className="max-w-[720px] mx-auto mt-3">
-            El descontrol logístico no es un error de cálculo, es la pérdida directa de tu dinero.
+          <Subtitulo varianteFondo={variante} className="max-w-[760px] mx-auto mt-3">
+            El descontrol logístico no es un "costo normal del negocio": es capital neto restado a tu utilidad.
           </Subtitulo>
         </div>
 
@@ -84,9 +88,15 @@ export default function Seccion3({ variante = 'perspectiveGrid' }: Seccion3Props
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#0DEDC0]/5 rounded-full blur-2xl pointer-events-none group-hover:bg-[#0DEDC0]/15 transition-all duration-500" />
 
               <div className="relative z-10">
-                {/* CONTENEDOR DE ICONO DESTACADO */}
-                <div className="w-11 h-11 bg-red-500/15 rounded-xl flex items-center justify-center mb-6 border border-red-500/30 shadow-[0_4px_15px_rgba(239,68,68,0.2)]">
-                  {tarjeta.icon}
+                {/* ENCABEZADO DE TARJETA: ICONO Y BADGE ROJO */}
+                <div className="flex items-center justify-between mb-6 gap-2">
+                  <div className="w-11 h-11 bg-red-500/15 rounded-xl flex items-center justify-center border border-red-500/30 shadow-[0_4px_15px_rgba(239,68,68,0.2)] shrink-0">
+                    {tarjeta.icon}
+                  </div>
+
+                  <span className="text-[10px] font-mono font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-2.5 py-1 rounded-full uppercase tracking-wider text-right">
+                    {tarjeta.badge}
+                  </span>
                 </div>
                 
                 <H3 varianteFondo={variante} className="mb-3 text-white group-hover:text-[#0DEDC0] transition-colors">
@@ -105,7 +115,7 @@ export default function Seccion3({ variante = 'perspectiveGrid' }: Seccion3Props
                 rel="noopener noreferrer" 
                 className="relative z-10 border-t border-white/15 pt-4 text-[#0DEDC0] text-xs sm:text-sm font-bold flex items-center justify-between group/link hover:text-white transition-colors"
               >
-                <span>{tarjeta.ctaText}</span>
+                <span> {tarjeta.ctaText}</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover/link:translate-x-1 text-[#0DEDC0]" />
               </a>
             </motion.div>

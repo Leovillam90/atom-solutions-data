@@ -38,14 +38,14 @@ export default function Seccion1({ variante = 'atomDynamicGradient' }: Seccion1P
           transition={{ duration: 0.6 }}
           className="flex-1 w-full lg:max-w-[600px]"
         >
-          <Kicker varianteFondo={variante}>SISTEMA DE AUDITORÍA PARA PROVEEDORES</Kicker>
+          <Kicker varianteFondo={variante}>EXCLUSIVO PARA BODEGAS E IMPORTADORES CON INVENTARIO EN DROPI</Kicker>
 
           <H1 varianteFondo={variante} className="mb-4">
             Deja de regalarle tu dinero a las <Highlight varianteFondo={variante}>transportadoras.</Highlight>
           </H1>
           
           <Subtitulo varianteFondo={variante} className="max-w-[550px] mb-6">
-            ATOM audita tu cuenta Dropi 24/7 y detecta mercancía &quot;devuelta&quot; que jamás reingresó a tu bodega o en &quot;curso&quot; que sigue en la calle. Te damos la información exacta y las pruebas necesarias para recuperar el control de tu inventario y tu dinero.
+            ATOM audita tu cuenta Dropi 24/7 y detecta mercancía &quot;devuelta&quot; que jamás reingresó a tu bodega o en &quot;curso&quot; que sigue en la calle. Te entregamos la evidencia irrefutable para cobrar lo que te corresponde en 1 clic.
           </Subtitulo>
           
           <div className="flex flex-col gap-3 mb-8">
@@ -77,7 +77,7 @@ export default function Seccion1({ variante = 'atomDynamicGradient' }: Seccion1P
             rel="noopener noreferrer"
             className={`inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#0DEDC0] text-[#102935] font-extrabold rounded-xl shadow-[0_0_25px_rgba(13,237,192,0.35)] hover:bg-[#25ffd3] hover:scale-[1.02] transition-all cursor-pointer ${ESTILOS_TEXTO.boton}`}
           >
-            <span>DESCUBRIR MI CAPITAL ESTANCADO</span>
+            <span>RECLAMAR MI DINERO RETENIDO</span>
             <ArrowRight className="w-4 h-4" />
           </a>
         </motion.div>
