@@ -5,8 +5,9 @@ import LandingCMS from './cms/LandingCMS';
 import NoticiasCMS from './cms/NoticiasCMS';
 import AcademyCMS from './cms/AcademyCMS';
 import SoporteCMS from './cms/SoporteCMS';
+import ProveedoresCMS from './cms/ProveedoresCMS'; // 👈 1. Importar el nuevo CMS
 
-type ModuloCMS = 'LANDING' | 'NOTICIAS' | 'ACADEMY' | 'SOPORTE';
+type ModuloCMS = 'LANDING' | 'NOTICIAS' | 'ACADEMY' | 'SOPORTE' | 'PROVEEDORES'; // 👈 2. Agregar tipo
 
 export default function Pagina2() {
   const [moduloActivo, setModuloActivo] = useState<ModuloCMS>('LANDING');
@@ -66,6 +67,17 @@ export default function Pagina2() {
           >
             💬 4. Soporte & FAQ
           </button>
+
+          {/* 👈 3. Botón directo para el CMS de Proveedores */}
+          <button
+            type="button"
+            onClick={() => setModuloActivo('PROVEEDORES')}
+            className={`px-4 py-2 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer ${
+              moduloActivo === 'PROVEEDORES' ? 'bg-[#0DEDC0] text-[#090D16] shadow-[0_0_15px_rgba(13,237,192,0.3)]' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            🏢 5. Proveedores
+          </button>
         </div>
       </div>
 
@@ -75,6 +87,7 @@ export default function Pagina2() {
         {moduloActivo === 'NOTICIAS' && <NoticiasCMS />}
         {moduloActivo === 'ACADEMY' && <AcademyCMS />}
         {moduloActivo === 'SOPORTE' && <SoporteCMS />}
+        {moduloActivo === 'PROVEEDORES' && <ProveedoresCMS />} {/* 👈 4. Renderizar */}
       </div>
 
     </div>
