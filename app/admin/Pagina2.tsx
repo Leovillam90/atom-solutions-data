@@ -5,7 +5,6 @@ import LandingCMS from './cms/LandingCMS';
 import NoticiasCMS from './cms/NoticiasCMS';
 import AcademyCMS from './cms/AcademyCMS';
 import SoporteCMS from './cms/SoporteCMS';
-import ProveedoresCMS from './cms/ProveedoresCMS'; // 👈 1. Importar el nuevo CMS
 
 type ModuloCMS = 'LANDING' | 'NOTICIAS' | 'ACADEMY' | 'SOPORTE' | 'PROVEEDORES'; // 👈 2. Agregar tipo
 
@@ -87,7 +86,6 @@ export default function Pagina2() {
         {moduloActivo === 'NOTICIAS' && <NoticiasCMS />}
         {moduloActivo === 'ACADEMY' && <AcademyCMS />}
         {moduloActivo === 'SOPORTE' && <SoporteCMS />}
-        {moduloActivo === 'PROVEEDORES' && <ProveedoresCMS />} {/* 👈 4. Renderizar */}
       </div>
 
     </div>
