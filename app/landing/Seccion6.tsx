@@ -116,7 +116,7 @@ export default function Seccion6({ variante = 'hexGrid' }: Seccion6Props) {
                   </svg>
                 </div>
                 <p className="text-[11px] font-mono text-slate-300 leading-snug">
-                  Blindaje automático contra mermas y fletes no retornados.
+                  Blindaje automático contra perdidas y productos no retornados.
                 </p>
               </div>
 
