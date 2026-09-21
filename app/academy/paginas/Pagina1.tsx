@@ -28,6 +28,7 @@ interface VideoLesson {
   descripcion: string;
   youtubeId: string;
   badge: BadgeTipo;
+  activo: boolean; // 👈 1. Propiedad para activar/desactivar visualización
 }
 
 const ID_VIDEO_TEMPORAL = 'feDbKxnh50k';
@@ -55,6 +56,7 @@ const BADGE_STYLES: Record<BadgeTipo, { color: string; border: string; bg: strin
   },
 };
 
+// 👈 2. Arreglo de lecciones con la propiedad `activo` configurable
 const LESSONS: VideoLesson[] = [
   {
     id: '0',
@@ -63,7 +65,8 @@ const LESSONS: VideoLesson[] = [
     categoria: 'Integraciones',
     badge: 'Táctica Rápida',
     descripcion: 'Descubre en 40 segundos cómo ATOM se conecta a tu cuenta de Dropi para auditar cada guía en tiempo real, frenar la fuga de fletes y convertir el caos operativo de tu bodega en rentabilidad pura.',
-    youtubeId: ID_VIDEO_TEMPORAL,
+    youtubeId: 'feDbKxnh50k',
+    activo: true, // ✅ Habilitado
   },
   {
     id: '1',
@@ -73,78 +76,97 @@ const LESSONS: VideoLesson[] = [
     badge: 'Táctica Rápida',
     descripcion: 'Sincroniza tu cuenta en simples pasos y descubre exactamente dónde está la plata atrapada en tus guías.',
     youtubeId: '2Wz4_tpgF6M',
+    activo: true, // ✅ Habilitado
   },
   {
     id: '2',
+    titulo: 'Arquitectura de Precios & Sensibilidad',
+    duracion: '03:16',
+    categoria: 'Financieras',
+    badge: 'Alta Rentabilidad',
+    descripcion: 'Audita matemáticamente tus costos logísticos inversos. Analiza los 4 escenarios de sensibilidad operativa y emite la propuesta comercial definitiva.',
+    youtubeId: 'ZEXtbyforfU',
+    activo: true, // ✅ Habilitado
+  },
+  {
+    id: '3',
     titulo: 'Dominio Operativo y Eficiencia de Entregas',
     duracion: '02:20',
     categoria: 'Financieras',
     badge: 'Alta Rentabilidad',
     descripcion: 'Mide la efectividad exacta de tu operación. Identifica qué transportadoras te están cumpliendo y optimiza tu logística.',
     youtubeId: ID_VIDEO_TEMPORAL,
+    activo: false, // 🔒 Inactivo
   },
   {
-    id: '3',
+    id: '4',
     titulo: 'Radiografía Logística y Control de Fugas',
     duracion: '02:10',
     categoria: 'Financieras',
     badge: 'Nivel Experto',
     descripcion: 'Audita el rendimiento real de las transportadoras, detecta cuellos de botella al instante y frena las fugas de dinero.',
     youtubeId: ID_VIDEO_TEMPORAL,
+    activo: false,
   },
   {
-    id: '4',
+    id: '5',
     titulo: 'Trazabilidad y Control de Envíos',
     duracion: '02:05',
     categoria: 'Operaciones',
     badge: 'Táctica Rápida',
     descripcion: 'El historial exacto de tus despachos. Supervisa el estado real de cada envío sin depender de reportes manuales.',
     youtubeId: ID_VIDEO_TEMPORAL,
+    activo: false,
   },
   {
-    id: '5',
+    id: '6',
     titulo: 'Rentabilidad de Catálogo',
     duracion: '02:30',
     categoria: 'Operaciones',
     badge: 'Alta Rentabilidad',
     descripcion: 'Analiza el rendimiento exacto de tu inventario. Descubre qué productos te dejan utilidad real y cuáles generan pérdidas.',
     youtubeId: ID_VIDEO_TEMPORAL,
+    activo: false,
   },
   {
-    id: '6',
+    id: '7',
     titulo: 'Auditoría de Vendedores (Dropshippers)',
     duracion: '02:00',
     categoria: 'Operaciones',
     badge: 'Nivel Experto',
     descripcion: 'Mide el rendimiento real de tus aliados comerciales. Detecta quiénes impulsan tu facturación y quiénes te cuestan dinero.',
     youtubeId: ID_VIDEO_TEMPORAL,
+    activo: false,
   },
   {
-    id: '7',
+    id: '8',
     titulo: 'Eficiencia de Operadores Logísticos',
     duracion: '02:00',
     categoria: 'Operaciones',
     badge: 'Alta Rentabilidad',
     descripcion: 'Compara tiempos y rendimiento de cada empresa de transporte para tomar decisiones basadas en datos reales.',
     youtubeId: ID_VIDEO_TEMPORAL,
+    activo: false,
   },
   {
-    id: '8',
+    id: '9',
     titulo: 'Centro de Estrategia y Rentabilidad',
     duracion: '04:00',
     categoria: 'Estrategias',
     badge: 'Nivel Experto',
     descripcion: 'Convierte tus datos en dinero. Ejecuta planes de acción precisos para reducir tu tasa de devoluciones y blindar tu margen.',
     youtubeId: ID_VIDEO_TEMPORAL,
+    activo: false,
   },
   {
-    id: '9',
+    id: '10',
     titulo: 'Escalamiento y Dominio',
     duracion: '04:00',
     categoria: 'Estrategias',
     badge: 'Nivel Experto',
     descripcion: 'Aplica tácticas avanzadas para rotar inventario a máxima velocidad y hacer que los mejores dropshippers vendan por ti.',
     youtubeId: ID_VIDEO_TEMPORAL,
+    activo: false,
   },
 ];
 
@@ -249,7 +271,9 @@ export default function Pagina1({ variante = 'atomDynamicGradient' }: Pagina1Pro
           {videosFiltrados.map((lesson, idx) => {
             const badgeStyle = BADGE_STYLES[lesson.badge];
             const isCompleted = completedLessons.includes(lesson.id);
-            const isAvailable = lesson.id === '0' || lesson.id === '1';
+            
+            // 👈 3. Evaluación dinámica según la propiedad `activo` del video
+            const isAvailable = lesson.activo;
 
             return (
               <motion.div 
@@ -265,7 +289,7 @@ export default function Pagina1({ variante = 'atomDynamicGradient' }: Pagina1Pro
                 } ${isAvailable ? 'hover:border-[#0DEDC0] hover:shadow-[0_20px_40px_rgba(0,0,0,0.6),0_0_25px_rgba(13,237,192,0.15)] hover:-translate-y-1.5' : ''}`}
               >
                 
-                {/* CANDADO O BLOQUEO DE CONTENIDO FUTURO */}
+                {/* CANDADO DE BLOQUEO DE CONTENIDO FUTURO */}
                 {!isAvailable && (
                   <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#070B14]/85 backdrop-blur-[3px] p-6 text-center select-none">
                     <div className="flex items-center gap-2 bg-[#6884C5]/20 border border-[#6884C5]/50 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(104,132,197,0.3)]">
