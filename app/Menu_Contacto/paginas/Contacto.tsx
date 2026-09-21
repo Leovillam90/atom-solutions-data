@@ -74,6 +74,7 @@ const SOCIAL_LINKS: SocialLink[] = [
 export default function Contacto({ variante = 'spotlightCyan', modoTema = 'auto' }: ContactoProps) {
   const pathname = usePathname();
 
+  // Ocultar componente únicamente en la vista del portal operativo
   if (pathname === '/atomapp') {
     return null;
   }

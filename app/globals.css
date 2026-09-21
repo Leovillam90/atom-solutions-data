@@ -5,7 +5,6 @@
 /* 2. Registro del Tema para Tailwind v4 (Habilita clases como bg-atom-cyan, font-sans, etc.) */
 @theme {
   --font-sans: 'Satoshi', sans-serif;
-
   --color-atom-gunmetal: #102935;
   --color-atom-cyan: #0DEDC0;
   --color-atom-purple: #CB1FDA;

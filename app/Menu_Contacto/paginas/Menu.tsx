@@ -27,7 +27,7 @@ interface MenuProps {
   modoTema?: ModoTema;
 }
 
-export default function Menu({ variante = 'gridCyber', modoTema = 'auto' }: MenuProps) {
+export default function Menu({ variante = 'spotlightCyan', modoTema = 'auto' }: MenuProps) {
   const pathname = usePathname();
   const esClaro = esFondoClaro(variante, modoTema);
 
@@ -35,7 +35,7 @@ export default function Menu({ variante = 'gridCyber', modoTema = 'auto' }: Menu
   const [herramientasMobileOpen, setHerramientasMobileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Ocultar menú en el portal operativo
+  // Ocultar menú únicamente en la vista del portal operativo
   if (pathname === '/atomapp') return null;
 
   const getLinkStyles = (href: string) => {
@@ -52,18 +52,17 @@ export default function Menu({ variante = 'gridCyber', modoTema = 'auto' }: Menu
       : 'text-slate-300 hover:text-[#0DEDC0] font-semibold transition-colors duration-200';
   };
 
-  // Fondo del header adaptado para resaltar la retícula gridCyber con difuminado cristal
   const bgHeader = esClaro 
     ? 'bg-[#0DEDC0] border-b border-[#102935]/20' 
-    : 'bg-[#070B14]/80 backdrop-blur-md border-b border-[#0DEDC0]/30 shadow-[0_4px_20px_rgba(13,237,192,0.08)]';
+    : 'bg-[#070B14]/85 backdrop-blur-md border-b border-[#0DEDC0]/30 shadow-[0_4px_20px_rgba(13,237,192,0.08)]';
 
   const bgDropdown = esClaro 
     ? 'bg-white border-[#102935]/20 text-[#102935]' 
     : 'bg-[#091A23] border-[#0DEDC0]/40 text-slate-200';
 
   return (
-    <header className={`sticky top-0 relative z-[1000] overflow-visible transition-colors duration-300 ${bgHeader}`}>
-      {/* CAPA DE FONDO DINÁMICO (RETÍCULA CIAN FULL OPACIDAD) */}
+    <header className={`relative z-[1000] overflow-visible transition-colors duration-300 ${bgHeader}`}>
+      {/* CAPA DE FONDO DINÁMICO */}
       <div className="absolute inset-0 z-0 pointer-events-none w-full h-full opacity-100 overflow-hidden">
         <Fondos variante={variante} modo="absolute" />
       </div>
