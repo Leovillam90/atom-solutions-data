@@ -1,25 +1,62 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Calculator, 
-  BarChart3, 
-  TrendingUp, 
-  AlertTriangle, 
+  Building2, 
+  ShoppingBag, 
   ChevronDown, 
   Check, 
-  HelpCircle
+  ShieldAlert, 
+  TrendingUp, 
+  Calculator, 
+  AlertTriangle,
+  Package,
+  Truck,
+  Target,
+  BarChart3,
+  DollarSign,
+  TrendingDown,
+  Layers,
+  Sparkles,
+  Percent
 } from 'lucide-react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, H1, Subtitulo, Highlight } from '@/app/complementos/Tipografia';
 import { MONEDAS, MonedaConfig, formatearMonedaGlobal, obtenerTarifasImpuesto } from '@/app/lib/moneda';
 import Pagina2 from './Pagina2';
 
-export type EscenarioTipo = 'PESIMO' | 'FAVORABLE' | 'OPTIMO' | 'OBJETIVO';
+export type EscenarioTipo = 'OPTIMISTA' | 'IDEAL' | 'MARGEN_ALTO' | 'ESTRES';
 
 interface Pagina1Props {
   variante?: TipoFondo;
+}
+
+function AnimatedNumber({ value, formatter }: { value: number; formatter?: (v: number) => string }) {
+  const [displayValue, setDisplayValue] = useState(value);
+
+  useEffect(() => {
+    let startTimestamp: number | null = null;
+    const duration = 350;
+    const initialValue = displayValue;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      
+      const current = initialValue + (value - initialValue) * easeProgress;
+      setDisplayValue(current);
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+
+    window.requestAnimationFrame(step);
+  }, [value]);
+
+  return <>{formatter ? formatter(displayValue) : Math.round(displayValue)}</>;
 }
 
 export function Tooltip({ contenido }: { contenido: string }) {
@@ -58,7 +95,7 @@ function SelectorMonedaCustom({
 
   return (
     <div className="relative z-20" ref={contenedorRef}>
-      <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+      <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-mono uppercase tracking-wider">
         Moneda de Operación
         <Tooltip contenido="Selecciona la divisa oficial para formatear valores y cargar impuestos por defecto de la región." />
       </label>
@@ -124,7 +161,6 @@ function SelectorMonedaCustom({
 export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   const [monedaSeleccionada, setMonedaSeleccionada] = useState<MonedaConfig>(MONEDAS[0]);
 
-  // REF DE DESPLAZAMIENTO HACIA EL PASO 3
   const propuestaRef = useRef<HTMLDivElement>(null);
 
   // INPUTS PASO 1
@@ -133,12 +169,15 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
   const [costoLogisticaInversa, setCostoLogisticaInversa] = useState<number>(0); 
   
   const [porcentajeDevoluciones, setPorcentajeDevoluciones] = useState<number>(20); 
-  const [porcentajeMermas, setPorcentajeMermas] = useState<number>(10); // % de merma sobre las devoluciones
+  
+  // 📌 1. MERMA MÍNIMA FIJADA EN 1% POR DEFECTO (NO PUEDE SER 0)
+  const [porcentajeMermas, setPorcentajeMermas] = useState<number>(10); 
+  
   const [impactoFiscal, setImpactoFiscal] = useState<number>(0);
   const [margenDeseado, setMargenDeseado] = useState<number>(30);
 
   const [mensajeAlertaMermas, setMensajeAlertaMermas] = useState<boolean>(false);
-  const [escenarioSeleccionado, setEscenarioSeleccionado] = useState<EscenarioTipo>('OBJETIVO');
+  const [escenarioSeleccionado, setEscenarioSeleccionado] = useState<EscenarioTipo>('IDEAL');
 
   // INPUTS PASO 3
   const [unidadesProyectadas, setUnidadesProyectadas] = useState<number>(170);
@@ -150,7 +189,6 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
     return () => clearTimeout(timer);
   }, []);
 
-  // SELECCIÓN DE ESCENARIO CON AUTO-SCROLL SUAVE
   const seleccionarEscenarioConScroll = (escenario: EscenarioTipo) => {
     setEscenarioSeleccionado(escenario);
     setTimeout(() => {
@@ -183,23 +221,21 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
     const pctMargenBase = Math.min(0.80, Math.max(0.01, (Number(margenDeseado) || 1) / 100));
     const pctIVA = Math.min(0.50, Math.max(0, (Number(impactoFiscal) || 0) / 100));
     
-    const pctDevBase = Math.min(0.50, Math.max(0.15, (Number(porcentajeDevoluciones) || 15) / 100));
-    const pctMermasBase = Math.min(0.30, Math.max(0.01, (Number(porcentajeMermas) || 1) / 100));
+    const pctDevBase = Math.min(0.80, Math.max(0.01, (Number(porcentajeDevoluciones) || 0) / 100));
+    
+    // 📌 2. REGLA ESTRICTA: Mínimo 1% de merma (0.01)
+    const pctMermasBase = Math.min(0.50, Math.max(0.01, (Number(porcentajeMermas) || 1) / 100));
     const pctComisionExtra = Math.min(0.30, Math.max(0, (Number(comisionDropExtra) || 0) / 100));
 
-    // CÁLCULO UNIFICADO: MERMA SOBRE LAS DEVOLUCIONES
     const calcularEscenario = (pDev: number, pMerma: number, pMargen: number) => {
-      // 1. Factor de devolución por unidad entregada
+      // Garantizar estrictamente mínimo 1% (0.01) en merma
+      const mermaReal = Math.max(0.01, pMerma);
       const factorDev = (1 - pDev) > 0 ? (pDev / (1 - pDev)) : 0;
       const costoDev = cRetorno * factorDev;
-      
-      // 2. Costo de merma aplicado SOBRE LAS DEVOLUCIONES (Costo Base x Unidades Devueltas x % Merma)
-      const costoMerma = cBase * factorDev * pMerma;
+      const costoMerma = cBase * factorDev * mermaReal;
 
-      // 3. Costo Total Absorbido
       const costoAbsorbido = cBase + costoDev + costoMerma;
 
-      // 4. Precio Neto sin IVA
       const denomMargen = 1 - pMargen;
       const precioNeto = denomMargen > 0.01 ? (costoAbsorbido / denomMargen) : (costoAbsorbido * 2);
       
@@ -207,32 +243,45 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
       const precioCatalogo = precioNeto + impuestoIVA;
       const ganancia = precioNeto * pMargen;
 
-      return { costoDev, costoMerma, costoAbsorbido, precioNeto, impuestoIVA, precioCatalogo, ganancia };
+      return { 
+        pDevPct: (pDev * 100).toFixed(1),
+        pMermaPct: (mermaReal * 100).toFixed(1),
+        pMargenPct: (pMargen * 100).toFixed(1),
+        costoDev, 
+        costoMerma, 
+        costoAbsorbido, 
+        precioNeto, 
+        impuestoIVA, 
+        precioCatalogo, 
+        ganancia 
+      };
     };
 
-    const fav = calcularEscenario(pctDevBase, pctMermasBase, pctMargenBase);
+    // 1. ESCENARIO IDEAL (DATOS CLIENTE)
+    const ideal = calcularEscenario(pctDevBase, pctMermasBase, pctMargenBase);
 
-    const pctDevPes = Math.min(0.50, pctDevBase * 1.5);
-    const pctMermasPes = Math.min(0.30, pctMermasBase * 2.0);
-    const pes = calcularEscenario(pctDevPes, pctMermasPes, pctMargenBase);
-    
-    const gananciaPesRealEnFav = fav.precioNeto - pes.costoAbsorbido;
-    const margenPesRealEnFav = fav.precioNeto > 0 ? (gananciaPesRealEnFav / fav.precioNeto) * 100 : 0;
+    // 2. ESCENARIO ESTRÉS (+7% DEVOLUCIÓN, +2% PÉRDIDA)
+    const pctDevEstres = Math.min(0.85, pctDevBase + 0.07);
+    const pctMermasEstres = Math.min(0.50, pctMermasBase + 0.02);
+    const estres = calcularEscenario(pctDevEstres, pctMermasEstres, pctMargenBase);
 
-    const opt = calcularEscenario(0.15, 0.01, pctMargenBase);
-    const gananciaOptRealEnFav = fav.precioNeto - opt.costoAbsorbido;
-    const margenOptRealEnFav = fav.precioNeto > 0 ? (gananciaOptRealEnFav / fav.precioNeto) * 100 : 0;
+    // 3. ESCENARIO OPTIMISTA (-5% DEVOLUCIÓN, -3% PÉRDIDA - CON PISO MÍNIMO DEL 1%)
+    const pctDevOpt = Math.max(0.01, pctDevBase - 0.05);
+    const pctMermasOpt = Math.max(0.01, pctMermasBase - 0.03); // 📌 Nunca menor a 1%
+    const optimista = calcularEscenario(pctDevOpt, pctMermasOpt, pctMargenBase);
 
-    const pctMargenObj = Math.min(0.70, pctMargenBase + 0.05);
-    const obj = calcularEscenario(pctDevBase, pctMermasBase, pctMargenObj);
+    // 4. ESCENARIO MARGEN ELEVADO (+5% MARGEN)
+    const pctMargenAlto = Math.min(0.85, pctMargenBase + 0.05);
+    const margenAlto = calcularEscenario(pctDevBase, pctMermasBase, pctMargenAlto);
 
-    let activo = fav;
+    let activo = ideal;
     let margenActivo = pctMargenBase;
     let devActivo = pctDevBase;
     
-    if (escenarioSeleccionado === 'PESIMO') { activo = pes; devActivo = pctDevPes; }
-    if (escenarioSeleccionado === 'OPTIMO') { activo = opt; devActivo = 0.15; }
-    if (escenarioSeleccionado === 'OBJETIVO') { activo = obj; margenActivo = pctMargenObj; }
+    if (escenarioSeleccionado === 'OPTIMISTA') { activo = optimista; devActivo = pctDevOpt; }
+    if (escenarioSeleccionado === 'IDEAL') { activo = ideal; devActivo = pctDevBase; }
+    if (escenarioSeleccionado === 'MARGEN_ALTO') { activo = margenAlto; margenActivo = pctMargenAlto; }
+    if (escenarioSeleccionado === 'ESTRES') { activo = estres; devActivo = pctDevEstres; }
 
     const comisionOp1 = activo.precioNeto * pctComisionExtra;
     const gananciaNetaOp1 = activo.ganancia - comisionOp1;
@@ -257,10 +306,11 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
     return {
       cBase, cRetorno, qty, pctDevBase, pctComisionExtra, pctIVA, pctMargenBase,
-      pctDevFav: (pctDevBase * 100).toFixed(0), pctMermasFav: (pctMermasBase * 100).toFixed(1), fav,
-      pctDevPes: (pctDevPes * 100).toFixed(0), pctMermasPes: (pctMermasPes * 100).toFixed(1), pes, gananciaPesRealEnFav, margenPesRealEnFav,
-      pctDevOpt: '15', pctMermasOpt: '1.0', opt, gananciaOptRealEnFav, margenOptRealEnFav,
-      obj, pctMargenObjetivo: (pctMargenObj * 100).toFixed(0),
+      ideal, estres, optimista, margenAlto,
+      fav: ideal,
+      pes: estres,
+      opt: optimista,
+      obj: margenAlto,
       activo, devActivo, margenActivo,
       comisionOp1, gananciaNetaOp1, margenNetaOp1, totalVentasOp1, totalComisionOp1, totalGananciaOp1, totalCostosOp1,
       precioCatalogoOp2, impuestoOp2, comisionOp2, gananciaNetaOp2, totalVentasOp2, totalComisionOp2, totalGananciaOp2, totalCostosOp2,
@@ -406,14 +456,15 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                   <span className="text-[9px] text-slate-500 block mt-1">Piso Técnico 15%</span>
                 </div>
 
+                {/* 📌 MÍNIMO DE MERMA = 1% */}
                 <div 
                   onClick={notificarCondicionesMermas}
                   className="bg-red-950/20 border border-red-900/40 p-2.5 rounded-xl hover:border-red-500/50 transition-colors"
                 >
                   <div className="flex justify-between items-center text-[10px] font-semibold text-red-300 mb-1.5">
                     <span className="flex items-center">
-                      Merma s/Dev
-                      <Tooltip contenido="Porcentaje de mercancía perdida o destruida calculado estrictamente sobre los paquetes que rebotan/devuelven." />
+                      Mermas
+                      <Tooltip contenido="Porcentaje de mercancía perdida o destruida sobre devoluciones. Mínimo 1%." />
                     </span>
                     <div className="flex items-center gap-1 bg-red-950/80 border border-red-800/60 rounded px-1.5 py-0.5">
                       <input
@@ -435,12 +486,13 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
                     type="range" min="1" max="30" 
                     value={porcentajeMermas} 
                     onChange={(e) => {
-                      setPorcentajeMermas(Number(e.target.value));
+                      const val = Math.max(1, Number(e.target.value));
+                      setPorcentajeMermas(val);
                       notificarCondicionesMermas();
                     }} 
                     className="w-full accent-red-400 cursor-pointer" 
                   />
-                  <span className="text-[9px] text-slate-500 block mt-1">% sobre devoluciones</span>
+                  <span className="text-[9px] text-slate-500 block mt-1">Mínimo obligatorio 1%</span>
                 </div>
               </div>
             </div>
@@ -496,7 +548,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
           </div>
         </div>
 
-        {/* PASO 2: ANÁLISIS DE SENSIBILIDAD CON AUTO-SCROLL */}
+        {/* 📌 PASO 2: ORGANIZACIÓN CRONOLÓGICA Y CROMÁTICA DE LOS 4 ESCENARIOS */}
         <div className="space-y-6 pt-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0DEDC0]/20 to-[#0DEDC0]/5 border border-[#0DEDC0]/40 text-[#0DEDC0] font-black font-mono text-base sm:text-lg shadow-[0_0_15px_rgba(13,237,192,0.2)] shrink-0">
@@ -505,7 +557,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="text-sm sm:text-base md:text-lg font-black text-white uppercase tracking-widest m-0 flex items-center">
                 Análisis de Sensibilidad
-                <Tooltip contenido="Proyección matemática de 4 escenarios para analizar la salud financiera según la efectividad logística." />
+                <Tooltip contenido="Proyección matemática de 4 escenarios organizados de menor a mayor exigencia/riesgo." />
               </h2>
               <span className="text-[10px] sm:text-[11px] font-mono font-normal text-slate-400">
                 (Haz clic en un escenario para trasladar su precio a la propuesta comercial)
@@ -516,156 +568,186 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
             
-            {/* ESCENARIO 1 */}
+            {/* 🟢 ESCENARIO 1: ÓPTIMO (-5% DEV / -3% PÉRDIDA) -> VERDE ESMERALDA */}
             <div 
-              onClick={() => seleccionarEscenarioConScroll('PESIMO')}
+              onClick={() => seleccionarEscenarioConScroll('OPTIMISTA')}
+              className={`relative bg-[#0B1A14]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+                escenarioSeleccionado === 'OPTIMISTA' 
+                  ? 'border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.35)] ring-1 ring-emerald-400/60 scale-[1.02] z-10' 
+                  : 'border-emerald-500/30 hover:border-emerald-400/50'
+              }`}
+            >
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-emerald-400" />
+              <div className="space-y-2 border-b border-emerald-900/30 pb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-black uppercase bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+                    1. Óptimo (-5% / -3%)
+                  </span>
+                  {escenarioSeleccionado === 'OPTIMISTA' && (
+                    <span className="text-[9px] font-mono font-bold bg-emerald-400 text-[#090D16] px-1.5 py-0.5 rounded">
+                      ✓ Activo
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight">
+                  Máxima Eficiencia
+                </h3>
+                {/* 📌 ESTRUCTURA UNIFORME: Devolución % | Mermas % */}
+                <p className="text-[10px] text-emerald-300 font-mono font-bold m-0">
+                  Devolución {metricas.optimista.pDevPct}% | Mermas {metricas.optimista.pMermaPct}%
+                </p>
+                <div className="pt-2">
+                  <span className="text-[9px] text-slate-400 uppercase font-bold block">Precio Competitivo Ajustado</span>
+                  <span className="text-xl font-mono font-black text-emerald-300">{formatoMoneda(metricas.optimista.precioCatalogo)}</span>
+                </div>
+              </div>
+              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-emerald-900/30 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.optimista.precioNeto)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
+                  <div className="flex justify-between text-emerald-400/80"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.optimista.costoMerma)}</span></div>
+                  <div className="flex justify-between text-emerald-400/80"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.optimista.costoDev)}</span></div>
+                </div>
+                <div className="flex justify-between text-emerald-400 font-bold border-t border-slate-800 pt-2 text-[11px] mt-2">
+                  <span>Utilidad Libre:</span><span>{formatoMoneda(metricas.optimista.ganancia)} ({margenDeseado}%)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 🩵 ESCENARIO 2: IDEAL / BASE CLIENTE -> CYAN NEÓN ATOM */}
+            <div 
+              onClick={() => seleccionarEscenarioConScroll('IDEAL')}
+              className={`relative bg-[#0F2330]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+                escenarioSeleccionado === 'IDEAL' 
+                  ? 'border-[#0DEDC0] shadow-[0_0_25px_rgba(13,237,192,0.35)] ring-1 ring-[#0DEDC0]/60 scale-[1.02] z-10' 
+                  : 'border-slate-800 hover:border-[#0DEDC0]/50'
+              }`}
+            >
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-[#0DEDC0]" />
+              <div className="space-y-2 border-b border-slate-800 pb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-black uppercase bg-[#0DEDC0]/10 text-[#0DEDC0] px-2 py-0.5 rounded border border-[#0DEDC0]/30">
+                    2. Ideal (Cliente)
+                  </span>
+                  {escenarioSeleccionado === 'IDEAL' && (
+                    <span className="text-[9px] font-mono font-bold bg-[#0DEDC0] text-[#090D16] px-1.5 py-0.5 rounded">
+                      ✓ Activo
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-sm font-bold text-white m-0 leading-tight">
+                  Base Original Cliente
+                </h3>
+                {/* 📌 ESTRUCTURA UNIFORME: Devolución % | Mermas % */}
+                <p className="text-[10px] text-[#0DEDC0] font-mono font-bold m-0">
+                  Devolución {metricas.ideal.pDevPct}% | Mermas {metricas.ideal.pMermaPct}%
+                </p>
+                <div className="pt-2">
+                  <span className="text-[9px] text-slate-400 uppercase font-bold block">Precio Catálogo Base</span>
+                  <span className="text-xl font-mono font-black text-[#0DEDC0] drop-shadow-sm">{formatoMoneda(metricas.ideal.precioCatalogo)}</span>
+                </div>
+              </div>
+              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-slate-800 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-slate-200"><span className="opacity-80">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.ideal.precioNeto)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.ideal.costoMerma)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.ideal.costoDev)}</span></div>
+                </div>
+                <div className="flex justify-between text-[#0DEDC0] font-bold border-t border-slate-800 pt-2 text-[11px] mt-2">
+                  <span>Utilidad Libre:</span><span>{formatoMoneda(metricas.ideal.ganancia)} ({margenDeseado}%)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 🟡 ESCENARIO 3: MARGEN ELEVADO (+5% MARGEN) -> ÁMBAR NEÓN */}
+            <div 
+              onClick={() => seleccionarEscenarioConScroll('MARGEN_ALTO')}
+              className={`relative bg-gradient-to-b from-[#0F2633] to-[#0A1A24] rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
+                escenarioSeleccionado === 'MARGEN_ALTO' 
+                  ? 'border-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.35)] ring-1 ring-amber-400/60 scale-[1.02] z-10' 
+                  : 'border-amber-900/40 hover:border-amber-400/50'
+              }`}
+            >
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-amber-400" />
+              <div className="space-y-2 border-b border-amber-900/30 pb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-black uppercase bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
+                    3. +5% Margen
+                  </span>
+                  {escenarioSeleccionado === 'MARGEN_ALTO' && (
+                    <span className="text-[9px] font-mono font-bold bg-amber-400 text-[#090D16] px-1.5 py-0.5 rounded">
+                      ★ RECOMENDADO
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-sm font-bold text-white m-0 leading-tight">
+                  Rentabilidad Recargada
+                </h3>
+                {/* 📌 ESTRUCTURA UNIFORME: Devolución % | Mermas % */}
+                <p className="text-[10px] text-amber-300 font-mono font-bold m-0">
+                  Devolución {metricas.margenAlto.pDevPct}% | Mermas {metricas.margenAlto.pMermaPct}%
+                </p>
+                <div className="pt-2">
+                  <span className="text-[9px] text-slate-400 uppercase font-bold block">Precio Catálogo Recargado</span>
+                  <span className="text-xl font-mono font-black text-amber-300">{formatoMoneda(metricas.margenAlto.precioCatalogo)}</span>
+                </div>
+              </div>
+              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-amber-900/30 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.margenAlto.precioNeto)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.margenAlto.costoMerma)}</span></div>
+                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.margenAlto.costoDev)}</span></div>
+                </div>
+                <div className="flex justify-between items-center text-amber-300 font-black border-t border-slate-700 pt-2 text-[11px] mt-2">
+                  <span>Utilidad Libre:</span><span>{formatoMoneda(metricas.margenAlto.ganancia)} ({metricas.margenAlto.pMargenPct}%)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 🔴 ESCENARIO 4: ESTRÉS (+7% DEV / +2% PÉRDIDA) -> ROJO NEÓN */}
+            <div 
+              onClick={() => seleccionarEscenarioConScroll('ESTRES')}
               className={`relative bg-[#1E1118]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
-                escenarioSeleccionado === 'PESIMO' 
+                escenarioSeleccionado === 'ESTRES' 
                   ? 'border-[#FF6B6B] shadow-[0_0_25px_rgba(255,107,107,0.35)] ring-1 ring-[#FF6B6B]/60 scale-[1.02] z-10' 
-                  : 'border-[#FF6B6B]/30 hover:border-[#FF6B6B]/60'
+                  : 'border-red-900/40 hover:border-[#FF6B6B]/60'
               }`}
             >
               <div className="absolute top-0 left-0 w-full h-1.5 bg-[#FF6B6B]" />
               <div className="space-y-2 border-b border-[#FF6B6B]/30 pb-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono font-black uppercase bg-[#FF6B6B]/20 text-[#FF6B6B] px-2 py-0.5 rounded border border-[#FF6B6B]/40">
-                    1. Pésimo
+                    4. Estrés (+7% / +2%)
                   </span>
-                  {escenarioSeleccionado === 'PESIMO' && (
+                  {escenarioSeleccionado === 'ESTRES' && (
                     <span className="text-[9px] font-mono font-bold bg-[#FF6B6B] text-[#090D16] px-1.5 py-0.5 rounded">
                       ✓ Activo
                     </span>
                   )}
                 </div>
-                <h3 className="text-sm font-bold text-white m-0 leading-tight flex items-center justify-between">
-                  Estrés Logístico Máximo
-                  <Tooltip contenido="Simula un rebote crítico de guías (+50%) y mermas dobles para calcular el precio blindado de supervivencia." />
+                <h3 className="text-sm font-bold text-white m-0 leading-tight">
+                  Incremento de Fugas
                 </h3>
-                <p className="text-[10px] text-slate-300 leading-relaxed m-0">Devolución {metricas.pctDevPes}% | Mermas {metricas.pctMermasPes}%</p>
+                {/* 📌 ESTRUCTURA UNIFORME: Devolución % | Mermas % */}
+                <p className="text-[10px] text-[#FF6B6B] font-mono font-bold m-0">
+                  Devolución {metricas.estres.pDevPct}% | Mermas {metricas.estres.pMermaPct}%
+                </p>
                 <div className="pt-2">
-                  <span className="text-[9px] text-slate-400 uppercase font-bold block">Precio de Resguardo Requerido</span>
-                  <span className="text-xl font-mono font-black text-[#FF6B6B] drop-shadow-sm">{formatoMoneda(metricas.pes.precioCatalogo)}</span>
+                  <span className="text-[9px] text-slate-400 uppercase font-bold block">Precio Protegido Requerido</span>
+                  <span className="text-xl font-mono font-black text-[#FF6B6B]">{formatoMoneda(metricas.estres.precioCatalogo)}</span>
                 </div>
               </div>
-              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-[#FF6B6B]/30 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
+              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-red-900/30 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
                 <div className="space-y-1.5">
-                  <div className="flex justify-between text-slate-200"><span className="opacity-80">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.pes.precioNeto)}</span></div>
+                  <div className="flex justify-between text-slate-200"><span className="opacity-80">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.estres.precioNeto)}</span></div>
                   <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
-                  <div className="flex justify-between text-[#FF6B6B]"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.pes.costoMerma)}</span></div>
-                  <div className="flex justify-between text-[#FF6B6B]"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.pes.costoDev)}</span></div>
+                  <div className="flex justify-between text-[#FF6B6B]"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.estres.costoMerma)}</span></div>
+                  <div className="flex justify-between text-[#FF6B6B]"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.estres.costoDev)}</span></div>
                 </div>
                 <div className="flex justify-between text-[#FF6B6B] font-bold border-t border-slate-800 pt-2 text-[11px] mt-2">
-                  <span>Utilidad:</span><span>{formatoMoneda(metricas.pes.ganancia)} ({margenDeseado}%)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* ESCENARIO 2 */}
-            <div 
-              onClick={() => seleccionarEscenarioConScroll('FAVORABLE')}
-              className={`relative bg-[#0F2330]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
-                escenarioSeleccionado === 'FAVORABLE' ? 'border-blue-400 shadow-[0_0_25px_rgba(96,165,250,0.3)] ring-1 ring-blue-400/50 scale-[1.02] z-10' : 'border-blue-900/40 hover:border-blue-400/40'
-              }`}
-            >
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-400" />
-              <div className="space-y-2 border-b border-blue-900/30 pb-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-black uppercase bg-blue-500/10 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30">2. Favorable</span>
-                  {escenarioSeleccionado === 'FAVORABLE' && <span className="text-[9px] font-mono font-bold bg-blue-400 text-[#090D16] px-1.5 py-0.5 rounded">✓ Activo</span>}
-                </div>
-                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight flex items-center justify-between">
-                  Proyección Base Real
-                  <Tooltip contenido="Punto de equilibrio estándar basado en tus porcentajes reales ingresados en la sección anterior." />
-                </h3>
-                <p className="text-[10px] text-slate-400 leading-relaxed m-0">Devolución {porcentajeDevoluciones}% | Mermas {porcentajeMermas}%</p>
-                <div className="pt-2">
-                  <span className="text-[9px] text-slate-500 uppercase font-bold block">Precio Catálogo Base</span>
-                  <span className="text-xl font-mono font-black text-white">{formatoMoneda(metricas.fav.precioCatalogo)}</span>
-                </div>
-              </div>
-              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-blue-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.fav.precioNeto)}</span></div>
-                  <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
-                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.fav.costoMerma)}</span></div>
-                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.fav.costoDev)}</span></div>
-                </div>
-                <div className="flex justify-between text-blue-300 font-bold border-t border-slate-800 pt-2 text-[11px] mt-2">
-                  <span>Utilidad Libre:</span><span>{formatoMoneda(metricas.fav.ganancia)} ({margenDeseado}%)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* ESCENARIO 3 */}
-            <div 
-              onClick={() => seleccionarEscenarioConScroll('OPTIMO')}
-              className={`relative bg-[#0B1A14]/95 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
-                escenarioSeleccionado === 'OPTIMO' ? 'border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400/50 scale-[1.02] z-10' : 'border-emerald-500/30 hover:border-emerald-400/40'
-              }`}
-            >
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-emerald-400" />
-              <div className="space-y-2 border-b border-emerald-900/30 pb-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-black uppercase bg-emerald-500/10 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">3. Óptimo</span>
-                  {escenarioSeleccionado === 'OPTIMO' && <span className="text-[9px] font-mono font-bold bg-emerald-400 text-[#090D16] px-1.5 py-0.5 rounded">✓ Activo</span>}
-                </div>
-                <h3 className="text-sm font-bold text-slate-200 m-0 leading-tight flex items-center justify-between">
-                  Piso Eficiencia (Control Total)
-                  <Tooltip contenido="Representa la máxima eficiencia con entregas sobre el 85% y cero merma física." />
-                </h3>
-                <p className="text-[10px] text-slate-400 leading-relaxed m-0">Devolución 15% | Mermas 1%</p>
-                <div className="pt-2">
-                  <span className="text-[9px] text-slate-500 uppercase font-bold block">Precio Ultra Competitivo</span>
-                  <span className="text-xl font-mono font-black text-emerald-300">{formatoMoneda(metricas.opt.precioCatalogo)}</span>
-                </div>
-              </div>
-              <div className="bg-[#090D16]/90 p-3.5 rounded-xl border border-emerald-900/20 font-mono text-[10px] flex-1 flex flex-col justify-between space-y-2">
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.opt.precioNeto)}</span></div>
-                  <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
-                  <div className="flex justify-between text-emerald-400/80"><span>(-) Mermas (Piso 1%):</span><span>-{formatoMoneda(metricas.opt.costoMerma)}</span></div>
-                  <div className="flex justify-between text-emerald-400/80"><span>(-) Devolución (Piso 15%):</span><span>-{formatoMoneda(metricas.opt.costoDev)}</span></div>
-                </div>
-                <div className="flex justify-between text-emerald-400 font-bold border-t border-slate-800 pt-2 text-[11px] mt-2">
-                  <span>Utilidad Libre:</span><span>{formatoMoneda(metricas.opt.ganancia)} ({margenDeseado}%)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* ESCENARIO 4 */}
-            <div 
-              onClick={() => seleccionarEscenarioConScroll('OBJETIVO')}
-              className={`relative bg-gradient-to-b from-[#0F2633] to-[#0A1A24] rounded-2xl p-5 shadow-[0_10px_40px_rgba(13,237,192,0.15)] flex flex-col justify-between space-y-4 cursor-pointer transition-all duration-300 border-2 ${
-                escenarioSeleccionado === 'OBJETIVO' ? 'border-[#0DEDC0] shadow-[0_0_30px_rgba(13,237,192,0.4)] ring-1 ring-[#0DEDC0]/50 scale-[1.02] z-10' : 'border-[#0DEDC0]/40 hover:border-[#0DEDC0]/80'
-              }`}
-            >
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-[#0DEDC0] shadow-[0_0_15px_rgba(13,237,192,0.8)]" />
-              
-              <div className="space-y-2 border-b border-[#0DEDC0]/30 pb-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-black uppercase bg-[#0DEDC0]/10 text-[#0DEDC0] px-2 py-0.5 rounded border border-[#0DEDC0]/30">4. Objetivo B2B</span>
-                  {escenarioSeleccionado === 'OBJETIVO' && <span className="text-[9px] font-mono font-bold bg-[#0DEDC0] text-[#090D16] px-1.5 py-0.5 rounded">★ RECOMENDADO</span>}
-                </div>
-                <h3 className="text-sm font-black text-white m-0 leading-tight flex items-center justify-between">
-                  Estructura Aterrizada
-                  <Tooltip contenido="Añade un buffer (+5%) al margen libre para amortiguar el tiempo de espera hasta que la plataforma libere la billetera." />
-                </h3>
-                <p className="text-[10px] text-[#0DEDC0]/80 leading-relaxed m-0">Margen protegido +5% Buffer Caja Mínima.</p>
-                <div className="pt-2">
-                  <span className="text-[9px] text-[#0DEDC0]/70 uppercase font-bold block">Precio Catálogo Ideal</span>
-                  <span className="text-2xl font-mono font-black text-[#0DEDC0] drop-shadow-md">{formatoMoneda(metricas.obj.precioCatalogo)}</span>
-                </div>
-              </div>
-
-              <div className="bg-[#090D16]/95 p-3.5 rounded-xl border border-[#0DEDC0]/30 font-mono text-[10px] relative z-10 flex-1 flex flex-col justify-between space-y-2">
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-slate-300"><span className="opacity-70">Ingreso Neto (Sin IVA):</span><span className="font-bold">{formatoMoneda(metricas.obj.precioNeto)}</span></div>
-                  <div className="flex justify-between text-slate-400"><span>(-) Costo Base COGS:</span><span>-{formatoMoneda(metricas.cBase)}</span></div>
-                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Mermas:</span><span>-{formatoMoneda(metricas.obj.costoMerma)}</span></div>
-                  <div className="flex justify-between text-slate-400"><span>(-) Prov. Devolución:</span><span>-{formatoMoneda(metricas.obj.costoDev)}</span></div>
-                </div>
-                <div className="flex justify-between items-center text-[#0DEDC0] font-black border-t border-slate-700 pt-2 text-[11px] mt-2">
-                  <span>Utilidad + Buffer:</span><span>{formatoMoneda(metricas.obj.ganancia)} ({metricas.pctMargenObjetivo}%)</span>
+                  <span>Utilidad:</span><span>{formatoMoneda(metricas.estres.ganancia)} ({margenDeseado}%)</span>
                 </div>
               </div>
             </div>
@@ -673,7 +755,7 @@ export default function Pagina1({ variante = 'hexGrid' }: Pagina1Props) {
           </div>
         </div>
 
-        {/* CONTENEDOR DEL PASO 3 CON REF DE SCROLL */}
+        {/* CONTENEDOR DEL PASO 3 CON REF DE SCROLL HACIA PAGINA2 */}
         <div ref={propuestaRef}>
           <Pagina2 
             metricas={metricas}
