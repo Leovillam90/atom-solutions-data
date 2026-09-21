@@ -125,15 +125,20 @@ export default function CancelacionModal({
         throw new Error(resData.error || 'Ocurrió un error al procesar la solicitud.');
       }
 
-      // 2. Notificación por Correo Electrónico a info@atomsolutionsdata.com
+      // 2. Notificación por Correo Electrónico a info@atomsolutionsdata.com vía API Route
       try {
-        await fetch('/api/notificar-cancelacion', {
+        const emailRes = await fetch('/api/notificar-cancelacion', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payloadSolicitud),
         });
+
+        const emailData = await emailRes.json();
+        if (!emailRes.ok || !emailData.success) {
+          console.error('Error enviando notificación SMTP:', emailData.error);
+        }
       } catch (emailErr) {
-        console.warn('Error enviando notificación por correo:', emailErr);
+        console.warn('Error enviando correo de cancelación:', emailErr);
       }
 
       setPaso(4);

@@ -1,24 +1,20 @@
 'use client';
 
 import React from 'react';
-import { Kicker, H2, Subtitulo, ESTILOS_TEXTO, Highlight } from '@/app/complementos/Tipografia';
+import { Kicker, H2, Subtitulo, ESTILOS_TEXTO } from '@/app/complementos/Tipografia';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
-import { useCMS } from '@/app/context/CMSContext';
 
 interface Seccion6Props {
   variante?: TipoFondo;
 }
 
 export default function Seccion6({ variante = 'hexGrid' }: Seccion6Props) {
-  const { cms } = useCMS();
-
-  // Mapeo de datos dinámicos desde Firestore CMS con fallbacks
-  const dataCierre = cms?.landing?.seccion6_cierre;
-  const kickerTexto = dataCierre?.kicker || 'AUDITORÍA FINANCIERA';
-  const tituloTexto = dataCierre?.titulo || 'ATOM no te cuesta dinero, te lo multiplica.';
-  const subtituloTexto = dataCierre?.subtitulo || 'Nuestros proveedores recuperan en promedio un 15% de ganancia real que tenían perdida en la calle durante sus primeros 30 días de operación.';
-  const ctaTexto = dataCierre?.cta_texto || 'VER CUÁNTO DINERO PUEDO RECUPERAR →';
-  const ctaLink = dataCierre?.cta_link || 'https://atomapp.com.co/register';
+  // Valores estáticos locales sin dependencia de CMSContext
+  const kickerTexto = 'AUDITORÍA FINANCIERA';
+  const tituloTexto = 'ATOM no te cuesta dinero, te lo multiplica.';
+  const subtituloTexto = 'Nuestros proveedores recuperan en promedio un 15% de ganancia real que tenían perdida en la calle durante sus primeros 30 días de operación.';
+  const ctaTexto = 'VER CUÁNTO DINERO PUEDO RECUPERAR →';
+  const ctaLink = 'https://atomapp.com.co/register';
 
   return (
     <section className="relative z-10 py-20 px-6 w-full overflow-hidden">
@@ -29,7 +25,7 @@ export default function Seccion6({ variante = 'hexGrid' }: Seccion6Props) {
       {/* 2. CAJÓN PRINCIPAL */}
       <div className="relative max-w-7xl mx-auto rounded-3xl overflow-hidden p-8 sm:p-12 lg:p-16 border border-[#0DEDC0]/40 shadow-[0_25px_60px_rgba(0,0,0,0.5)]">
         
-        {/* FONDO INTERIOR DEL CAJÓN (Corregido a variante válida 'atomGreenDots') */}
+        {/* FONDO INTERIOR DEL CAJÓN */}
         <Fondos variante="atomGreenDots" modo="absolute" />
 
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">

@@ -27,7 +27,7 @@ interface MenuProps {
   modoTema?: ModoTema;
 }
 
-export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: MenuProps) {
+export default function Menu({ variante = 'gridCyber', modoTema = 'auto' }: MenuProps) {
   const pathname = usePathname();
   const esClaro = esFondoClaro(variante, modoTema);
 
@@ -35,12 +35,9 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
   const [herramientasMobileOpen, setHerramientasMobileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Ocultar menú en la app principal
+  // Ocultar menú en el portal operativo
   if (pathname === '/atomapp') return null;
 
-  /**
-   * ⚡ EVALUADOR DE ESTILOS INDIVIDUALES (HOVER Y ACTIVO)
-   */
   const getLinkStyles = (href: string) => {
     const esActivo = pathname === href;
 
@@ -55,15 +52,19 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
       : 'text-slate-300 hover:text-[#0DEDC0] font-semibold transition-colors duration-200';
   };
 
-  const bgHeader = esClaro ? 'bg-[#0DEDC0]' : 'bg-[#091A23]';
+  // Fondo del header adaptado para resaltar la retícula gridCyber con difuminado cristal
+  const bgHeader = esClaro 
+    ? 'bg-[#0DEDC0] border-b border-[#102935]/20' 
+    : 'bg-[#070B14]/80 backdrop-blur-md border-b border-[#0DEDC0]/30 shadow-[0_4px_20px_rgba(13,237,192,0.08)]';
+
   const bgDropdown = esClaro 
     ? 'bg-white border-[#102935]/20 text-[#102935]' 
     : 'bg-[#091A23] border-[#0DEDC0]/40 text-slate-200';
 
   return (
-    <header className={`sticky top-0 z-[1000] overflow-visible transition-colors duration-300 ${bgHeader}`}>
-      {/* CAPA DE FONDO DINÁMICO */}
-      <div className="absolute inset-0 z-0 pointer-events-none w-full h-full opacity-60 overflow-hidden">
+    <header className={`sticky top-0 relative z-[1000] overflow-visible transition-colors duration-300 ${bgHeader}`}>
+      {/* CAPA DE FONDO DINÁMICO (RETÍCULA CIAN FULL OPACIDAD) */}
+      <div className="absolute inset-0 z-0 pointer-events-none w-full h-full opacity-100 overflow-hidden">
         <Fondos variante={variante} modo="absolute" />
       </div>
 
@@ -79,7 +80,7 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
             />
           </Link>
 
-          {/* NAVEGACIÓN DESKTOP INDIVIDUALIZADA */}
+          {/* NAVEGACIÓN DESKTOP */}
           <nav className="hidden lg:flex flex-1 items-center justify-evenly max-w-4xl px-4 text-xs xl:text-sm">
             
             <Link href="/" className={`whitespace-nowrap ${getLinkStyles('/')}`}>
@@ -188,7 +189,7 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
         </div>
       </div>
 
-      {/* MENÚ MÓVIL COMPLETO CON ACORDEÓN TÁCTIL */}
+      {/* MENÚ MÓVIL */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div 
@@ -213,7 +214,6 @@ export default function Menu({ variante = 'atomGreenTop', modoTema = 'auto' }: M
               <SlidersHorizontal className="w-4 h-4" /> Simuladores
             </Link>
 
-            {/* ACORDEÓN MÓVIL "HERRAMIENTAS" */}
             <div className="border-b border-white/10 pb-2">
               <button 
                 type="button"

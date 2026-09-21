@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // ⚡ Importamos el detector de ruta
+import { usePathname } from 'next/navigation';
 import { Mail, Phone, Globe, ShieldCheck } from 'lucide-react';
 import Fondos, { TipoFondo } from '@/app/complementos/Fondos';
 import { Kicker, Texto, ModoTema, esFondoClaro } from '@/app/complementos/Tipografia';
@@ -72,9 +72,8 @@ const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 export default function Contacto({ variante = 'spotlightCyan', modoTema = 'auto' }: ContactoProps) {
-  const pathname = usePathname(); // ⚡ Obtenemos la ruta actual
+  const pathname = usePathname();
 
-  // ⚡ SI ESTAMOS EN EL PORTAL OPERATIVO, EL FOOTER SE OCULTA COMPLETAMENTE
   if (pathname === '/atomapp') {
     return null;
   }
