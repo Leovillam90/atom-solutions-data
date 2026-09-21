@@ -118,10 +118,22 @@ export default function CancelacionModal({
     };
 
     try {
+      // 1. Guardar en Base de Datos (Firestore)
       const resData = await registrarSolicitudCancelacion(payloadSolicitud);
 
       if (!resData.success) {
         throw new Error(resData.error || 'Ocurrió un error al procesar la solicitud.');
+      }
+
+      // 2. Notificación por Correo Electrónico a info@atomsolutionsdata.com
+      try {
+        await fetch('/api/notificar-cancelacion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payloadSolicitud),
+        });
+      } catch (emailErr) {
+        console.warn('Error enviando notificación por correo:', emailErr);
       }
 
       setPaso(4);
@@ -364,7 +376,7 @@ export default function CancelacionModal({
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[10px] sm:text-[11px] text-amber-300 flex items-center gap-2.5">
                 <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400" />
                 <span>
-                  Al confirmar, se registrará la solicitud en el sistema y notificará a la gerencia directiva.
+                  Al confirmar, se registrará la solicitud en el sistema y notificará a la gerencia directiva a info@atomsolutionsdata.com.
                 </span>
               </div>
 
@@ -404,7 +416,7 @@ export default function CancelacionModal({
                 Solicitud Enviada Exitosamente
               </h3>
               <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed max-w-sm mx-auto">
-                Hemos enviado los detalles completos de tu solicitud a nuestro equipo directivo. Revisaremos tu cuenta y nos pondremos en contacto a través de tu correo corporativo.
+                Hemos enviado la notificación oficial a la gerencia (info@atomsolutionsdata.com) y registrado los detalles en el sistema. Nos pondremos en contacto a través de tu correo corporativo.
               </p>
               <button
                 onClick={onClose}
