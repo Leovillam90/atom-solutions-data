@@ -12,8 +12,7 @@
 }
 
 /* 3. Variables Nativas CSS y Modos Claro / Oscuro */
-:root {
-  --background: #ffffff;
+:root {  --background: #ffffff;
   --foreground: #102935;
 
   --atom-gunmetal: #102935;
