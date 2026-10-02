@@ -9,6 +9,7 @@ interface Seccion2Props {
 
 const PAISES = [
   { nombre: 'Colombia', code: 'co' },
+  { nombre: 'Costa Rica', code: 'cr' },
   { nombre: 'Ecuador', code: 'ec' },
   { nombre: 'México', code: 'mx' },
   { nombre: 'Paraguay', code: 'py' },

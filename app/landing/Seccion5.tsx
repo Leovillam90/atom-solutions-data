@@ -24,23 +24,6 @@ interface Seccion5Props {
 
 const PLANES: readonly PlanPricing[] = Object.freeze([
   {
-    id: 'despegue',
-    nombre: 'DESPEGUE',
-    badge: null,
-    perfil: 'Bodegas nacientes en fase de pruebas',
-    precioCOP: '$55.000',
-    precioUSD: '$15 USD',
-    destacadoTipo: null,
-    caracteristicas: [
-      { texto: '1 Conexión Nativa a Dropi' },
-      { texto: 'Hasta 700 guías auditadas/mes' },
-      { texto: 'Radar de Detección de Fugas' },
-      { texto: 'Auditoría en Tiempo Real' },
-      { texto: 'Soporte Táctico Estándar' },
-    ],
-    cta: 'Iniciar con Despegue →',
-  },
-  {
     id: 'escala',
     nombre: 'ESCALA',
     badge: null,
@@ -144,8 +127,8 @@ export default function Seccion5({ variante = 'spotlightCyan' }: Seccion5Props) 
           </div>
         </div>
 
-        {/* PARRILLA DE PLANES (TODOS MISMO TAMAÑO) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch pt-4">
+        {/* PARRILLA DE PLANES (3 COLUMNAS) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch pt-4 max-w-6xl mx-auto">
           {PLANES.map((plan, idx) => {
             const esExperto = plan.destacadoTipo === 'experto';
             const esControl = plan.destacadoTipo === 'control';
