@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
@@ -26,7 +27,14 @@ export default function RootLayout({
   return (
     <html lang="es" className="scroll-smooth">
       <head>
-        {/* SCRIPT DE META PIXEL */}
+        {/* Preconexión DNS anticipada para que el Pixel no demore la carga móvil */}
+        <link rel="preconnect" href="https://connect.facebook.net" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
+      </head>
+      
+      <body className="bg-[#091A23] text-white antialiased m-0 p-0 min-h-screen flex flex-col justify-between selection:bg-[#0DEDC0] selection:text-[#061217]">
+        
+        {/* SCRIPT DE META PIXEL: Correctamente ubicado dentro de body con strategy afterInteractive */}
         <Script
           id="meta-pixel"
           strategy="afterInteractive"
@@ -45,18 +53,27 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body className="bg-[#091A23] text-white antialiased m-0 p-0 min-h-screen flex flex-col justify-between selection:bg-[#0DEDC0] selection:text-[#061217]">
-        
-        {/* 1. MENÚ GLOBAL (Usa la variante configurada en Menu.tsx) */}
+
+        {/* RESPALDO NOSCRIPT: Garantiza registrar visitas sin bloquear navegación */}
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            src={`https://www.facebook.com/tr?id=${PIXEL_ID}&ev=PageView&noscript=1`}
+            alt=""
+          />
+        </noscript>
+
+        {/* 1. MENÚ GLOBAL */}
         <Menu />
 
-        {/* 2. CONTENIDO PRINCIPAL DE LA PÁGINA */}
+        {/* 2. CONTENIDO PRINCIPAL */}
         <main className="flex-1 w-full relative z-10">
           {children}
         </main>
         
-        {/* 3. PIE DE PÁGINA GLOBAL (Usa la variante configurada en Contacto.tsx) */}
+        {/* 3. PIE DE PÁGINA GLOBAL */}
         <Contacto />
 
       </body>

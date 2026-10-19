@@ -1,22 +1,31 @@
-'use client';
-
+// src/app/page.tsx
 import React from 'react';
-import Seccion1 from './landing/Seccion1';
-import Seccion2 from './landing/Seccion2';
-import Seccion3 from './landing/Seccion3';
-import Seccion4 from './landing/Seccion4';
-import Seccion5 from './landing/Seccion5';
-import Seccion6 from './landing/Seccion6';
-import ExitIntentModal from '@/app/complementos/ExitIntentModal'; // 👈 Importación del modal
+import dynamic from 'next/dynamic';
+import Seccion1 from './landing/Seccion1'; // Hero principal: carga inmediata (Above the fold)
+
+// =========================================================================
+// CARGA DIFERIDA (CODE-SPLITTING): NO BLOQUEAN EL RENDER INICIAL EN CELULARES
+// =========================================================================
+const ExitIntentModal = dynamic(() => import('@/app/complementos/ExitIntentModal'));
+const Seccion2 = dynamic(() => import('./landing/Seccion2'));
+const Seccion3 = dynamic(() => import('./landing/Seccion3'));
+const Seccion4 = dynamic(() => import('./landing/Seccion4'));
+const Seccion5 = dynamic(() => import('./landing/Seccion5'));
+const Seccion6 = dynamic(() => import('./landing/Seccion6'));
+
+export const metadata = {
+  title: 'ATOM PRO · E-commerce Intelligence',
+  description: 'Control de logística, rentabilidad y auditoría de capital en tiempo real.',
+};
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#070B14] w-full overflow-x-hidden">
       
-      {/* RECEPTOR DE INTENTO DE SALIDA DE TRÁFICO (META ADS) */}
+      {/* RECEPTOR DE INTENTO DE SALIDA DE TRÁFICO (ASÍNCRONO) */}
       <ExitIntentModal />
 
-      {/* SECCIÓN 1: HERO PRINCIPAL */}
+      {/* SECCIÓN 1: HERO PRINCIPAL (MÁXIMA PRIORIDAD VISUAL EN MÓVILES) */}
       <Seccion1 variante="perspectiveGrid" />
 
       {/* SECCIÓN 2: MARQUEE PAÍSES LATAM */}
